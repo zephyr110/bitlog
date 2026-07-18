@@ -1,10 +1,14 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useTheme } from "next-themes"
 import { useT } from "@/components/layout/trans"
+import { useLocale } from "@/components/layout/i18n-provider"
 
 export function CommentSection() {
   const { t } = useT()
+  const { locale } = useLocale()
+  const { resolvedTheme } = useTheme()
   const ref = useRef<HTMLDivElement>(null)
   const initialized = useRef(false)
   const [mounted, setMounted] = useState(false)
@@ -42,8 +46,8 @@ export function CommentSection() {
     script.setAttribute("data-reactions-enabled", "1")
     script.setAttribute("data-emit-metadata", "0")
     script.setAttribute("data-input-position", "bottom")
-    script.setAttribute("data-theme", "preferred_color_scheme")
-    script.setAttribute("data-lang", "en")
+    script.setAttribute("data-theme", resolvedTheme || "preferred_color_scheme")
+    script.setAttribute("data-lang", locale === "zh" ? "zh-CN" : "en")
     script.setAttribute("crossorigin", "anonymous")
     script.async = true
 
