@@ -1,0 +1,100 @@
+<h2>Phase 1 · 全局交互规范</h2>
+<p class="subtitle">统一三种状态组件，替换所有页面的零散实现</p>
+
+<div class="section">
+  <h3>1. Skeleton 骨架屏 <span class="label">替换所有 Spinner</span></h3>
+  <p class="subtitle">已安装 shadcn Skeleton，创建语义化组合变体</p>
+</div>
+
+<div class="cards">
+  <div class="card">
+    <div class="card-image" style="padding:1rem;background:var(--bg-muted)">
+      <div style="display:flex;gap:1rem">
+        <div style="width:40%;">
+          <div style="height:1rem;background:var(--border);border-radius:4px;width:60%;margin-bottom:0.5rem"></div>
+          <div style="height:0.75rem;background:var(--border);border-radius:4px;width:80%;margin-bottom:0.5rem"></div>
+          <div style="height:0.75rem;background:var(--border);border-radius:4px;width:40%"></div>
+        </div>
+        <div style="width:60%;">
+          <div style="height:8rem;background:var(--border);border-radius:8px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h4>CardSkeleton</h4>
+      <p>Dashboard 统计卡片加载</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-image" style="padding:1rem;background:var(--bg-muted)">
+      <div style="display:flex;flex-direction:column;gap:0.5rem">
+        <div style="height:2.5rem;background:var(--border);border-radius:6px;width:100%"></div>
+        <div style="height:2.5rem;background:var(--border);border-radius:6px;width:100%"></div>
+        <div style="height:2.5rem;background:var(--border);border-radius:6px;width:100%"></div>
+        <div style="height:2.5rem;background:var(--border);border-radius:6px;width:100%"></div>
+        <div style="height:2.5rem;background:var(--border);border-radius:6px;width:100%"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h4>TableSkeleton</h4>
+      <p>Posts 列表 / Media 网格加载</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-image" style="padding:1rem;background:var(--bg-muted)">
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
+        <div style="height:2rem;background:var(--border);border-radius:6px;width:30%"></div>
+        <div style="height:1rem;background:var(--border);border-radius:4px;width:100%"></div>
+        <div style="height:1rem;background:var(--border);border-radius:4px;width:100%"></div>
+        <div style="height:1rem;background:var(--border);border-radius:4px;width:60%"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h4>FormSkeleton</h4>
+      <p>PostEditor 加载时占位</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:2rem">
+  <h3>2. EmptyState 空状态 <span class="label">统一组件</span></h3>
+</div>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">当前：各页面零散实现</div>
+    <div class="mockup-body" style="text-align:center;padding:2rem">
+      <p style="color:var(--muted)">posts: 大号图标 + 标题 + 描述 + CTA</p>
+      <hr style="margin:1rem 0">
+      <p style="color:var(--muted)">media: 大号图标 + 标题 + 描述(无CTA)</p>
+      <hr style="margin:1rem 0">
+      <p style="color:var(--muted)">dashboard: 文字 + 链接(无图标)</p>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">优化后：统一 &lt;EmptyState /&gt;</div>
+    <div class="mockup-body" style="text-align:center;padding:2rem">
+      <div style="font-size:3rem;margin-bottom:0.75rem">📝</div>
+      <h4 style="margin-bottom:0.25rem">暂无文章</h4>
+      <p style="color:var(--muted);margin-bottom:1rem">开始创作你的第一篇文章吧</p>
+      <button class="mock-button">✚ 新建文章</button>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:2rem">
+  <h3>3. Toast 通知 <span class="label">语义化 + i18n 全覆盖</span></h3>
+  <p class="subtitle">统一所有 toast 调用，消除硬编码英文，增加语义图标</p>
+  
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem">
+    <div style="padding:0.75rem 1.25rem;background:#dcfce7;color:#166534;border-radius:8px;font-size:0.875rem;display:flex;align-items:center;gap:0.5rem">
+      ✅ 文章已发布
+    </div>
+    <div style="padding:0.75rem 1.25rem;background:#fef3c7;color:#92400e;border-radius:8px;font-size:0.875rem;display:flex;align-items:center;gap:0.5rem">
+      ⚠️ 网络错误，请重试
+    </div>
+    <div style="padding:0.75rem 1.25rem;background:#fee2e2;color:#991b1b;border-radius:8px;font-size:0.875rem;display:flex;align-items:center;gap:0.5rem">
+      ❌ 删除失败
+    </div>
+  </div>
+</div>

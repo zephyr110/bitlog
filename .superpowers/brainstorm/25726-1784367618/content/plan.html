@@ -1,0 +1,99 @@
+<h2>实施计划：分 3 个阶段</h2>
+<p class="subtitle">由基础设施 → 核心体验 → 视觉打磨，每阶段可独立验证</p>
+
+<div class="section">
+  <h3>Phase 1 · 基础设施 <span class="label" style="background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:4px;font-size:0.75rem;">优先</span></h3>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-body">
+        <h4>6. 全局交互规范</h4>
+        <p>创建统一的 <code>Skeleton</code> 骨架屏组件替代所有 inline spinner；统一 <code>ErrorBoundary</code> 错误处理；标准化空状态组件 <code>EmptyState</code></p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h4>5. 侧边栏交互</h4>
+        <p>快捷键 Ctrl+B 折叠、面包屑导航、展开/收起动画优化、活跃状态指示器增强</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h4>8. 视觉细节打磨</h4>
+        <p>统一圆角（rounded-xl 卡片）、阴影层级（sm/md/lg）、过渡动画（duration-200）、色彩语义（success/warning/destructive）</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Phase 2 · 核心体验</h3>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-body">
+        <h4>2. 文章编辑器升级</h4>
+        <p>媒体库按钮 → 弹窗选图插入 Markdown、Ctrl+S 快捷键、30s 自动保存到 localStorage、字数/阅读时间实时显示</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h4>3. 文章列表改进</h4>
+        <p>前端分页（每页 10 条）、状态筛选标签（全部/已发布/草稿）、按日期/标题排序</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h4>1. 仪表盘增强</h4>
+        <p>用 Skeleton 替代 Spinner、图表区域增加卡片阴影、统计数据增加环比变化指示、最近文章改为列表带缩略图</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h4>7. 设置页扩展</h4>
+        <p>新增站点信息表单（名称、描述、Logo URL、社交链接），修改后更新 siteConfig 和 .env.local</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Phase 3 · 增强功能</h3>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-body">
+        <h4>4. 媒体管理器完善</h4>
+        <p>拖拽上传区（Drag & Drop）、批量选择删除、缩略图网格优化、复制反馈动画</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>技术方案</h3>
+  <p class="subtitle">所有组件基于 shadcn/ui，不引入额外设计系统</p>
+
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>将创建的新组件</h4>
+      <ul>
+        <li><code>Skeleton</code> — 内容占位骨架屏（已安装）</li>
+        <li><code>EmptyState</code> — 统一空状态（图标+标题+描述+CTA）</li>
+        <li><code>MediaPicker</code> — 媒体选择弹窗</li>
+        <li><code>Pagination</code> — 分页组件</li>
+        <li><code>Breadcrumb</code> — 面包屑导航</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>将增强的现有组件</h4>
+      <ul>
+        <li><code>PostEditor</code> — 媒体库集成 + 自动保存</li>
+        <li><code>AdminSidebar</code> — 快捷键 + 面包屑</li>
+        <li><code>Dashboard</code> — 骨架屏 + 视觉增强</li>
+        <li><code>MediaManager</code> — 拖拽上传 + 批量删除</li>
+        <li><code>Settings</code> — 站点配置表单</li>
+      </ul>
+    </div>
+  </div>
+</div>

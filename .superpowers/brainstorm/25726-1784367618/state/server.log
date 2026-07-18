@@ -1,0 +1,12 @@
+{"type":"server-started","port":58355,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:58355","screen_dir":"/Users/zephyr/code/bitlog/.superpowers/brainstorm/25726-1784367618/content","state_dir":"/Users/zephyr/code/bitlog/.superpowers/brainstorm/25726-1784367618/state"}
+{"type":"screen-added","file":"/Users/zephyr/code/bitlog/.superpowers/brainstorm/25726-1784367618/content/priorities.html"}
+{"source":"user-event","type":"click","text":"1\n    \n      仪表盘增强\n      数据更丰富（访问统计、趋势图），布局更合理，加载骨架屏","choice":"dashboard","id":null,"timestamp":1784367776859}
+{"source":"user-event","type":"click","text":"2\n    \n      文章编辑器升级\n      媒体库集成插入图片、Ctrl+S 保存、自动草稿恢复、字数统计","choice":"editor","id":null,"timestamp":1784367778743}
+{"source":"user-event","type":"click","text":"3\n    \n      文章列表改进\n      分页加载、批量操作、标签/状态筛选、排序切换","choice":"posts-list","id":null,"timestamp":1784367779963}
+{"source":"user-event","type":"click","text":"4\n    \n      媒体管理器完善\n      拖拽上传区、批量删除、文件夹分类、图片搜索","choice":"media","id":null,"timestamp":1784367783298}
+{"source":"user-event","type":"click","text":"5\n    \n      侧边栏交互\n      键盘快捷键、面包屑、展开收起动画、活跃状态指示","choice":"sidebar","id":null,"timestamp":1784367784716}
+{"source":"user-event","type":"click","text":"6\n    \n      全局交互规范\n      统一错误处理、加载骨架屏、一致的空状态、Toast 风格统一","choice":"global","id":null,"timestamp":1784367786484}
+{"source":"user-event","type":"click","text":"7\n    \n      设置页扩展\n      站点名称/Logo/社交链接可在线修改，实时预览","choice":"settings","id":null,"timestamp":1784367790537}
+{"source":"user-event","type":"click","text":"8\n    \n      视觉细节打磨\n      微交互、过渡动画、间距/圆角/阴影统一、色彩语义化","choice":"visual","id":null,"timestamp":1784367791771}
+{"type":"screen-added","file":"/Users/zephyr/code/bitlog/.superpowers/brainstorm/25726-1784367618/content/plan.html"}
+{"type":"screen-added","file":"/Users/zephyr/code/bitlog/.superpowers/brainstorm/25726-1784367618/content/phase1-global.html"}

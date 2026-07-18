@@ -4,9 +4,11 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { PostStats } from "@/components/admin/post-stats"
-import { Spinner } from "@/components/ui/spinner"
+import { CardSkeleton, ListSkeleton } from "@/components/ui/loading"
+import { EmptyState } from "@/components/ui/empty-state"
 import { useT } from "@/components/layout/trans"
 import { apiFetch } from "@/lib/api-client"
+import { FileText } from "lucide-react"
 import { type PostSummary } from "@/types"
 
 export default function AdminDashboardPage() {
@@ -37,8 +39,16 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner />
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-8 w-32 bg-muted animate-pulse rounded-md" />
+            <div className="h-4 w-64 bg-muted animate-pulse rounded-md" />
+          </div>
+        </div>
+        <CardSkeleton count={4} />
+        <div className="h-64 bg-muted animate-pulse rounded-xl" />
+        <ListSkeleton items={5} />
       </div>
     )
   }
@@ -115,17 +125,19 @@ export default function AdminDashboardPage() {
       <div>
         <h2 className="text-xl font-semibold mb-4">{t("admin.recentPosts") as string}</h2>
         {posts.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              {t("admin.noPostsYet") as string}{" "}
+          <EmptyState
+            icon={<FileText size={32} className="text-muted-foreground" />}
+            title={t("admin.noPostsYet") as string}
+            description={t("admin.noPostsYetDesc") as string}
+            action={
               <Link
                 href="/admin/posts/new"
-                className="text-primary hover:underline"
+                className="inline-flex h-9 items-center rounded-lg bg-primary text-primary-foreground text-sm font-medium px-3 hover:bg-primary/80"
               >
                 {t("admin.createFirstPost") as string}
               </Link>
-            </CardContent>
-          </Card>
+            }
+          />
         ) : (
           <div className="space-y-2">
             {posts.slice(0, 5).map((post) => (
