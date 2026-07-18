@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { TagBadge } from "@/components/blog/tag-badge"
 import { useT } from "@/components/layout/trans"
@@ -46,7 +47,8 @@ const gradientPairs = [
 
 export function PostCard({ post }: PostCardProps) {
   const { t } = useT()
-  const haveCover = !!post.cover
+  const [imgFailed, setImgFailed] = useState(false)
+  const haveCover = !!post.cover && !imgFailed
   const shortDate = formatRelativeDate(post.date, t)
   const minReadLabel = t("post.minRead") as (n: number) => string
   const gradient = gradientPairs[post.title.length % gradientPairs.length]
@@ -66,17 +68,7 @@ export function PostCard({ post }: PostCardProps) {
                 alt={post.title}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none"
-                  const parent = (e.target as HTMLImageElement).parentElement
-                  if (parent) {
-                    parent.className = `relative h-44 overflow-hidden bg-gradient-to-br ${gradient}`
-                    const span = document.createElement("span")
-                    span.className = "absolute inset-0 flex items-center justify-center text-4xl font-extrabold text-white/90 select-none drop-shadow-lg"
-                    span.textContent = post.title.charAt(0).toUpperCase()
-                    parent.appendChild(span)
-                  }
-                }}
+                onError={() => setImgFailed(true)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             </>

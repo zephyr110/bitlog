@@ -71,12 +71,12 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     return () => window.removeEventListener("beforeunload", handler)
   }, [hasUnsavedChanges])
 
-  // Ctrl/Cmd+S shortcut
+  // Ctrl/Cmd+S shortcut — always save as draft, don't publish
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault()
-        savePost(draft)
+        savePost(false)
       }
     }
     window.addEventListener("keydown", handleKeyDown)
@@ -322,9 +322,9 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
 
       {/* Stats */}
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <span>{charCount} 字</span>
-        <span>{wordCount} 词</span>
-        <span>~{readTime} 分钟阅读</span>
+        <span>{(t("post.chars") as (n: number) => string)(charCount)}</span>
+        <span>{(t("post.words") as (n: number) => string)(wordCount)}</span>
+        <span>{(t("post.readTime") as (n: number) => string)(readTime)}</span>
       </div>
 
       {/* Status */}

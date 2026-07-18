@@ -57,7 +57,7 @@ export default function AdminPostsPage() {
       const res = await apiFetch("/api/posts?includeDrafts=true")
       if (res.ok) {
         const data = await res.json()
-        setPosts(data.posts)
+        setPosts(data.posts || [])
       }
     } catch (error) {
       console.error("Failed to fetch posts:", error)
@@ -125,7 +125,7 @@ export default function AdminPostsPage() {
           currentDraft ? (t("admin.publishSuccess") as string) : (t("admin.unpublishSuccess") as string)
         )
       } else {
-        toast.error(t("admin.deleteFailed") as string)
+        toast.error(t("admin.updateFailed") as string)
       }
     } catch {
       toast.error(t("admin.networkError") as string)
