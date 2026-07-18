@@ -265,8 +265,6 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
 
-            <DropdownMenuSeparator />
-
             {/* Settings */}
             <DropdownMenuItem onClick={() => setSettingsOpen(true)} className="py-2.5">
               <Settings size={16} className="mr-2.5 opacity-70" />
