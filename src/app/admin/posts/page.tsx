@@ -100,7 +100,7 @@ export default function AdminPostsPage() {
         toast.error(t("admin.deleteFailed") as string)
       }
     } catch {
-      toast.error("Network error")
+      toast.error(t("admin.networkError") as string)
     } finally {
       setDeleting(false)
       setDeleteTarget(null)
@@ -193,7 +193,7 @@ export default function AdminPostsPage() {
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {s === "all" ? "All" : s === "published" ? (t("admin.published") as string) : (t("admin.drafts") as string)}
+                  {s === "all" ? (t("admin.all") as string) : s === "published" ? (t("admin.published") as string) : (t("admin.drafts") as string)}
                 </button>
               ))}
             </div>
@@ -205,7 +205,7 @@ export default function AdminPostsPage() {
               />
               <Input
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); setPage(1) }}
                 placeholder={t("admin.searchPosts") as string}
                 className="pl-9"
               />

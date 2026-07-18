@@ -10,7 +10,7 @@ import { SettingsDialog } from "@/components/admin/settings-dialog"
 import { siteConfig } from "@/lib/site-config"
 import { useLocale } from "@/components/layout/i18n-provider"
 import { useT } from "@/components/layout/trans"
-import { type Locale, localeLabels, locales } from "@/lib/i18n"
+import { localeLabels, locales } from "@/lib/i18n"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
