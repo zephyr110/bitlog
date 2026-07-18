@@ -71,6 +71,23 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     return () => window.removeEventListener("beforeunload", handler)
   }, [hasUnsavedChanges])
 
+  // Ctrl/Cmd+S shortcut
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault()
+        savePost(draft)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  })
+
+  // Word count
+  const wordCount = content.split(/\s+/).filter(Boolean).length
+  const charCount = content.length
+  const readTime = Math.max(1, Math.ceil(wordCount / 200))
+
   // Auto-generate slug from title
   useEffect(() => {
     if (isNew && title && !slug) {
@@ -302,6 +319,13 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Stats */}
+      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <span>{charCount} 字</span>
+        <span>{wordCount} 词</span>
+        <span>~{readTime} 分钟阅读</span>
+      </div>
 
       {/* Status */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
