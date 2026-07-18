@@ -4,7 +4,7 @@ import { useEffect, useState, createContext, useContext } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { getToken, apiFetch, clearToken } from "@/lib/api-client"
-import { Spinner } from "@/components/ui/spinner"
+import { PageLoader } from "@/components/ui/page-loader"
 import { type AuthUser } from "@/types"
 
 export const SidebarCollapsedContext = createContext(false)
@@ -57,11 +57,7 @@ export default function AdminLayout({
   }, [isLoginPage, router])
 
   if (loading && !isLoginPage) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Spinner />
-      </div>
-    )
+    return <PageLoader />
   }
 
   if (isLoginPage) {
