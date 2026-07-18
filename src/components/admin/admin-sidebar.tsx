@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import { clearToken } from "@/lib/api-client"
+import { SettingsDialog } from "@/components/admin/settings-dialog"
 import { siteConfig } from "@/lib/site-config"
 import { useLocale } from "@/components/layout/i18n-provider"
 import { useT } from "@/components/layout/trans"
@@ -59,6 +60,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
   const { locale, setLocale } = useLocale()
 
   const currentTheme = (theme as ThemeMode) || "system"
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   function handleLogout() {
     clearToken()
@@ -218,14 +220,6 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
 
             <DropdownMenuSeparator />
 
-            {/* Settings */}
-            <DropdownMenuItem onClick={() => router.push("/admin/settings")} className="py-2.5">
-              <Settings size={16} className="mr-2.5 opacity-70" />
-              <span>{t("admin.settings") as string}</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-
             {/* Theme */}
             <DropdownMenuSub>
               <DropdownMenuSubTrigger className="py-2.5">
@@ -273,6 +267,14 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
 
             <DropdownMenuSeparator />
 
+            {/* Settings */}
+            <DropdownMenuItem onClick={() => setSettingsOpen(true)} className="py-2.5">
+              <Settings size={16} className="mr-2.5 opacity-70" />
+              <span>{t("admin.settings") as string}</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
             {/* Logout */}
             <DropdownMenuItem onClick={handleLogout} className="py-2.5 text-destructive focus:text-destructive">
               <LogOut size={16} className="mr-2.5 opacity-70" />
@@ -281,6 +283,8 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </aside>
   )
 }
