@@ -89,7 +89,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
       {/* Logo */}
       <div
         className={cn(
-          "h-16 flex items-center border-b transition-all",
+          "h-16 flex items-center transition-all",
           collapsed ? "px-4 justify-center" : "px-6 justify-between"
         )}
       >
@@ -110,25 +110,6 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
 
       {/* Navigation */}
       <nav className={cn("flex-1 py-4 space-y-1", collapsed ? "px-2" : "px-4")}>
-        {/* Collapse toggle */}
-        <button
-          onClick={onToggle}
-          className={cn(
-            "flex items-center gap-3 w-full rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all",
-            collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
-          )}
-          title={collapsed ? t("admin.expand") as string : t("admin.collapse") as string}
-        >
-          <ChevronLeft
-            size={18}
-            className={cn(
-              "shrink-0 transition-transform duration-300",
-              collapsed && "rotate-180"
-            )}
-          />
-          {!collapsed && (t("admin.collapse") as string)}
-        </button>
-
         {sidebarLinks.map((link) => {
           const Icon = link.icon
           const isActive =
@@ -167,10 +148,29 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
           <ExternalLink size={18} />
           {!collapsed && (t("admin.viewBlog") as string)}
         </Link>
+
+        {/* Collapse toggle at bottom */}
+        <button
+          onClick={onToggle}
+          className={cn(
+            "flex items-center gap-3 w-full rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all mt-2",
+            collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
+          )}
+          title={collapsed ? t("admin.expand") as string : t("admin.collapse") as string}
+        >
+          <ChevronLeft
+            size={18}
+            className={cn(
+              "shrink-0 transition-transform duration-300",
+              collapsed && "rotate-180"
+            )}
+          />
+          {!collapsed && (t("admin.collapse") as string)}
+        </button>
       </nav>
 
       {/* Footer */}
-      <div className={cn("border-t space-y-1", collapsed ? "p-2" : "p-4")}>
+      <div className={cn("space-y-1", collapsed ? "p-2" : "p-4")}>
         {/* Avatar Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger
