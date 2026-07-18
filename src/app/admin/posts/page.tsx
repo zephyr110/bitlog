@@ -3,9 +3,10 @@
 import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { EllipsisVertical, Search } from "lucide-react"
+import { EllipsisVertical, Search, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/ui/spinner"
+import { TableSkeleton } from "@/components/ui/loading"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -118,8 +119,14 @@ export default function AdminPostsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-8 w-24 bg-muted animate-pulse rounded-md" />
+            <div className="h-4 w-64 bg-muted animate-pulse rounded-md" />
+          </div>
+        </div>
+        <TableSkeleton rows={5} />
       </div>
     )
   }
@@ -142,18 +149,19 @@ export default function AdminPostsPage() {
       </div>
 
       {posts.length === 0 ? (
-        <div className="text-center py-20 border rounded-lg bg-card">
-          <h3 className="text-lg font-semibold mb-2">{t("admin.noPostsYet") as string}</h3>
-          <p className="text-muted-foreground mb-4">
-            {t("admin.noPostsYetDesc") as string}
-          </p>
-          <Link
-            href="/admin/posts/new"
-            className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium px-2.5 hover:bg-primary/80 transition-all"
-          >
-            {t("admin.createFirstPost") as string}
-          </Link>
-        </div>
+        <EmptyState
+          icon={<FileText size={32} className="text-muted-foreground" />}
+          title={t("admin.noPostsYet") as string}
+          description={t("admin.noPostsYetDesc") as string}
+          action={
+            <Link
+              href="/admin/posts/new"
+              className="inline-flex h-9 items-center rounded-lg bg-primary text-primary-foreground text-sm font-medium px-3 hover:bg-primary/80"
+            >
+              {t("admin.createFirstPost") as string}
+            </Link>
+          }
+        />
       ) : (
         <>
           {/* Search & Filter */}
