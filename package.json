@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "export": "node scripts/pre-export.mjs && NEXT_EXPORT=true next build && node scripts/post-export.mjs",
+    "export": "NEXT_EXPORT=true next build",
     "start": "next start",
     "lint": "eslint"
   },

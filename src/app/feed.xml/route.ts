@@ -1,3 +1,5 @@
+export const dynamic = "force-static"
+
 import { siteConfig } from "@/lib/site-config"
 import { getPublishedPosts } from "@/lib/content"
 
