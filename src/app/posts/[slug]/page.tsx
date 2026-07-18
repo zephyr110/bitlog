@@ -8,6 +8,7 @@ import { TagBadge } from "@/components/blog/tag-badge"
 import { ReadingProgress } from "@/components/blog/reading-progress"
 import { CopyLinkButton } from "@/components/blog/share-buttons"
 import { CommentSection } from "@/components/blog/comment-section"
+import { Trans } from "@/components/layout/trans"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
@@ -94,7 +95,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 href="/"
                 className="hover:text-foreground transition-colors"
               >
-                Home
+                <Trans k="site.home" />
               </Link>
               <span className="opacity-40">/</span>
               <span className="text-foreground/70 truncate max-w-[200px]">
@@ -127,7 +128,7 @@ export default async function PostPage({ params }: PostPageProps) {
                   <div className="flex items-center gap-1.5 text-xs">
                     <time dateTime={post.date}>{date}</time>
                     <span className="opacity-40">·</span>
-                    <span>{post.readingTime} min read</span>
+                    <span><Trans k="post.minRead" args={[post.readingTime]} /></span>
                   </div>
                 </div>
               </div>
@@ -180,7 +181,7 @@ export default async function PostPage({ params }: PostPageProps) {
         {relatedPosts.length > 0 && (
           <section className="border-t bg-muted/10">
             <div className="container mx-auto px-4 py-16 max-w-3xl">
-              <h2 className="text-2xl font-bold mb-8">Related Posts</h2>
+              <h2 className="text-2xl font-bold mb-8"><Trans k="post.relatedPosts" /></h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {relatedPosts.map((rp) => (
                   <Link
@@ -207,7 +208,7 @@ export default async function PostPage({ params }: PostPageProps) {
             href="/"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            ← Back to all posts
+            ← <Trans k="site.backToPosts" />
           </Link>
         </div>
       </article>

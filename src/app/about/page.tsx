@@ -1,4 +1,3 @@
-import { Separator } from "@/components/ui/separator"
 import { siteConfig } from "@/lib/site-config"
 import { Globe, MessageCircle } from "lucide-react"
 
@@ -72,8 +71,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <Separator />
-
         {/* Tech Stack */}
         <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <h2 className="text-2xl font-bold mb-2">Tech Stack</h2>
@@ -101,8 +98,6 @@ export default function AboutPage() {
             ))}
           </div>
         </section>
-
-        <Separator />
 
         {/* Contact */}
         <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">

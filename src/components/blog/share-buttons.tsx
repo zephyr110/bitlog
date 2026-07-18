@@ -1,6 +1,7 @@
 "use client"
 
 import { Share2, Link } from "lucide-react"
+import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
 
 export function ShareButton({
@@ -10,6 +11,8 @@ export function ShareButton({
   url: string
   title: string
 }) {
+  const { t } = useT()
+
   return (
     <button
       onClick={() => {
@@ -18,7 +21,7 @@ export function ShareButton({
         window.open(shareUrl, "_blank", "noopener,noreferrer")
       }}
       className="inline-flex items-center justify-center size-8 rounded-md border hover:bg-muted transition-colors"
-      title="Share on X"
+      title={t("post.shareOnX") as string}
     >
       <Share2 size={14} />
     </button>
@@ -26,12 +29,14 @@ export function ShareButton({
 }
 
 export function CopyLinkButton({ url }: { url: string }) {
+  const { t } = useT()
+
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(window.location.origin + url)
-      toast.success("Link copied!")
+      toast.success(t("post.linkCopied") as string)
     } catch {
-      toast.error("Failed to copy")
+      toast.error(t("post.copyFailed") as string)
     }
   }
 
@@ -39,7 +44,7 @@ export function CopyLinkButton({ url }: { url: string }) {
     <button
       onClick={handleCopy}
       className="inline-flex items-center justify-center size-8 rounded-md border hover:bg-muted transition-colors"
-      title="Copy link"
+      title={t("post.copyLink") as string}
     >
       <Link size={14} />
     </button>

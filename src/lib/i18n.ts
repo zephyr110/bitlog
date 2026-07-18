@@ -44,6 +44,12 @@ export const translations = {
       copyFailed: "复制失败",
       updated: "更新于",
       published: "发布于",
+      today: "今天",
+      yesterday: "昨天",
+      daysAgo: (n: number) => `${n} 天前`,
+      weeksAgo: (n: number) => `${n} 周前`,
+      shortDate: (d: Date) =>
+        d.toLocaleDateString("zh-CN", { year: "numeric", month: "short", day: "numeric" }),
     },
     about: {
       title: "关于",
@@ -226,6 +232,12 @@ export const translations = {
       linkCopied: "Link copied!",
       copyFailed: "Failed to copy",
       updated: "Updated",
+      today: "Today",
+      yesterday: "Yesterday",
+      daysAgo: (n: number) => `${n} days ago`,
+      weeksAgo: (n: number) => `${n} weeks ago`,
+      shortDate: (d: Date) =>
+        d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
       published: "Published",
     },
     about: {

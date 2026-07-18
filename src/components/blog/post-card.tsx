@@ -9,22 +9,28 @@ interface PostCardProps {
   post: PostSummary
 }
 
-function formatRelativeDate(dateStr: string): string {
+function formatRelativeDate(
+  dateStr: string,
+  t: (key: string) => string | ((...args: unknown[]) => string)
+): string {
   const date = new Date(dateStr)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 0) return "Today"
-  if (diffDays === 1) return "Yesterday"
-  if (diffDays < 7) return `${diffDays} days ago`
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
+  if (diffDays === 0) return (t("post.today") as string) || "Today"
+  if (diffDays === 1) return (t("post.yesterday") as string) || "Yesterday"
+  if (diffDays < 7) {
+    const daysAgo = t("post.daysAgo") as (n: number) => string
+    return daysAgo ? daysAgo(diffDays) : `${diffDays} days ago`
+  }
+  if (diffDays < 30) {
+    const weeksAgo = t("post.weeksAgo") as (n: number) => string
+    return weeksAgo ? weeksAgo(Math.floor(diffDays / 7)) : `${Math.floor(diffDays / 7)}w ago`
+  }
+  const shortDate = t("post.shortDate") as (d: Date) => string
+  if (shortDate) return shortDate(date)
+  return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
 }
 
 const gradientPairs = [
@@ -41,7 +47,7 @@ const gradientPairs = [
 export function PostCard({ post }: PostCardProps) {
   const { t } = useT()
   const haveCover = !!post.cover
-  const shortDate = formatRelativeDate(post.date)
+  const shortDate = formatRelativeDate(post.date, t)
   const minReadLabel = t("post.minRead") as (n: number) => string
   const gradient = gradientPairs[post.title.length % gradientPairs.length]
 
@@ -60,6 +66,17 @@ export function PostCard({ post }: PostCardProps) {
                 alt={post.title}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none"
+                  const parent = (e.target as HTMLImageElement).parentElement
+                  if (parent) {
+                    parent.className = `relative h-44 overflow-hidden bg-gradient-to-br ${gradient}`
+                    const span = document.createElement("span")
+                    span.className = "absolute inset-0 flex items-center justify-center text-4xl font-extrabold text-white/90 select-none drop-shadow-lg"
+                    span.textContent = post.title.charAt(0).toUpperCase()
+                    parent.appendChild(span)
+                  }
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             </>

@@ -60,8 +60,6 @@ export default function AdminSettingsPage() {
         </p>
       </div>
 
-      <Separator />
-
       {/* Site Info */}
       <Card>
         <CardHeader>
