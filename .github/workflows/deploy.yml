@@ -31,8 +31,6 @@ jobs:
         run: pnpm install
 
       - name: Build static site
-        env:
-          NEXT_EXPORT: "true"
         run: pnpm run export
 
       - name: Deploy
