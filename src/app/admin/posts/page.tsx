@@ -42,8 +42,11 @@ export default function AdminPostsPage() {
   const [posts, setPosts] = useState<PostSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "drafts">("all")
+  const [page, setPage] = useState(1)
   const [deleteTarget, setDeleteTarget] = useState<PostSummary | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const PAGE_SIZE = 10
 
   useEffect(() => {
     fetchPosts()
@@ -65,10 +68,22 @@ export default function AdminPostsPage() {
   }
 
   const filteredPosts = useMemo(() => {
-    if (!searchQuery.trim()) return posts
-    const query = searchQuery.toLowerCase()
-    return posts.filter((p) => p.title.toLowerCase().includes(query))
-  }, [posts, searchQuery])
+    let result = posts
+    if (statusFilter === "published") result = result.filter((p) => !p.draft)
+    if (statusFilter === "drafts") result = result.filter((p) => p.draft)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter((p) => p.title.toLowerCase().includes(query))
+    }
+    return result
+  }, [posts, searchQuery, statusFilter])
+
+  const paginatedPosts = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE
+    return filteredPosts.slice(start, start + PAGE_SIZE)
+  }, [filteredPosts, page])
+
+  const totalPages = Math.ceil(filteredPosts.length / PAGE_SIZE)
 
   async function handleDelete() {
     if (!deleteTarget) return
@@ -107,13 +122,13 @@ export default function AdminPostsPage() {
           )
         )
         toast.success(
-          currentDraft ? "Post published!" : "Post moved to drafts"
+          currentDraft ? (t("admin.publishSuccess") as string) : (t("admin.unpublishSuccess") as string)
         )
       } else {
-        toast.error("Failed to update post")
+        toast.error(t("admin.deleteFailed") as string)
       }
     } catch {
-      toast.error("Network error")
+      toast.error(t("admin.networkError") as string)
     }
   }
 
@@ -165,7 +180,24 @@ export default function AdminPostsPage() {
       ) : (
         <>
           {/* Search & Filter */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Status tabs */}
+            <div className="flex rounded-lg border p-0.5 bg-muted/30">
+              {(["all", "published", "drafts"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => { setStatusFilter(s); setPage(1) }}
+                  className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                    statusFilter === s
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {s === "all" ? "All" : s === "published" ? (t("admin.published") as string) : (t("admin.drafts") as string)}
+                </button>
+              ))}
+            </div>
+
             <div className="relative flex-1 max-w-sm">
               <Search
                 size={16}
@@ -198,14 +230,14 @@ export default function AdminPostsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPosts.length === 0 ? (
+                {paginatedPosts.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                       {t("admin.noMatchSearch") as string}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredPosts.map((post) => (
+                  paginatedPosts.map((post) => (
                     <TableRow key={post.slug}>
                       <TableCell className="font-medium">
                         <Link
@@ -281,6 +313,33 @@ export default function AdminPostsPage() {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                {filteredPosts.length} {t("admin.posts") as string} · {t("admin.page") as string} {page}/{totalPages}
+              </p>
+              <div className="flex gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => setPage(page - 1)}
+                >
+                  {t("admin.prev") as string}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage(page + 1)}
+                >
+                  {t("admin.next") as string}
+                </Button>
+              </div>
+            </div>
+          )}
         </>
       )}
 
