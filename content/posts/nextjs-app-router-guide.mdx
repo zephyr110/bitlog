@@ -1,0 +1,39 @@
+---
+title: "Next.js App Router 完全指南"
+slug: "nextjs-app-router-guide"
+date: "2026-07-10"
+tags: ["nextjs", "react", "前端"]
+description: "深入理解 Next.js App Router 的核心概念，包括服务端组件、路由分组、数据获取和静态生成。"
+draft: false
+---
+
+## 什么是 App Router？
+
+Next.js 13 引入的 App Router 是 React 服务端组件的第一个完整实现。它将 React 的 `Server Components`、`Streaming` 和 `Suspense` 带入了生产环境。
+
+### 核心特性
+
+1. **服务端组件**（Server Components）
+   - 默认在服务端渲染，减少客户端 JavaScript 体积
+   - 可以直接访问后端资源（数据库、文件系统）
+   - 通过 `"use client"` 标记客户端组件
+
+2. **文件系统路由**
+   - `page.tsx` 定义页面
+   - `layout.tsx` 定义共享布局
+   - `loading.tsx` 定义加载状态
+   - `error.tsx` 定义错误边界
+
+3. **静态生成与动态渲染**
+   - 默认尽可能静态生成
+   - 通过 `generateStaticParams` 控制动态路由的静态生成
+   - `force-static` 和 `force-dynamic` 精确控制
+
+### 最佳实践
+
+- 将数据获取放在服务端组件中
+- 客户端组件保持最小的交互逻辑
+- 合理使用 `Suspense` 实现流式渲染
+- 利用并行路由和拦截路由提升用户体验
+
+> App Router 代表了 React 全栈开发的新范式，值得每个 React 开发者深入学习。

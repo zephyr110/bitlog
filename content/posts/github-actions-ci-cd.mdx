@@ -1,0 +1,56 @@
+---
+title: "使用 GitHub Actions 构建 CI/CD 流水线"
+slug: "github-actions-ci-cd"
+date: "2026-07-01"
+tags: ["devops", "github", "自动化"]
+description: "从零开始搭建 GitHub Actions CI/CD 流水线，实现自动化测试、构建和部署到 GitHub Pages。"
+draft: false
+---
+
+## CI/CD 自动化
+
+持续集成和持续部署是现代软件开发的标准实践。GitHub Actions 为每个仓库提供了免费的计算资源来运行自动化任务。
+
+### 基础工作流
+
+```yaml
+name: Deploy
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npm ci
+      - run: npm run build
+```
+
+### 关键概念
+
+1. **触发器（Triggers）**
+   - `push`：代码推送时触发
+   - `pull_request`：PR 创建/更新时触发
+   - `schedule`：定时执行（cron 表达式）
+   - `workflow_dispatch`：手动触发
+
+2. **Job 与 Step**
+   - Job 是独立的执行单元，默认并行
+   - Step 是 Job 内的顺序步骤
+   - 使用 `needs` 控制 Job 间的依赖
+
+3. **部署到 GitHub Pages**
+   - 使用 `peaceiris/actions-gh-pages` 或官方的 `actions/deploy-pages`
+   - 构建产物上传为 artifact，再部署到 gh-pages 分支
+
+### 最佳实践
+
+- 缓存 `node_modules` 加速构建
+- 使用 matrix 策略测试多个 Node.js 版本
+- 设置 concurrency 避免重复部署
+- 将敏感信息存储在 Secrets 中
+
+> 自动化不是奢侈品，而是高效团队的基础设施。

@@ -1,0 +1,44 @@
+---
+title: "TypeScript 类型系统深度解析"
+slug: "typescript-type-system"
+date: "2026-07-05"
+tags: ["typescript", "编程", "前端"]
+description: "深入探索 TypeScript 类型系统的高级特性：泛型约束、条件类型、模板字面量类型和类型推断。"
+draft: false
+---
+
+## TypeScript 的类型魔法
+
+TypeScript 的类型系统是图灵完备的，这意味着你可以在类型层面完成任何计算。这既强大又危险。
+
+### 高级特性
+
+1. **条件类型（Conditional Types）**
+   ```typescript
+   type IsString<T> = T extends string ? true : false
+   type Result = IsString<"hello"> // true
+   ```
+
+2. **模板字面量类型**
+   ```typescript
+   type EventName<T extends string> = `on${Capitalize<T>}`
+   type Click = EventName<"click"> // "onClick"
+   ```
+
+3. **映射类型（Mapped Types）**
+   ```typescript
+   type Readonly<T> = { readonly [K in keyof T]: T[K] }
+   ```
+
+4. **推断（infer）**
+   ```typescript
+   type ReturnType<T> = T extends (...args: any[]) => infer R ? R : never
+   ```
+
+### 实用模式
+
+- **歧视联合类型**：用于状态机和 Redux actions
+- **品牌类型**：防止原始类型的意外混用
+- **函数重载**：为复杂函数提供精确的类型签名
+
+> 好的类型设计不是为了炫技，而是让代码的意图一目了然。
