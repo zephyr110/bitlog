@@ -1,7 +1,17 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"
+
+const isExport = process.env.NEXT_EXPORT === "true"
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+  ...(isExport
+    ? {
+        output: "export" as const,
+        images: { unoptimized: true },
+      }
+    : {}),
+  // If deploying to a project page (username.github.io/repo-name),
+  // uncomment and set this to the repo name:
+  // basePath: "/blog",
+}
 
-export default nextConfig;
+export default nextConfig
