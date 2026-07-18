@@ -12,6 +12,8 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,7 +22,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -28,11 +29,14 @@ jobs:
       - name: Build static site
         run: npm run export
 
-      - name: Deploy to user pages repo
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          personal_token: ${{ secrets.GH_PAT }}
-          external_repository: zephyr110/zephyr110.github.io
-          publish_branch: main
-          publish_dir: ./out
-          commit_message: "deploy: ${{ github.event.head_commit.message }} [skip ci]"
+      - name: Deploy to user pages
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          cd out
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "deploy: ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${GH_PAT}@github.com/zephyr110/zephyr110.github.io.git" main:main
