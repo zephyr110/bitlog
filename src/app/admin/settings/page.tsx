@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { apiFetch } from "@/lib/api-client"
+import { siteConfig } from "@/lib/site-config"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
 
@@ -60,6 +61,51 @@ export default function AdminSettingsPage() {
       </div>
 
       <Separator />
+
+      {/* Site Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("admin.siteInfo") as string}</CardTitle>
+          <CardDescription>
+            {t("admin.siteInfoDesc") as string}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <div className="flex justify-between py-2">
+            <span className="text-muted-foreground">{t("admin.siteName") as string}</span>
+            <span className="font-medium">{siteConfig.name}</span>
+          </div>
+          <Separator />
+          <div className="flex justify-between py-2">
+            <span className="text-muted-foreground">{t("admin.siteDesc") as string}</span>
+            <span className="font-medium max-w-[200px] truncate">{siteConfig.description}</span>
+          </div>
+          <Separator />
+          <div className="flex justify-between py-2">
+            <span className="text-muted-foreground">{t("admin.author") as string}</span>
+            <span className="font-medium">{siteConfig.author.name}</span>
+          </div>
+          <Separator />
+          <div className="flex justify-between py-2">
+            <span className="text-muted-foreground">GitHub</span>
+            <a href={siteConfig.social.github} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline max-w-[200px] truncate">
+              {siteConfig.social.github}
+            </a>
+          </div>
+          <Separator />
+          <div className="flex justify-between py-2">
+            <span className="text-muted-foreground">Twitter / X</span>
+            <a href={siteConfig.social.twitter} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline max-w-[200px] truncate">
+              {siteConfig.social.twitter}
+            </a>
+          </div>
+          <Separator />
+          <div className="flex justify-between py-2">
+            <span className="text-muted-foreground">URL</span>
+            <span className="font-medium">{siteConfig.siteUrl}</span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Change Password */}
       <Card>
