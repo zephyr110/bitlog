@@ -149,11 +149,15 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
           {!collapsed && (t("admin.viewBlog") as string)}
         </Link>
 
-        {/* Collapse toggle at bottom */}
+      </nav>
+
+      {/* Footer */}
+      <div className={cn("space-y-1", collapsed ? "p-2" : "p-4")}>
+        {/* Collapse toggle above avatar */}
         <button
           onClick={onToggle}
           className={cn(
-            "flex items-center gap-3 w-full rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all mt-2",
+            "flex items-center gap-3 w-full rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all",
             collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
           )}
           title={collapsed ? t("admin.expand") as string : t("admin.collapse") as string}
@@ -167,15 +171,12 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
           />
           {!collapsed && (t("admin.collapse") as string)}
         </button>
-      </nav>
 
-      {/* Footer */}
-      <div className={cn("space-y-1", collapsed ? "p-2" : "p-4")}>
         {/* Avatar Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger
             className={cn(
-              "flex items-center gap-3 rounded-lg hover:bg-muted transition-colors w-full",
+              "flex items-center gap-3 rounded-lg hover:bg-muted w-full outline-none focus:ring-0",
               collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
             )}
           >
