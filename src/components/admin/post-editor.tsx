@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
@@ -72,20 +72,33 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     return () => window.removeEventListener("beforeunload", handler)
   }, [hasUnsavedChanges])
 
+  // Keep a ref to the latest savePost so the keyboard shortcut doesn't
+  // re-register on every render or close over stale state.
+  const savePostRef = useRef(savePost)
+  useEffect(() => {
+    savePostRef.current = savePost
+  })
+
   // Ctrl/Cmd+S shortcut — always save as draft, don't publish
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault()
-        savePost(false)
+        savePostRef.current(false)
       }
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  })
+  }, [])
 
-  // Word count
-  const wordCount = content.split(/\s+/).filter(Boolean).length
+  // Word / char count — CJK characters count as words too
+  const cjkRegex = /[\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g
+  const cjkCount = (content.match(cjkRegex) || []).length
+  const nonCjkWords = content
+    .replace(cjkRegex, " ")
+    .split(/\s+/)
+    .filter(Boolean).length
+  const wordCount = cjkCount + nonCjkWords
   const charCount = content.length
   const readTime = Math.max(1, Math.ceil(wordCount / 200))
 
@@ -176,10 +189,10 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
         router.refresh()
       } else {
         const err = await res.json()
-        toast.error(err.error || "Failed to save post")
+        toast.error(err.error || (t("admin.failedToSavePost") as string))
       }
     } catch {
-      toast.error("Network error. Failed to save.")
+      toast.error(t("admin.networkErrorSave") as string)
     } finally {
       setSaving(false)
     }
@@ -230,7 +243,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
                 id="slug"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                placeholder="post-url-slug"
+                placeholder={t("admin.slugPlaceholder") as string}
               />
             </div>
             <div className="space-y-2">
@@ -239,7 +252,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
                 id="cover"
                 value={cover}
                 onChange={(e) => setCover(e.target.value)}
-                placeholder="/images/cover.jpg"
+                placeholder={t("admin.coverPlaceholder") as string}
               />
             </div>
           </div>
@@ -280,7 +293,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
                 className="flex-1"
               />
               <Button variant="outline" onClick={addTag} type="button">
-                Add
+                {t("admin.addTagButton") as string}
               </Button>
             </div>
             {tags.length > 0 && (
@@ -314,7 +327,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
               <Textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your post content in Markdown..."
+                placeholder={t("admin.contentPlaceholder") as string}
                 className="font-mono min-h-[400px]"
               />
               <p className="text-xs text-muted-foreground mt-2">

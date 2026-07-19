@@ -6,6 +6,7 @@ import { siteConfig } from "@/lib/site-config"
 import { MDXRenderer } from "@/components/blog/mdx-renderer"
 import { TagBadge } from "@/components/blog/tag-badge"
 import { ReadingProgress } from "@/components/blog/reading-progress"
+import { FormattedDate } from "@/components/blog/formatted-date"
 import { CopyLinkButton } from "@/components/blog/share-buttons"
 import { CommentSection } from "@/components/blog/comment-section"
 import { Trans } from "@/components/layout/trans"
@@ -74,12 +75,6 @@ export default async function PostPage({ params }: PostPageProps) {
     .filter((p) => p.slug !== slug && p.tags.some((t) => post.tags.includes(t)))
     .slice(0, 3)
 
-  const date = new Date(post.date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
-
   return (
     <>
       <ReadingProgress />
@@ -100,7 +95,7 @@ export default async function PostPage({ params }: PostPageProps) {
             </>
           )}
 
-          <div className="container mx-auto px-4 py-16 md:py-24 max-w-3xl relative">
+          <div className="container mx-auto px-4 py-12 md:py-20 max-w-4xl relative">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8 animate-in fade-in slide-in-from-top-2 duration-500">
               <Link
@@ -141,7 +136,7 @@ export default async function PostPage({ params }: PostPageProps) {
                   </p>
                   <div className="flex items-center gap-1.5 text-xs">
                     <Calendar size={12} />
-                    <time dateTime={post.date}>{date}</time>
+                    <FormattedDate date={post.date} />
                     <span className="opacity-40">·</span>
                     <Clock size={12} />
                     <span>
@@ -176,8 +171,14 @@ export default async function PostPage({ params }: PostPageProps) {
         </header>
 
         {/* Content */}
-        <div className="container mx-auto px-4 py-12 md:py-16 max-w-3xl">
-          <div className="prose dark:prose-invert prose-lg max-w-none prose-headings:scroll-mt-20 prose-a:text-primary prose-img:rounded-xl prose-pre:border prose-pre:bg-muted/30">
+        <div className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
+          <div className="prose dark:prose-invert prose-lg max-w-none
+            prose-headings:scroll-mt-20
+            prose-p:leading-relaxed prose-p:my-5
+            prose-strong:text-foreground prose-strong:font-semibold
+            prose-li:my-1.5
+            prose-img:rounded-xl prose-img:shadow-md
+            prose-pre:!bg-transparent prose-pre:!p-0 prose-pre:!border-0">
             <MDXRenderer post={post} />
           </div>
 
@@ -208,7 +209,7 @@ export default async function PostPage({ params }: PostPageProps) {
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
           <section className="border-t bg-muted/10">
-            <div className="container mx-auto px-4 py-16 max-w-3xl">
+            <div className="container mx-auto px-4 py-16 max-w-4xl">
               <h2 className="text-2xl font-bold mb-8">
                 <Trans k="post.relatedPosts" />
               </h2>
@@ -245,7 +246,7 @@ export default async function PostPage({ params }: PostPageProps) {
             href="/"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            ← <Trans k="site.backToPosts" />
+            <Trans k="site.backToPosts" />
           </Link>
         </div>
       </article>

@@ -17,7 +17,7 @@ export function LanguageSwitcher() {
   return (
     <button
       onClick={toggle}
-      className="inline-flex items-center justify-center size-9 rounded-lg border border-transparent hover:bg-muted hover:border-border transition-all text-xs font-medium"
+      className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted transition-colors text-xs font-medium"
       title={localeLabels[nextLocale]}
     >
       {locale === "zh" ? "中文" : "EN"}

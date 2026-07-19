@@ -4,6 +4,17 @@ import { useEffect, useRef, useState } from "react"
 import { useTheme } from "next-themes"
 import { useT } from "@/components/layout/trans"
 import { useLocale } from "@/components/layout/i18n-provider"
+import { MessageSquare } from "lucide-react"
+
+const GISCUS_ENV = {
+  repo: process.env.NEXT_PUBLIC_GISCUS_REPO,
+  repoId: process.env.NEXT_PUBLIC_GISCUS_REPO_ID,
+  category: process.env.NEXT_PUBLIC_GISCUS_CATEGORY || "Announcements",
+  categoryId: process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID,
+}
+
+const hasGiscusConfig =
+  !!GISCUS_ENV.repo && !!GISCUS_ENV.repoId && !!GISCUS_ENV.categoryId
 
 export function CommentSection() {
   const { t } = useT()
@@ -12,6 +23,7 @@ export function CommentSection() {
   const ref = useRef<HTMLDivElement>(null)
   const initialized = useRef(false)
   const [mounted, setMounted] = useState(false)
+  const [loading, setLoading] = useState(hasGiscusConfig)
 
   useEffect(() => {
     setMounted(true) // eslint-disable-line react-hooks/set-state-in-effect
@@ -20,15 +32,7 @@ export function CommentSection() {
   useEffect(() => {
     if (!mounted) return
 
-    // Only render in production (when hostname is not localhost)
-    if (window.location.hostname === "localhost") return
-
-    const repo = process.env.NEXT_PUBLIC_GISCUS_REPO || ""
-    const repoId = process.env.NEXT_PUBLIC_GISCUS_REPO_ID || ""
-    const category = process.env.NEXT_PUBLIC_GISCUS_CATEGORY || "Announcements"
-    const categoryId = process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID || ""
-
-    if (!repo || !repoId || !categoryId) return
+    if (!hasGiscusConfig) return
 
     const theme = resolvedTheme === "dark" ? "dark" : "light"
     const lang = locale === "zh" ? "zh-CN" : "en"
@@ -50,10 +54,10 @@ export function CommentSection() {
 
     const script = document.createElement("script")
     script.src = "https://giscus.app/client.js"
-    script.setAttribute("data-repo", repo)
-    script.setAttribute("data-repo-id", repoId)
-    script.setAttribute("data-category", category)
-    script.setAttribute("data-category-id", categoryId)
+    script.setAttribute("data-repo", GISCUS_ENV.repo!)
+    script.setAttribute("data-repo-id", GISCUS_ENV.repoId!)
+    script.setAttribute("data-category", GISCUS_ENV.category)
+    script.setAttribute("data-category-id", GISCUS_ENV.categoryId!)
     script.setAttribute("data-mapping", "pathname")
     script.setAttribute("data-strict", "0")
     script.setAttribute("data-reactions-enabled", "1")
@@ -66,53 +70,61 @@ export function CommentSection() {
 
     const container = ref.current
     if (container) {
+      container.innerHTML = ""
       container.appendChild(script)
     }
 
+    // Hide loading skeleton once giscus iframe is created.
+    const observer = new MutationObserver(() => {
+      const iframe = container?.querySelector("iframe.giscus-frame")
+      if (iframe) {
+        setLoading(false)
+        observer.disconnect()
+      }
+    })
+    if (container) {
+      observer.observe(container, { childList: true, subtree: true })
+    }
+
     return () => {
-      if (container && script.parentNode) {
-        container.removeChild(script)
+      observer.disconnect()
+      if (container) {
+        container.innerHTML = ""
       }
       initialized.current = false
     }
   }, [mounted, resolvedTheme, locale])
 
-  // Server-side and before mount: render nothing (same as client initial render)
-  if (!mounted) {
-    return (
-      <section className="container mx-auto px-4 py-12 max-w-3xl">
-        <div className="border-t pt-12" />
-      </section>
-    )
-  }
-
-  const isDev = window.location.hostname === "localhost"
-  const hasGiscus = !!process.env.NEXT_PUBLIC_GISCUS_REPO
-
   return (
-    <section className="container mx-auto px-4 py-12 max-w-3xl">
+    <section className="container mx-auto px-4 py-12 max-w-4xl">
       <div className="border-t pt-12">
-        <h2 className="text-xl font-bold mb-6">{t("post.comments") as string}</h2>
+        <div className="flex items-center gap-2 mb-6">
+          <MessageSquare size={20} className="text-primary" />
+          <h2 className="text-xl font-bold">{t("post.comments") as string}</h2>
+        </div>
 
-        {isDev || !hasGiscus ? (
-          <div className="rounded-lg border bg-muted/30 p-8 text-center text-sm text-muted-foreground">
+        {(!mounted || loading) && hasGiscusConfig ? (
+          <div className="space-y-3 animate-pulse">
+            <div className="h-4 bg-muted rounded w-1/3" />
+            <div className="h-24 bg-muted rounded" />
+            <div className="h-4 bg-muted rounded w-2/3" />
+          </div>
+        ) : null}
+
+        {mounted && !hasGiscusConfig ? (
+          <div className="rounded-xl border bg-muted/30 p-8 text-center text-sm text-muted-foreground">
             <p className="font-medium mb-2">
-              {isDev
-                ? "Comments are disabled in development"
-                : "Comments are not configured"}
+              {t("post.commentsNotConfigured") as string}
             </p>
-            <p>
-              To enable Giscus comments, configure the following environment
-              variables:
-            </p>
-            <pre className="mt-3 text-left bg-muted p-3 rounded-md text-xs overflow-x-auto">
+            <p>{t("post.configureGiscus") as string}</p>
+            <pre className="mt-4 text-left bg-muted p-3 rounded-md text-xs overflow-x-auto">
               {`NEXT_PUBLIC_GISCUS_REPO=your-username/your-repo
 NEXT_PUBLIC_GISCUS_REPO_ID=your-repo-id
 NEXT_PUBLIC_GISCUS_CATEGORY=Announcements
 NEXT_PUBLIC_GISCUS_CATEGORY_ID=your-category-id`}
             </pre>
             <p className="mt-3 text-xs">
-              Get these values at{" "}
+              {t("post.getValuesAt") as string}{" "}
               <a
                 href="https://giscus.app"
                 target="_blank"
@@ -124,7 +136,7 @@ NEXT_PUBLIC_GISCUS_CATEGORY_ID=your-category-id`}
             </p>
           </div>
         ) : (
-          <div ref={ref} />
+          <div ref={ref} className={loading ? "min-h-[200px]" : undefined} />
         )}
       </div>
     </section>

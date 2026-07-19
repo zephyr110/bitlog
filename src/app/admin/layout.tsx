@@ -74,7 +74,7 @@ export default function AdminLayout({
       />
       <div
         className="transition-all duration-300 min-h-screen"
-        style={{ paddingLeft: sidebarCollapsed ? "4rem" : "16rem" }}
+        style={{ paddingLeft: sidebarCollapsed ? "4.5rem" : "16rem" }}
       >
         <div className="p-4 md:p-8">{children}</div>
       </div>

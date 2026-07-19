@@ -14,7 +14,7 @@ export function HeroSection({ postCount }: { postCount: number }) {
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
       <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
 
-      <div className="container mx-auto px-4 py-20 md:py-28 relative">
+      <div className="container mx-auto px-4 py-12 md:py-20 relative">
         <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium mb-6 border border-primary/10">
             <FileText size={13} />
