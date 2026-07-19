@@ -1,0 +1,67 @@
+---
+title: "泛型"
+slug: "frontend-typescript-generic"
+date: "2021-05-02"
+tags: ["frontend", "typescript"]
+description: "定义一个创建数组的方法, 可以创建出指定长度的数组, 并且可以用任意指定的内容填充这个数组。"
+draft: false
+---
+
+## 1. 为什么引入泛型
+
+**示例：**
+定义一个创建数组的方法, 可以创建出指定长度的数组, 并且可以用任意指定的内容填充这个数组。
+
+```ts
+let getArray = (value:any, items:number = 5):any[]{
+    return new Array(items).fill(value)
+}
+
+let arr1 = getArray("abc", 3)
+console.log(arr1)   //[ 'abc', 'abc', 'abc' ]
+let arr2 = getArray(6, 3)
+console.log(arr2)   //[ 6, 6, 6 ]
+let res = arr1.map(item=>item.length) // 编辑时点语法没有提示length属性
+console.log(res)    //[ 3, 3, 3 ]
+```
+
+> **注意：**
+1. 编写代码没有提示对应的属性方法, 因为 TS 的静态检测不知道具体是什么类型。
+2. 哪怕代码写错了也不会报错, 因为 TS 的静态检测不知道具体是什么类型。
+
+
+
+## 2. 使用泛型
+
+```ts
+let getArray = <T>(value: T, items: number = 5): T[] => {
+  return new Array(items).fill(value)
+}
+
+let arr = getArray<string>('abc')
+let res = arr.map((item) => item.length)
+console.log(res)
+
+// let arr = getArray<number>(6);
+// 如果没有指定, 那么就会根据传递的泛型参数自动推导出来
+// 比如 let arr = getArray('abc')，map方法中点语法也会提示length属性
+```
+
+> **提示：**
+作用：
+
+- 用来弥补 any 没有语法提示和报错的缺点。
+- 最开始不指定类型，后面根据我们传入的类型确定类型。
+
+
+
+用法：
+
+```ts
+let getArray = <T>(value: T, items: number = 5): T[] => {
+  return new Array(items).fill(value)
+}
+
+//泛型是指定传入类型的，写在函数`()`的前面；
+//返回结果类型是指定函数传出类型的，写在函数`()`的后面；
+```

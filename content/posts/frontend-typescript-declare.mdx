@@ -1,0 +1,31 @@
+---
+title: "声明文件"
+slug: "frontend-typescript-declare"
+date: "2021-05-02"
+tags: ["frontend", "typescript"]
+description: "实际开发中需要引入第三方库，但这些库不能使用 TS 的类型检查等特性方法，所以需要将这些库里的函数和方法体去掉后只保留导出类型声明，而产生了一个描述 JavaScript 库和模块信息的声明文件。通过引用这个声明文件，就可以借用 TypeScript 的各种特性来使用库文件了。"
+draft: false
+---
+
+实际开发中需要引入第三方库，但这些库不能使用 TS 的类型检查等特性方法，所以需要将这些库里的函数和方法体去掉后只保留导出类型声明，而产生了一个描述 JavaScript 库和模块信息的声明文件。通过引用这个声明文件，就可以借用 TypeScript 的各种特性来使用库文件了。
+
+```ts
+//引入jQuery
+declare var jQuery: (selector: string) => any
+//获取id=foo的元素
+jQuery('#foo')
+```
+
+- 声明文件以 `.d.ts` 为后缀
+
+- 声明文件或模块的语法格式如下：
+
+```ts
+declare module Module_Name {}
+```
+
+- TypeScript 引入声明文件语法格式：
+
+```ts
+/// <reference path = " runoob.d.ts" />
+```
