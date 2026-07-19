@@ -3,6 +3,7 @@ import { type Metadata } from "next"
 import Link from "next/link"
 import { getPostsByTag, getAllTags } from "@/lib/content"
 import { PostCard } from "@/components/blog/post-card"
+import { Trans } from "@/components/layout/trans"
 
 interface TagPageProps {
   params: Promise<{ tag: string }>
@@ -44,10 +45,12 @@ export default async function TagPage({ params }: TagPageProps) {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
               <Link href="/" className="hover:text-foreground transition-colors">
-                Home
+                <Trans k="site.home" />
               </Link>
               <span className="opacity-40">/</span>
-              <span className="text-foreground/70">Tags</span>
+              <span className="text-foreground/70">
+                <Trans k="site.topics" />
+              </span>
               <span className="opacity-40">/</span>
               <span className="text-foreground font-medium">{decodedTag}</span>
             </nav>
@@ -56,7 +59,7 @@ export default async function TagPage({ params }: TagPageProps) {
               {decodedTag}
             </h1>
             <p className="text-muted-foreground">
-              {posts.length} {posts.length === 1 ? "post" : "posts"} with this tag
+              {posts.length} {posts.length === 1 ? "post" : "posts"}
             </p>
           </div>
         </div>
@@ -65,9 +68,6 @@ export default async function TagPage({ params }: TagPageProps) {
       {/* Tags bar */}
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground mr-1">
-            All tags:
-          </span>
           {allTags.map((t) => {
             const isActive = t.toLowerCase() === decodedTag.toLowerCase()
             return (
@@ -91,9 +91,11 @@ export default async function TagPage({ params }: TagPageProps) {
       <div className="container mx-auto px-4 pb-16 max-w-4xl">
         {posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <h2 className="text-2xl font-semibold mb-2">No posts found</h2>
+            <h2 className="text-2xl font-semibold mb-2">
+              <Trans k="site.noMatchPosts" />
+            </h2>
             <p className="text-muted-foreground">
-              No posts with the tag &quot;{decodedTag}&quot; yet.
+              <Trans k="site.noMatchPostsDesc" args={[decodedTag]} />
             </p>
           </div>
         ) : (

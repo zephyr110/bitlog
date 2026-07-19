@@ -1,26 +1,37 @@
-export const dynamic = "force-static"
-
 import { siteConfig } from "@/lib/site-config"
 import { getPublishedPosts } from "@/lib/content"
+
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
+}
 
 export async function GET() {
   const posts = getPublishedPosts()
   const siteUrl = siteConfig.siteUrl.replace(/\/+$/, "")
 
   const feedEntries = posts
-    .map(
-      (post) => `
+    .map((post) => {
+      const postUrl = `${siteUrl}/posts/${encodeURIComponent(post.slug)}`
+      const published = new Date(post.date).toISOString()
+      const updated = new Date(post.updated || post.date).toISOString()
+
+      return `
   <entry>
-    <id>${escapeXml(`${siteUrl}/posts/${post.slug}`)}</id>
+    <id>${escapeXml(postUrl)}</id>
     <title>${escapeXml(post.title)}</title>
-    <link href="${escapeXml(`${siteUrl}/posts/${post.slug}`)}" />
-    <published>${new Date(post.date).toISOString()}</published>
-    ${post.updated ? `<updated>${new Date(post.updated).toISOString()}</updated>` : `<updated>${new Date(post.date).toISOString()}</updated>`}
+    <link href="${escapeXml(postUrl)}" />
+    <published>${published}</published>
+    <updated>${updated}</updated>
     <summary type="html">${escapeXml(post.description || "")}</summary>
     <content type="html" xml:base="${escapeXml(siteUrl)}">
       <![CDATA[
-        <p>${escapeXml(post.description || "")}</p>
-        <p><a href="${escapeXml(`${siteUrl}/posts/${post.slug}`)}">Read more</a></p>
+        <p>${post.description || ""}</p>
+        <p><a href="${postUrl}">Read more</a></p>
       ]]>
     </content>
     <author>
@@ -28,7 +39,7 @@ export async function GET() {
     </author>
     ${post.tags.map((tag) => `<category term="${escapeXml(tag)}" />`).join("\n    ")}
   </entry>`
-    )
+    })
     .join("")
 
   const atomFeed = `<?xml version="1.0" encoding="utf-8"?>
@@ -50,13 +61,4 @@ export async function GET() {
       "Content-Type": "application/atom+xml; charset=utf-8",
     },
   })
-}
-
-function escapeXml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;")
 }

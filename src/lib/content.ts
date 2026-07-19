@@ -14,10 +14,17 @@ function ensureDir(dir: string) {
   }
 }
 
-/** Sanitize a slug: strip path traversal and ensure it's safe for filesystem use */
+/** Sanitize a slug: lowercase, strip path traversal, keep only safe chars. */
 function safeSlug(slug: string): string {
-  // Remove any path separators and parent directory references
-  return slug.replace(/\.\./g, "").replace(/[\/\\]/g, "-").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 100) || "untitled"
+  if (!slug.trim()) return `untitled-${Date.now()}`
+  return (
+    slug
+      .toLowerCase()
+      .replace(/\.\./g, "")
+      .replace(/[\/\\]/g, "-")
+      .replace(/[^a-z0-9_-]/g, "")
+      .slice(0, 100) || `untitled-${Date.now()}`
+  )
 }
 
 /** Generate a slug from a title with non-ASCII fallback */
@@ -54,19 +61,22 @@ export function getAllPosts(includeDrafts = false): Post[] {
     readDir(DRAFTS_DIR)
   }
 
-  // Sort by date, newest first
-  posts.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  )
+  // Sort by date, newest first. Invalid dates fall to the end.
+  posts.sort((a, b) => {
+    const ta = new Date(a.date).getTime()
+    const tb = new Date(b.date).getTime()
+    if (Number.isNaN(ta) && Number.isNaN(tb)) return 0
+    if (Number.isNaN(ta)) return 1
+    if (Number.isNaN(tb)) return -1
+    return tb - ta
+  })
 
   return posts
 }
 
 export function getPublishedPosts(): PostSummary[] {
   const allPosts = getAllPosts(false)
-  return allPosts
-    .filter((p) => !p.draft)
-    .map(toPostSummary)
+  return allPosts.filter((p) => !p.draft).map(toPostSummary)
 }
 
 export function getPostBySlug(
@@ -81,7 +91,7 @@ export function getPostBySlug(
       const filePath = path.join(dir, `${clean}${ext}`)
       if (fs.existsSync(filePath)) {
         const rawContent = fs.readFileSync(filePath, "utf-8")
-        return parsePostFromFile(rawContent, slug)
+        return parsePostFromFile(rawContent, clean)
       }
     }
   }
@@ -89,7 +99,7 @@ export function getPostBySlug(
   return null
 }
 
-export function savePost(post: Post): void {
+export function savePost(post: Post, previousSlug?: string): void {
   ensureDir(POSTS_DIR)
   ensureDir(DRAFTS_DIR)
 
@@ -97,34 +107,43 @@ export function savePost(post: Post): void {
   const targetDir = post.draft ? DRAFTS_DIR : POSTS_DIR
   const filePath = path.join(targetDir, `${clean}.mdx`)
 
+  // If the slug changed, remove the old file to avoid duplicates.
+  if (previousSlug && safeSlug(previousSlug) !== clean) {
+    deletePost(previousSlug)
+  }
+
   fs.writeFileSync(filePath, serializeFrontmatter(post), "utf-8")
 }
 
 export function deletePost(slug: string): boolean {
   const clean = safeSlug(slug)
   const extensions = [".mdx", ".md"]
+  let deleted = false
 
   for (const ext of extensions) {
     for (const dir of [POSTS_DIR, DRAFTS_DIR]) {
       const filePath = path.join(dir, `${clean}${ext}`)
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath)
-        return true
+        deleted = true
       }
     }
   }
 
-  return false
+  return deleted
 }
 
 export function movePost(slug: string, toDraft: boolean): Post | null {
   const post = getPostBySlug(slug, true)
   if (!post) return null
 
-  // Delete from current location
-  deletePost(slug)
+  // Use the filesystem-resolved slug for deletion and saving.
+  const resolvedSlug = safeSlug(post.slug)
 
-  // Update draft status and save to new location
+  // Delete from current location(s).
+  deletePost(resolvedSlug)
+
+  // Update draft status and save to new location.
   post.draft = toDraft
   savePost(post)
 
@@ -132,7 +151,7 @@ export function movePost(slug: string, toDraft: boolean): Post | null {
 }
 
 export function getAllTags(): string[] {
-  const posts = getAllPosts(false)
+  const posts = getAllPosts(true)
   const tagSet = new Set<string>()
 
   for (const post of posts) {

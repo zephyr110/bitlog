@@ -2,25 +2,45 @@ import { SignJWT, jwtVerify } from "jose"
 import bcrypt from "bcryptjs"
 import { type AuthUser } from "@/types"
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.SESSION_SECRET || "this-is-a-fallback-secret-at-least-32-chars-long!"
-)
-
 const JWT_EXPIRATION = "7d"
 
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.SESSION_SECRET
+  if (!secret) {
+    throw new Error(
+      "SESSION_SECRET environment variable is required for authentication."
+    )
+  }
+  return new TextEncoder().encode(secret)
+}
+
+let currentPasswordHash: string | undefined = process.env.ADMIN_PASSWORD_HASH
+
+export function getPasswordVersion(): string {
+  return (currentPasswordHash || "").slice(0, 8)
+}
+
+export function setPasswordHash(hash: string): void {
+  currentPasswordHash = hash
+}
+
 export async function createToken(user: AuthUser): Promise<string> {
-  return new SignJWT({ username: user.username })
+  return new SignJWT({ username: user.username, pv: getPasswordVersion() })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(JWT_EXPIRATION)
-    .sign(JWT_SECRET)
+    .sign(getJwtSecret())
 }
 
 export async function verifyToken(token: string): Promise<AuthUser | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET)
+    const { payload } = await jwtVerify(token, getJwtSecret())
     const username = payload.username
     if (typeof username !== "string" || !username) return null
+
+    const pv = payload.pv
+    if (pv !== getPasswordVersion()) return null
+
     return { username }
   } catch {
     return null
@@ -31,15 +51,18 @@ export async function verifyLogin(
   username: string,
   password: string
 ): Promise<AuthUser | null> {
-  const adminUsername = process.env.ADMIN_USERNAME || "admin"
-  const adminPasswordHash =
-    process.env.ADMIN_PASSWORD_HASH ||
-    "$2b$10$MLZzZjQ57IqXxvOB2PPQzefbt6QxShFTEkKsOaTxIogartXw7ZhRW"
+  const adminUsername = process.env.ADMIN_USERNAME
+  const adminPasswordHash = currentPasswordHash || process.env.ADMIN_PASSWORD_HASH
 
+  if (!adminUsername || !adminPasswordHash) return null
   if (username !== adminUsername) return null
 
   const isValid = await bcrypt.compare(password, adminPasswordHash)
   if (!isValid) return null
+
+  if (!currentPasswordHash) {
+    currentPasswordHash = adminPasswordHash
+  }
 
   return { username }
 }

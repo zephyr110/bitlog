@@ -10,13 +10,16 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { setToken } from "@/lib/api-client"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 
 export default function AdminLoginPage() {
   const router = useRouter()
   const { t } = useT()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [shake, setShake] = useState(false)
   const usernameRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -43,6 +46,8 @@ export default function AdminLoginPage() {
       } else {
         const data = await res.json()
         toast.error(data.error || (t("admin.invalidCredentials") as string))
+        setShake(true)
+        setTimeout(() => setShake(false), 500)
       }
     } catch {
       toast.error(t("admin.networkError") as string)
@@ -52,9 +57,12 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-muted/20 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-muted/20 px-4 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
       {/* Brand */}
-      <div className="mb-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="mb-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
         <div className="inline-flex size-14 items-center justify-center rounded-2xl bg-primary mb-4 shadow-lg shadow-primary/25">
           <span className="text-2xl font-extrabold text-primary-foreground">
             B
@@ -69,7 +77,11 @@ export default function AdminLoginPage() {
       </div>
 
       {/* Login Card */}
-      <Card className="w-full max-w-sm shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <Card
+        className={`w-full max-w-sm shadow-xl border-border/50 bg-background/80 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500 ${
+          shake ? "animate-shake" : ""
+        }`}
+      >
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -87,24 +99,30 @@ export default function AdminLoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">{t("admin.password") as string}</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                autoComplete="current-password"
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  required
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-            >
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <span className="animate-spin rounded-full size-4 border-2 border-current border-t-transparent" />
+                  <Loader2 className="size-4 animate-spin" />
                   {t("admin.signingIn") as string}
                 </span>
               ) : (
@@ -119,6 +137,24 @@ export default function AdminLoginPage() {
       <p className="mt-6 text-xs text-muted-foreground text-center animate-in fade-in duration-700">
         {t("admin.localDevNotice") as string}
       </p>
+
+      <style jsx>{`
+        @keyframes shake {
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          25% {
+            transform: translateX(-6px);
+          }
+          75% {
+            transform: translateX(6px);
+          }
+        }
+        .animate-shake {
+          animation: shake 0.3s ease-in-out;
+        }
+      `}</style>
     </div>
   )
 }

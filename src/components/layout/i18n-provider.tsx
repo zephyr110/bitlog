@@ -21,18 +21,27 @@ const I18nContext = createContext<I18nContextValue>({
   setLocale: () => {},
 })
 
-function getStoredLocale(): Locale {
-  if (typeof window === "undefined") return defaultLocale
+function getStoredLocale(): Locale | null {
+  if (typeof window === "undefined") return null
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored === "zh" || stored === "en") return stored
   } catch {}
-  return defaultLocale
+  return null
 }
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  // Lazy init: read from localStorage on first render
-  const [locale, setLocaleState] = useState<Locale>(getStoredLocale)
+  // Start with the default locale to match the server render. We then sync
+  // from localStorage on mount to avoid a hydration mismatch.
+  const [locale, setLocaleState] = useState<Locale>(defaultLocale)
+
+  useEffect(() => {
+    const stored = getStoredLocale()
+    if (stored && stored !== locale) {
+      setLocaleState(stored) // eslint-disable-line react-hooks/set-state-in-effect
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l)
@@ -41,18 +50,11 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [])
 
-  // Sync on mount in case lazy init missed (SSR → client hydration)
-  useEffect(() => {
-    const stored = getStoredLocale()
-    if (stored !== locale) {
-      setLocaleState(stored)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   return (
     <I18nContext.Provider value={{ locale, setLocale }}>
-      {children}
+      <span suppressHydrationWarning className="contents">
+        {children}
+      </span>
     </I18nContext.Provider>
   )
 }

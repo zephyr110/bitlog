@@ -1,23 +1,27 @@
-export const dynamic = "force-static"
-
 import { siteConfig } from "@/lib/site-config"
 import { getPublishedPosts } from "@/lib/content"
 
 function escapeXml(s: string) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;")
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
 }
 
 export async function GET() {
   const posts = getPublishedPosts()
   const siteUrl = siteConfig.siteUrl.replace(/\/+$/, "")
+  const today = new Date().toISOString().slice(0, 10)
 
   const urls = [
-    { url: siteUrl, changefreq: "weekly", priority: "1.0", lastmod: new Date().toISOString().slice(0, 10) },
-    { url: `${siteUrl}/about`, changefreq: "monthly", priority: "0.8", lastmod: new Date().toISOString().slice(0, 10) },
+    { url: siteUrl, changefreq: "weekly", priority: "1.0", lastmod: today },
+    { url: `${siteUrl}/about`, changefreq: "monthly", priority: "0.8", lastmod: today },
   ]
 
   const postUrls = posts.map((post) => ({
-    url: `${siteUrl}/posts/${post.slug}`,
+    url: `${siteUrl}/posts/${encodeURIComponent(post.slug)}`,
     lastmod: (post.updated || post.date).slice(0, 10),
     changefreq: "monthly",
     priority: "0.6",

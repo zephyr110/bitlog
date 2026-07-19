@@ -33,6 +33,8 @@ export function PostStats({ posts }: PostStatsProps) {
   const { t } = useT()
   const [timeRange, setTimeRange] = useState<TimeRange>("all")
 
+  const publishedPosts = useMemo(() => posts.filter((p) => !p.draft), [posts])
+
   const filteredPosts = useMemo(() => {
     const now = new Date()
     const rangeMap: Record<TimeRange, number> = {
@@ -42,10 +44,10 @@ export function PostStats({ posts }: PostStatsProps) {
       all: Infinity,
     }
     const days = rangeMap[timeRange]
-    if (days === Infinity) return posts
+    if (days === Infinity) return publishedPosts
     const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
-    return posts.filter((p) => new Date(p.date) >= cutoff)
-  }, [posts, timeRange])
+    return publishedPosts.filter((p) => new Date(p.date) >= cutoff)
+  }, [publishedPosts, timeRange])
 
   // Posts over time data
   const timelineData = useMemo(() => {

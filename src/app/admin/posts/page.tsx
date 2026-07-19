@@ -48,10 +48,6 @@ export default function AdminPostsPage() {
   const [deleting, setDeleting] = useState(false)
   const PAGE_SIZE = 10
 
-  useEffect(() => {
-    fetchPosts()
-  }, [])
-
   async function fetchPosts() {
     try {
       const res = await apiFetch("/api/posts?includeDrafts=true")
@@ -66,6 +62,11 @@ export default function AdminPostsPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchPosts() // eslint-disable-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const filteredPosts = useMemo(() => {
     let result = posts
@@ -90,9 +91,12 @@ export default function AdminPostsPage() {
     setDeleting(true)
 
     try {
-      const res = await apiFetch(`/api/posts?slug=${deleteTarget.slug}`, {
-        method: "DELETE",
-      })
+      const res = await apiFetch(
+        `/api/posts?slug=${encodeURIComponent(deleteTarget.slug)}`,
+        {
+          method: "DELETE",
+        }
+      )
       if (res.ok) {
         setPosts(posts.filter((p) => p.slug !== deleteTarget.slug))
         toast.success(t("admin.deleteSuccess") as string)
@@ -109,11 +113,14 @@ export default function AdminPostsPage() {
 
   async function handleToggleDraft(slug: string, currentDraft: boolean) {
     try {
-      const res = await apiFetch(`/api/posts?slug=${slug}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ draft: !currentDraft }),
-      })
+      const res = await apiFetch(
+        `/api/posts?slug=${encodeURIComponent(slug)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ draft: !currentDraft }),
+        }
+      )
 
       if (res.ok) {
         setPosts(
@@ -182,7 +189,7 @@ export default function AdminPostsPage() {
           {/* Search & Filter */}
           <div className="flex items-center gap-3 flex-wrap">
             {/* Status tabs */}
-            <div className="flex rounded-lg border p-0.5 bg-muted/30">
+            <div className="inline-flex rounded-lg border p-0.5 bg-muted/30">
               {(["all", "published", "drafts"] as const).map((s) => (
                 <button
                   key={s}
@@ -193,7 +200,11 @@ export default function AdminPostsPage() {
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {s === "all" ? (t("admin.all") as string) : s === "published" ? (t("admin.published") as string) : (t("admin.drafts") as string)}
+                  {s === "all"
+                    ? (t("admin.all") as string)
+                    : s === "published"
+                    ? (t("admin.published") as string)
+                    : (t("admin.drafts") as string)}
                 </button>
               ))}
             </div>
@@ -241,15 +252,26 @@ export default function AdminPostsPage() {
                     <TableRow key={post.slug}>
                       <TableCell className="font-medium">
                         <Link
-                          href={`/admin/posts/edit?slug=${post.slug}`}
+                          href={`/admin/posts/edit?slug=${encodeURIComponent(
+                            post.slug
+                          )}`}
                           className="hover:text-primary transition-colors"
                         >
                           {post.title}
                         </Link>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={post.draft ? "secondary" : "default"}>
-                          {post.draft ? (t("admin.draft") as string) : (t("admin.publishedStatus") as string)}
+                        <Badge
+                          variant={post.draft ? "secondary" : "default"}
+                          className={
+                            post.draft
+                              ? "bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400"
+                              : "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400"
+                          }
+                        >
+                          {post.draft
+                            ? (t("admin.draft") as string)
+                            : (t("admin.publishedStatus") as string)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
@@ -281,7 +303,11 @@ export default function AdminPostsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
                               onClick={() =>
-                                router.push(`/admin/posts/edit?slug=${post.slug}`)
+                                router.push(
+                                  `/admin/posts/edit?slug=${encodeURIComponent(
+                                    post.slug
+                                  )}`
+                                )
                               }
                             >
                               {t("admin.edit") as string}
@@ -294,7 +320,11 @@ export default function AdminPostsPage() {
                               {post.draft ? (t("admin.publish") as string) : (t("admin.unpublish") as string)}
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => router.push(`/posts/${post.slug}`)}
+                              onClick={() =>
+                                router.push(
+                                  `/posts/${encodeURIComponent(post.slug)}`
+                                )
+                              }
                             >
                               {t("admin.view") as string}
                             </DropdownMenuItem>

@@ -8,22 +8,27 @@ export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    setMounted(true) // eslint-disable-line react-hooks/set-state-in-effect
+  }, [])
 
   if (!mounted) {
     return <div className="size-9" />
   }
 
+  const isDark = resolvedTheme === "dark"
+
   return (
     <button
-      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      className="inline-flex items-center justify-center size-9 rounded-lg border border-transparent hover:bg-muted transition-all hover:border-border"
-      aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="inline-flex items-center justify-center size-9 rounded-lg border border-transparent hover:bg-muted hover:border-border transition-all"
+      aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+      title={`Switch to ${isDark ? "light" : "dark"} mode`}
     >
-      {resolvedTheme === "dark" ? (
+      {isDark ? (
         <Sun size={18} className="text-amber-500" />
       ) : (
-        <Moon size={18} className="text-slate-700" />
+        <Moon size={18} className="text-slate-700 dark:text-slate-300" />
       )}
     </button>
   )

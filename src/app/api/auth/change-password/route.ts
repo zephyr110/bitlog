@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 import { requireAuth } from "@/lib/api-auth"
-import { verifyLogin, hashPassword } from "@/lib/auth"
+import { verifyLogin, hashPassword, setPasswordHash } from "@/lib/auth"
 import fs from "fs"
 import path from "path"
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(8, "New password must be at least 8 characters"),
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,21 +17,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { currentPassword, newPassword } = await request.json()
-
-    if (!currentPassword || !newPassword) {
+    const rawBody = await request.json()
+    const parseResult = changePasswordSchema.safeParse(rawBody)
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: "Current password and new password are required" },
+        { error: parseResult.error.issues[0]?.message || "Invalid input" },
         { status: 400 }
       )
     }
 
-    if (newPassword.length < 8) {
-      return NextResponse.json(
-        { error: "New password must be at least 8 characters" },
-        { status: 400 }
-      )
-    }
+    const { currentPassword, newPassword } = parseResult.data
 
     const verifiedUser = await verifyLogin(user.username, currentPassword)
     if (!verifiedUser) {
@@ -37,18 +38,21 @@ export async function POST(request: NextRequest) {
 
     const newHash = await hashPassword(newPassword)
 
+    // Update in-memory hash immediately so existing tokens are invalidated.
+    setPasswordHash(newHash)
+
+    // Persist to .env.local as a backup; still requires a restart to fully
+    // replace process.env, but the in-memory value is now authoritative.
     const envPath = path.join(process.cwd(), ".env.local")
     let envContent = ""
 
     if (fs.existsSync(envPath)) {
       envContent = fs.readFileSync(envPath, "utf-8")
-      // Match ADMIN_PASSWORD_HASH=... even with leading whitespace or trailing comments
       const updated = envContent.replace(
         /^\s*ADMIN_PASSWORD_HASH=.*$/m,
         `ADMIN_PASSWORD_HASH=${newHash}`
       )
       if (updated === envContent) {
-        // Key not found — append it
         envContent = envContent.trimEnd() + `\nADMIN_PASSWORD_HASH=${newHash}\n`
       } else {
         envContent = updated
@@ -58,9 +62,13 @@ export async function POST(request: NextRequest) {
     }
 
     fs.writeFileSync(envPath, envContent, "utf-8")
-    return NextResponse.json({ success: true })
+
+    return NextResponse.json({ success: true, requireRelogin: true })
   } catch (error) {
     console.error("Change password error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
   }
 }

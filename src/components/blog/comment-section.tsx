@@ -14,7 +14,7 @@ export function CommentSection() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    setMounted(true) // eslint-disable-line react-hooks/set-state-in-effect
   }, [])
 
   useEffect(() => {
@@ -23,15 +23,28 @@ export function CommentSection() {
     // Only render in production (when hostname is not localhost)
     if (window.location.hostname === "localhost") return
 
-    // Prevent double initialization in StrictMode
-    if (initialized.current) return
-
     const repo = process.env.NEXT_PUBLIC_GISCUS_REPO || ""
     const repoId = process.env.NEXT_PUBLIC_GISCUS_REPO_ID || ""
     const category = process.env.NEXT_PUBLIC_GISCUS_CATEGORY || "Announcements"
     const categoryId = process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID || ""
 
     if (!repo || !repoId || !categoryId) return
+
+    const theme = resolvedTheme === "dark" ? "dark" : "light"
+    const lang = locale === "zh" ? "zh-CN" : "en"
+
+    // If already initialized, send a message to the iframe to update theme/lang.
+    if (initialized.current) {
+      const iframe =
+        ref.current?.querySelector<HTMLIFrameElement>("iframe.giscus-frame")
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage(
+          { giscus: { setConfig: { theme, lang } } },
+          "https://giscus.app"
+        )
+      }
+      return
+    }
 
     initialized.current = true
 
@@ -46,21 +59,23 @@ export function CommentSection() {
     script.setAttribute("data-reactions-enabled", "1")
     script.setAttribute("data-emit-metadata", "0")
     script.setAttribute("data-input-position", "bottom")
-    script.setAttribute("data-theme", resolvedTheme || "preferred_color_scheme")
-    script.setAttribute("data-lang", locale === "zh" ? "zh-CN" : "en")
+    script.setAttribute("data-theme", theme)
+    script.setAttribute("data-lang", lang)
     script.setAttribute("crossorigin", "anonymous")
     script.async = true
 
-    if (ref.current) {
-      ref.current.appendChild(script)
+    const container = ref.current
+    if (container) {
+      container.appendChild(script)
     }
 
     return () => {
-      if (ref.current && script.parentNode) {
-        ref.current.removeChild(script)
+      if (container && script.parentNode) {
+        container.removeChild(script)
       }
+      initialized.current = false
     }
-  }, [mounted])
+  }, [mounted, resolvedTheme, locale])
 
   // Server-side and before mount: render nothing (same as client initial render)
   if (!mounted) {

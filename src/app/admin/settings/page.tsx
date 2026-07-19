@@ -1,28 +1,53 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { apiFetch } from "@/lib/api-client"
+import { apiFetch, clearToken } from "@/lib/api-client"
 import { siteConfig } from "@/lib/site-config"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 export default function AdminSettingsPage() {
   const { t } = useT()
+  const router = useRouter()
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const [username, setUsername] = useState("admin")
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await apiFetch("/api/auth/me")
+        if (res.ok) {
+          const data = await res.json()
+          if (data.user?.username) {
+            setUsername(data.user.username)
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+    fetchUser()
+  }, [])
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault()
 
     if (newPassword !== confirmPassword) {
       toast.error(t("admin.passwordsNotMatch") as string)
+      return
+    }
+
+    if (newPassword.length < 8) {
+      toast.error(t("admin.passwordLength") as string)
       return
     }
 
@@ -41,11 +66,15 @@ export default function AdminSettingsPage() {
         setCurrentPassword("")
         setNewPassword("")
         setConfirmPassword("")
+        if (data.requireRelogin) {
+          clearToken()
+          router.push("/admin/login")
+        }
       } else {
         toast.error(data.error || "Failed to change password")
       }
     } catch {
-      toast.error("Network error")
+      toast.error(t("admin.networkError") as string)
     } finally {
       setLoading(false)
     }
@@ -59,6 +88,8 @@ export default function AdminSettingsPage() {
           {t("admin.settingsDesc") as string}
         </p>
       </div>
+
+      <Separator />
 
       {/* Site Info */}
       <Card>
@@ -167,7 +198,7 @@ export default function AdminSettingsPage() {
         <CardContent className="space-y-2 text-sm">
           <div className="flex justify-between py-2">
             <span className="text-muted-foreground">{t("admin.username") as string}</span>
-            <span className="font-medium">admin</span>
+            <span className="font-medium">{username}</span>
           </div>
           <Separator />
           <div className="flex justify-between py-2">

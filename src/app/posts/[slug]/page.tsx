@@ -11,6 +11,7 @@ import { CommentSection } from "@/components/blog/comment-section"
 import { Trans } from "@/components/layout/trans"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Calendar, Clock } from "lucide-react"
 
 const ogImageUrl = (path: string) =>
   path.startsWith("http") ? path : `${siteConfig.siteUrl}${path}`
@@ -85,8 +86,19 @@ export default async function PostPage({ params }: PostPageProps) {
 
       <article className="min-h-screen">
         {/* Hero Header */}
-        <header className="relative border-b bg-muted/10">
+        <header className="relative border-b bg-muted/10 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/3 to-transparent" />
+          {post.cover && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={post.cover}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover opacity-10"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+            </>
+          )}
 
           <div className="container mx-auto px-4 py-16 md:py-24 max-w-3xl relative">
             {/* Breadcrumb */}
@@ -124,11 +136,17 @@ export default async function PostPage({ params }: PostPageProps) {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium text-foreground">{siteConfig.author.name}</p>
+                  <p className="font-medium text-foreground">
+                    {siteConfig.author.name}
+                  </p>
                   <div className="flex items-center gap-1.5 text-xs">
+                    <Calendar size={12} />
                     <time dateTime={post.date}>{date}</time>
                     <span className="opacity-40">·</span>
-                    <span><Trans k="post.minRead" args={[post.readingTime]} /></span>
+                    <Clock size={12} />
+                    <span>
+                      <Trans k="post.minRead" args={[post.readingTime]} />
+                    </span>
                   </div>
                 </div>
               </div>
@@ -139,7 +157,11 @@ export default async function PostPage({ params }: PostPageProps) {
                   <span className="hidden md:block opacity-20">|</span>
                   <div className="flex flex-wrap gap-1.5">
                     {post.tags.map((tag) => (
-                      <TagBadge key={tag} tag={tag} href={`/tags/${encodeURIComponent(tag.toLowerCase())}`} />
+                      <TagBadge
+                        key={tag}
+                        tag={tag}
+                        href={`/tags/${encodeURIComponent(tag.toLowerCase())}`}
+                      />
                     ))}
                   </div>
                 </>
@@ -147,7 +169,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
               {/* Share */}
               <div className="ml-auto flex items-center gap-1">
-                <CopyLinkButton url={`/posts/${post.slug}`} />
+                <CopyLinkButton url={`/posts/${encodeURIComponent(post.slug)}`} />
               </div>
             </div>
           </div>
@@ -165,11 +187,17 @@ export default async function PostPage({ params }: PostPageProps) {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex flex-wrap gap-2">
               {post.tags.map((tag) => (
-                <TagBadge key={tag} tag={tag} href={`/tags/${encodeURIComponent(tag.toLowerCase())}`} />
+                <TagBadge
+                  key={tag}
+                  tag={tag}
+                  href={`/tags/${encodeURIComponent(tag.toLowerCase())}`}
+                />
               ))}
             </div>
             <div className="flex items-center gap-2">
-              <CopyLinkButton url={`/posts/${post.slug}`} />
+              <CopyLinkButton
+                url={`/posts/${encodeURIComponent(post.slug)}`}
+              />
             </div>
           </div>
         </div>
@@ -181,19 +209,28 @@ export default async function PostPage({ params }: PostPageProps) {
         {relatedPosts.length > 0 && (
           <section className="border-t bg-muted/10">
             <div className="container mx-auto px-4 py-16 max-w-3xl">
-              <h2 className="text-2xl font-bold mb-8"><Trans k="post.relatedPosts" /></h2>
+              <h2 className="text-2xl font-bold mb-8">
+                <Trans k="post.relatedPosts" />
+              </h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {relatedPosts.map((rp) => (
                   <Link
                     key={rp.slug}
-                    href={`/posts/${rp.slug}`}
+                    href={`/posts/${encodeURIComponent(rp.slug)}`}
                     className="group block p-4 rounded-xl border bg-card hover:border-primary/20 hover:shadow-sm transition-all"
                   >
                     <h3 className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors line-clamp-2">
                       {rp.title}
                     </h3>
-                    <p className="text-xs text-muted-foreground line-clamp-1">
+                    <p className="text-xs text-muted-foreground line-clamp-1 mb-2">
                       {rp.description}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/80 flex items-center gap-1.5">
+                      <Calendar size={10} />
+                      {new Date(rp.date).toLocaleDateString()}
+                      <span>·</span>
+                      <Clock size={10} />
+                      <Trans k="post.minRead" args={[rp.readingTime]} />
                     </p>
                   </Link>
                 ))}

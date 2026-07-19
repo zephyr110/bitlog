@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header"
 import { ThemeProvider } from "@/components/layout/theme-provider"
 import { I18nProvider } from "@/components/layout/i18n-provider"
 import { siteConfig } from "@/lib/site-config"
+import { defaultLocale } from "@/lib/i18n"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -53,12 +54,20 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang={defaultLocale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <body
+        className="min-h-full flex flex-col"
+        suppressHydrationWarning
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <I18nProvider>
             <Header />
             <main className="flex-1">{children}</main>

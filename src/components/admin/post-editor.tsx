@@ -55,9 +55,10 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
       description !== initial.description ||
       content !== initial.content ||
       tags.join(",") !== initial.tags.join(",") ||
-      cover !== (initial.cover || "")
+      cover !== (initial.cover || "") ||
+      draft !== initial.draft
     )
-  }, [title, slug, description, content, tags, cover, initialPost, isNew])
+  }, [title, slug, description, content, tags, cover, draft, initialPost, isNew])
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -88,23 +89,32 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
   const charCount = content.length
   const readTime = Math.max(1, Math.ceil(wordCount / 200))
 
-  // Auto-generate slug from title
-  useEffect(() => {
-    if (isNew && title && !slug) {
+  function handleTitleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newTitle = e.target.value
+    setTitle(newTitle)
+    if (isNew && !slug) {
       setSlug(
-        title
+        newTitle
           .toLowerCase()
           .replace(/\s+/g, "-")
           .replace(/[^a-z0-9-]/g, "")
           .slice(0, 80)
       )
     }
-  }, [title, slug, isNew])
+  }
 
   function addTag() {
-    const tag = tagInput.trim().toLowerCase()
-    if (tag && !tags.includes(tag)) {
-      setTags([...tags, tag])
+    const raw = tagInput.trim().toLowerCase()
+    if (!raw) {
+      setTagInput("")
+      return
+    }
+    const newTags = raw
+      .split(/[,，]/)
+      .map((t) => t.trim())
+      .filter((t) => t && !tags.includes(t))
+    if (newTags.length) {
+      setTags([...tags, ...newTags])
     }
     setTagInput("")
   }
@@ -134,7 +144,9 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     }
 
     try {
-      const url = isNew ? "/api/posts" : `/api/posts?slug=${initialPost?.slug}`
+      const url = isNew
+        ? "/api/posts"
+        : `/api/posts?slug=${encodeURIComponent(initialPost?.slug || "")}`
       const method = isNew ? "POST" : "PUT"
 
       const res = await apiFetch(url, {
@@ -145,13 +157,21 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
 
       if (res.ok) {
         const data = await res.json()
+        const savedDraft = data.post.draft ?? draft
+        setDraft(savedDraft)
         if (publish) {
           toast.success(t("admin.publishSuccess") as string)
         } else {
-          toast.success(draft ? (t("admin.draftSaved") as string) : (t("admin.postUpdated") as string))
+          toast.success(
+            savedDraft
+              ? (t("admin.draftSaved") as string)
+              : (t("admin.postUpdated") as string)
+          )
         }
         if (isNew) {
-          router.push(`/admin/posts/edit?slug=${data.post.slug}`)
+          router.push(
+            `/admin/posts/edit?slug=${encodeURIComponent(data.post.slug)}`
+          )
         }
         router.refresh()
       } else {
@@ -168,21 +188,22 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
   return (
     <div className="space-y-6">
       {/* Top Actions */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+      <div className="sticky top-0 z-30 -mx-4 px-4 py-3 bg-background/95 backdrop-blur-xl border-b flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight truncate">
             {isNew ? (t("admin.newPost") as string) : (t("admin.editPost") as string)}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => savePost(false)}
             disabled={saving}
           >
             {saving ? (t("admin.saving") as string) : (t("admin.saveDraft") as string)}
           </Button>
-          <Button onClick={() => savePost(true)} disabled={saving}>
+          <Button size="sm" onClick={() => savePost(true)} disabled={saving}>
             {saving ? (t("admin.publishing") as string) : (t("admin.publish") as string)}
           </Button>
         </div>
@@ -196,7 +217,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
             <Input
               id="title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={handleTitleChange}
               placeholder={t("admin.title") as string}
               className="text-lg"
             />
@@ -222,6 +243,20 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
               />
             </div>
           </div>
+
+          {cover && (
+            <div className="relative rounded-lg border overflow-hidden max-h-48 bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={cover}
+                alt=""
+                className="w-full h-48 object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none"
+                }}
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="description">{t("admin.description") as string}</Label>
@@ -254,10 +289,11 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
                   <Badge
                     key={tag}
                     variant="secondary"
-                    className="cursor-pointer hover:bg-destructive/20"
+                    className="cursor-pointer group/tag hover:bg-destructive/10 hover:text-destructive transition-colors"
                     onClick={() => removeTag(tag)}
                   >
-                    {tag} ×
+                    {tag}
+                    <span className="ml-1 text-muted-foreground group-hover/tag:text-destructive">×</span>
                   </Badge>
                 ))}
               </div>
@@ -328,9 +364,18 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
       </div>
 
       {/* Status */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Badge variant={draft ? "secondary" : "default"}>
-          {draft ? (t("admin.draft") as string) : (t("admin.publishedStatus") as string)}
+      <div className="flex items-center gap-3 text-sm text-muted-foreground rounded-lg border bg-card p-3">
+        <Badge
+          variant={draft ? "secondary" : "default"}
+          className={
+            draft
+              ? "bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400"
+              : "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400"
+          }
+        >
+          {draft
+            ? (t("admin.draft") as string)
+            : (t("admin.publishedStatus") as string)}
         </Badge>
         <span>
           {draft

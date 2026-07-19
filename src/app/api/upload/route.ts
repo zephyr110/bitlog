@@ -1,9 +1,45 @@
-export const dynamic = "force-static"
-
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/api-auth"
 import { writeFile, mkdir, readdir } from "fs/promises"
 import path from "path"
+
+const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"]
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+]
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+
+// Magic numbers for the most common image formats.
+const MAGIC_NUMBERS: Record<string, number[]> = {
+  "image/jpeg": [0xff, 0xd8, 0xff],
+  "image/png": [0x89, 0x50, 0x4e, 0x47],
+  "image/gif": [0x47, 0x49, 0x46],
+  "image/webp": [0x52, 0x49, 0x46],
+}
+
+function hasValidMagicBytes(buffer: Buffer, type: string): boolean {
+  const signature = MAGIC_NUMBERS[type]
+  if (!signature) return true // SVG is checked separately
+  return signature.every((byte, i) => buffer[i] === byte)
+}
+
+function looksLikeSvg(buffer: Buffer): boolean {
+  const snippet = buffer.slice(0, 256).toString("utf-8").trim().toLowerCase()
+  return snippet.startsWith("<?xml") || snippet.startsWith("<svg")
+}
+
+function sanitizeFilename(name: string): string {
+  const base = name.replace(/[^a-zA-Z0-9.-]/g, "_")
+  const ext = path.extname(base).toLowerCase()
+  const stem = path.basename(base, ext)
+  // Reject double extensions / anything suspicious.
+  const cleanExt = ALLOWED_EXTENSIONS.includes(ext) ? ext : ".bin"
+  return `${stem.slice(0, 50)}${cleanExt}`
+}
 
 export async function GET(request: NextRequest) {
   const user = await requireAuth(request)
@@ -15,12 +51,11 @@ export async function GET(request: NextRequest) {
 
   try {
     const files = await readdir(imagesDir)
-    const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"]
 
     const images = files
       .filter((file) => {
         const ext = path.extname(file).toLowerCase()
-        return allowedExtensions.includes(ext)
+        return ALLOWED_EXTENSIONS.includes(ext)
       })
       .map((file) => ({
         name: file,
@@ -46,31 +81,46 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File | null
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 })
+      return NextResponse.json(
+        { error: "No file provided" },
+        { status: 400 }
+      )
     }
 
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/gif",
-      "image/webp",
-      "image/svg+xml",
-    ]
-    if (!allowedTypes.includes(file.type)) {
+    if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
         { error: "Invalid file type" },
         { status: 400 }
       )
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: "File too large" }, { status: 400 })
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "File too large" },
+        { status: 400 }
+      )
     }
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
+
+    // Validate file content, not just MIME type.
+    if (file.type === "image/svg+xml") {
+      if (!looksLikeSvg(buffer)) {
+        return NextResponse.json(
+          { error: "Invalid SVG content" },
+          { status: 400 }
+        )
+      }
+    } else if (!hasValidMagicBytes(buffer, file.type)) {
+      return NextResponse.json(
+        { error: "File content does not match its extension" },
+        { status: 400 }
+      )
+    }
+
     const timestamp = Date.now()
-    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_")
+    const safeName = sanitizeFilename(file.name)
     const filename = `${timestamp}-${safeName}`
 
     const uploadDir = path.join(process.cwd(), "public", "images")
@@ -82,6 +132,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url, filename }, { status: 201 })
   } catch (error) {
     console.error("Upload error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
   }
 }

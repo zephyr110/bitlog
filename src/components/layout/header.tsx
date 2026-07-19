@@ -31,104 +31,126 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [mobileOpen])
+
   if (pathname?.startsWith("/admin")) return null
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 w-full transition-shadow duration-300",
-        scrolled
-          ? "shadow-sm border-b bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70"
-          : "border-transparent bg-background"
-      )}
-    >
-      <div className="container mx-auto flex h-14 items-center justify-between px-4">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-2.5 font-bold text-lg tracking-tight hover:opacity-80 transition-opacity shrink-0"
-        >
-          <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-extrabold shadow-sm shadow-primary/25">
-            B
-          </span>
-          <span className="hidden sm:inline">{siteConfig.name}</span>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-0.5">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "relative px-3.5 py-1.5 text-sm font-medium rounded-full transition-all duration-200",
-                  isActive
-                    ? "text-foreground bg-muted/50"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-                )}
-              >
-                {t(link.i18nKey) as string}
-              </Link>
-            )
-          })}
-        </nav>
-
-        {/* Right side */}
-        <div className="flex items-center gap-0.5">
-          <LanguageSwitcher />
-          <ThemeToggle />
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-          </Button>
-
+    <>
+      <header
+        className={cn(
+          "sticky top-0 z-50 w-full transition-all duration-300",
+          scrolled
+            ? "shadow-sm border-b bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70"
+            : "border-transparent bg-background"
+        )}
+      >
+        <div className="container mx-auto flex h-14 items-center justify-between px-4">
+          {/* Logo */}
           <Link
-            href="/admin/login"
-            className="hidden md:inline-flex items-center justify-center size-9 rounded-full hover:bg-muted transition-colors"
-            title={t("site.admin") as string}
+            href="/"
+            className="flex items-center gap-2.5 font-bold text-lg tracking-tight hover:opacity-80 transition-opacity shrink-0"
           >
-            <User size={16} className="opacity-60" />
+            <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-extrabold shadow-sm shadow-primary/25">
+              B
+            </span>
+            <span className="hidden sm:inline">{siteConfig.name}</span>
           </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-0.5">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "relative px-3.5 py-1.5 text-sm font-medium rounded-full transition-all duration-200",
+                    isActive
+                      ? "text-foreground bg-muted/50"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                  )}
+                >
+                  {t(link.i18nKey) as string}
+                  {isActive && (
+                    <span className="absolute inset-x-2 -bottom-1 h-0.5 rounded-full bg-primary/80" />
+                  )}
+                </Link>
+              )
+            })}
+          </nav>
+
+          {/* Right side */}
+          <div className="flex items-center gap-0.5">
+            <ThemeToggle />
+            <LanguageSwitcher />
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+            </Button>
+
+            <Link
+              href="/admin/login"
+              className="hidden md:inline-flex items-center justify-center size-9 rounded-full hover:bg-muted transition-colors"
+              title={t("site.admin") as string}
+            >
+              <User size={16} className="opacity-60" />
+            </Link>
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Mobile Navigation */}
       {mobileOpen && (
-        <div className="md:hidden border-t bg-background/95 backdrop-blur-xl animate-in slide-in-from-top-2 duration-200">
-          <nav className="container mx-auto px-4 py-3 space-y-1">
-            {navLinks.map((link) => (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden"
+            onClick={() => setMobileOpen(false)}
+          />
+          <div className="fixed inset-x-0 top-14 z-50 md:hidden border-b bg-background/95 backdrop-blur-xl animate-in slide-in-from-top-2 duration-200">
+            <nav className="container mx-auto px-4 py-3 space-y-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    pathname === link.href
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  {t(link.i18nKey) as string}
+                </Link>
+              ))}
               <Link
-                key={link.href}
-                href={link.href}
+                href="/admin/login"
                 onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                  pathname === link.href
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                )}
+                className="block px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
-                {t(link.i18nKey) as string}
+                {t("site.admin") as string}
               </Link>
-            ))}
-            <Link
-              href="/admin/login"
-              onClick={() => setMobileOpen(false)}
-              className="block px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              {t("site.admin") as string}
-            </Link>
-          </nav>
-        </div>
+            </nav>
+          </div>
+        </>
       )}
-    </header>
+    </>
   )
 }

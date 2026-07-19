@@ -1,7 +1,7 @@
 "use client"
 
 import { useLocale } from "@/components/layout/i18n-provider"
-import { localeLabels, type Locale, locales } from "@/lib/i18n"
+import { localeLabels, locales } from "@/lib/i18n"
 
 export function LanguageSwitcher() {
   const { locale, setLocale } = useLocale()
@@ -12,11 +12,13 @@ export function LanguageSwitcher() {
     setLocale(next)
   }
 
+  const nextLocale = locales[(locales.indexOf(locale) + 1) % locales.length]
+
   return (
     <button
       onClick={toggle}
       className="inline-flex items-center justify-center size-9 rounded-lg border border-transparent hover:bg-muted hover:border-border transition-all text-xs font-medium"
-      title={localeLabels[locales.find((l) => l !== locale) as Locale]}
+      title={localeLabels[nextLocale]}
     >
       {locale === "zh" ? "中文" : "EN"}
     </button>

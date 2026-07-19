@@ -1,16 +1,25 @@
 const TOKEN_KEY = "blog-admin-token"
+const COOKIE_NAME = "blog-admin-token"
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null
   return localStorage.getItem(TOKEN_KEY)
 }
 
-export function setToken(token: string) {
-  localStorage.setItem(TOKEN_KEY, token)
+export function setToken(token: string): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(TOKEN_KEY, token)
+    // Keep a cookie in sync so middleware can validate admin routes.
+    const maxAge = 60 * 60 * 24 * 7 // 7 days
+    document.cookie = `${COOKIE_NAME}=${encodeURIComponent(token)}; path=/; max-age=${maxAge}; SameSite=Lax`
+  }
 }
 
-export function clearToken() {
-  localStorage.removeItem(TOKEN_KEY)
+export function clearToken(): void {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(TOKEN_KEY)
+    document.cookie = `${COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`
+  }
 }
 
 export async function apiFetch(

@@ -1,37 +1,27 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { TagBadge } from "@/components/blog/tag-badge"
 import { useT } from "@/components/layout/trans"
 import { type PostSummary } from "@/types"
+import { Calendar, Clock } from "lucide-react"
 
-interface PostCardProps {
-  post: PostSummary
-}
-
-function formatRelativeDate(
-  dateStr: string,
-  t: (key: string) => string | ((...args: unknown[]) => string)
-): string {
+function formatRelativeDate(dateStr: string): string {
   const date = new Date(dateStr)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 0) return (t("post.today") as string) || "Today"
-  if (diffDays === 1) return (t("post.yesterday") as string) || "Yesterday"
-  if (diffDays < 7) {
-    const daysAgo = t("post.daysAgo") as (n: number) => string
-    return daysAgo ? daysAgo(diffDays) : `${diffDays} days ago`
-  }
-  if (diffDays < 30) {
-    const weeksAgo = t("post.weeksAgo") as (n: number) => string
-    return weeksAgo ? weeksAgo(Math.floor(diffDays / 7)) : `${Math.floor(diffDays / 7)}w ago`
-  }
-  const shortDate = t("post.shortDate") as (d: Date) => string
-  if (shortDate) return shortDate(date)
-  return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+  if (diffDays === 0) return "Today"
+  if (diffDays === 1) return "Yesterday"
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  })
 }
 
 const gradientPairs = [
@@ -45,20 +35,21 @@ const gradientPairs = [
   "from-fuchsia-500 to-pink-400",
 ]
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post }: { post: PostSummary }) {
   const { t } = useT()
-  const [imgFailed, setImgFailed] = useState(false)
-  const haveCover = !!post.cover && !imgFailed
-  const shortDate = formatRelativeDate(post.date, t)
+  const haveCover = !!post.cover
+  const shortDate = formatRelativeDate(post.date)
   const minReadLabel = t("post.minRead") as (n: number) => string
   const gradient = gradientPairs[post.title.length % gradientPairs.length]
 
   return (
-    <Link href={`/posts/${post.slug}`} className="group block">
+    <Link href={`/posts/${encodeURIComponent(post.slug)}`} className="group block">
       <article className="h-full rounded-xl border bg-card overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1">
         {/* Cover Image or Gradient Fallback */}
         <div
-          className={`relative h-44 overflow-hidden ${!haveCover ? `bg-gradient-to-br ${gradient}` : ""}`}
+          className={`relative h-48 overflow-hidden ${
+            !haveCover ? `bg-gradient-to-br ${gradient}` : "bg-muted"
+          }`}
         >
           {haveCover ? (
             <>
@@ -68,7 +59,6 @@ export function PostCard({ post }: PostCardProps) {
                 alt={post.title}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
-                onError={() => setImgFailed(true)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             </>
@@ -90,12 +80,14 @@ export function PostCard({ post }: PostCardProps) {
         <div className="p-5">
           {/* Meta */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2.5">
+            <Calendar size={12} />
             <time dateTime={post.date} className="font-medium">
               {shortDate}
             </time>
             {post.updated && post.updated !== post.date && (
               <>
                 <span className="opacity-40">·</span>
+                <Clock size={12} />
                 <span>{t("post.updated") as string}</span>
               </>
             )}

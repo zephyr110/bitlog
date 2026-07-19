@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, createContext, useContext } from "react"
+import { useEffect, useState, createContext } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { getToken, apiFetch, clearToken } from "@/lib/api-client"
@@ -17,14 +17,12 @@ export default function AdminLayout({
   const pathname = usePathname()
   const router = useRouter()
   const [user, setUser] = useState<AuthUser | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-
   const isLoginPage = pathname === "/admin/login"
+  const [loading, setLoading] = useState(!isLoginPage)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     if (isLoginPage) {
-      setLoading(false)
       return
     }
 
@@ -75,10 +73,10 @@ export default function AdminLayout({
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
       <div
-        className="transition-all duration-300"
+        className="transition-all duration-300 min-h-screen"
         style={{ paddingLeft: sidebarCollapsed ? "4rem" : "16rem" }}
       >
-        <div className="p-8">{children}</div>
+        <div className="p-4 md:p-8">{children}</div>
       </div>
     </div>
   )

@@ -2,6 +2,15 @@ import matter from "gray-matter"
 import { type Post, type PostFrontmatter, type PostSummary } from "@/types"
 import { READING_SPEED_WPM } from "@/lib/constants"
 
+export function computeReadingStats(content: string): {
+  wordCount: number
+  readingTime: number
+} {
+  const wordCount = content.split(/\s+/).filter(Boolean).length
+  const readingTime = Math.max(1, Math.ceil(wordCount / READING_SPEED_WPM))
+  return { wordCount, readingTime }
+}
+
 export function parsePostFromFile(
   rawContent: string,
   fileSlug: string
@@ -9,9 +18,7 @@ export function parsePostFromFile(
   const { data, content } = matter(rawContent)
 
   const frontmatter = data as Partial<PostFrontmatter>
-
-  const wordCount = content.split(/\s+/).filter(Boolean).length
-  const readingTime = Math.max(1, Math.ceil(wordCount / READING_SPEED_WPM))
+  const stats = computeReadingStats(content)
 
   return {
     slug: frontmatter.slug || fileSlug,
@@ -23,8 +30,8 @@ export function parsePostFromFile(
     cover: frontmatter.cover,
     draft: frontmatter.draft ?? false,
     content,
-    wordCount,
-    readingTime,
+    wordCount: stats.wordCount,
+    readingTime: stats.readingTime,
   }
 }
 

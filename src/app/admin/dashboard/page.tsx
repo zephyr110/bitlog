@@ -8,7 +8,7 @@ import { CardSkeleton, ListSkeleton } from "@/components/ui/loading"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useT } from "@/components/layout/trans"
 import { apiFetch } from "@/lib/api-client"
-import { FileText } from "lucide-react"
+import { FileText, PenLine, Clock, Tag } from "lucide-react"
 import { type PostSummary } from "@/types"
 
 export default function AdminDashboardPage() {
@@ -37,6 +37,33 @@ export default function AdminDashboardPage() {
   const drafts = posts.filter((p) => p.draft)
   const allTags = new Set(posts.flatMap((p) => p.tags))
 
+  const stats = [
+    {
+      label: t("admin.totalPosts") as string,
+      value: posts.length,
+      icon: FileText,
+      color: "text-foreground",
+    },
+    {
+      label: t("admin.published") as string,
+      value: published.length,
+      icon: PenLine,
+      color: "text-emerald-600",
+    },
+    {
+      label: t("admin.drafts") as string,
+      value: drafts.length,
+      icon: Clock,
+      color: "text-amber-600",
+    },
+    {
+      label: t("admin.tags") as string,
+      value: allTags.size,
+      icon: Tag,
+      color: "text-blue-600",
+    },
+  ]
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -57,14 +84,16 @@ export default function AdminDashboardPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("admin.dashboard") as string}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t("admin.dashboard") as string}
+          </h1>
           <p className="text-muted-foreground mt-1">
             {t("admin.dashboardWelcome") as string}
           </p>
         </div>
         <Link
           href="/admin/posts/new"
-          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium px-3 hover:bg-primary/80 transition-all"
+          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium px-3 hover:bg-primary/80 transition-all shadow-sm shadow-primary/20"
         >
           {t("admin.newPost") as string}
         </Link>
@@ -72,50 +101,22 @@ export default function AdminDashboardPage() {
 
       {/* Quick Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("admin.totalPosts") as string}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{posts.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("admin.published") as string}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-green-600">
-              {published.length}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("admin.drafts") as string}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-amber-600">
-              {drafts.length}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("admin.tags") as string}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{allTags.size}</p>
-          </CardContent>
-        </Card>
+        {stats.map((stat) => {
+          const Icon = stat.icon
+          return (
+            <Card key={stat.label} className="hover:border-primary/10 transition-colors">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Icon size={14} />
+                  {stat.label}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       {/* Charts */}
@@ -123,7 +124,9 @@ export default function AdminDashboardPage() {
 
       {/* Recent Posts */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">{t("admin.recentPosts") as string}</h2>
+        <h2 className="text-xl font-semibold mb-4">
+          {t("admin.recentPosts") as string}
+        </h2>
         {posts.length === 0 ? (
           <EmptyState
             icon={<FileText size={32} className="text-muted-foreground" />}
@@ -141,18 +144,24 @@ export default function AdminDashboardPage() {
         ) : (
           <div className="space-y-2">
             {posts.slice(0, 5).map((post) => (
-              <Card key={post.slug}>
+              <Card
+                key={post.slug}
+                className="hover:border-primary/10 transition-colors"
+              >
                 <CardContent className="flex items-center justify-between py-4">
-                  <div>
+                  <div className="min-w-0">
                     <Link
-                      href={`/admin/posts/edit?slug=${post.slug}`}
-                      className="font-medium hover:text-primary transition-colors"
+                      href={`/admin/posts/edit?slug=${encodeURIComponent(
+                        post.slug
+                      )}`}
+                      className="font-medium hover:text-primary transition-colors truncate block"
                     >
                       {post.title}
                     </Link>
                     <p className="text-sm text-muted-foreground">
                       {new Date(post.date).toLocaleDateString()} ·{" "}
-                      {post.readingTime} {(t("post.minRead") as (n:number)=>string)(post.readingTime)}
+                      {post.readingTime}{" "}
+                      {(t("post.minRead") as (n: number) => string)(post.readingTime)}
                       {post.draft && (
                         <span className="ml-2 text-amber-600 font-medium">
                           {t("admin.draft") as string}
@@ -161,8 +170,10 @@ export default function AdminDashboardPage() {
                     </p>
                   </div>
                   <Link
-                    href={`/admin/posts/edit?slug=${post.slug}`}
-                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-border bg-background text-sm font-medium px-2.5 hover:bg-muted transition-all"
+                    href={`/admin/posts/edit?slug=${encodeURIComponent(
+                      post.slug
+                    )}`}
+                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-border bg-background text-sm font-medium px-2.5 hover:bg-muted transition-all shrink-0"
                   >
                     {t("admin.edit") as string}
                   </Link>

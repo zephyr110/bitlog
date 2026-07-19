@@ -2,7 +2,8 @@
 
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { apiFetch } from "@/lib/api-client"
+import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
 
 interface MediaUploaderProps {
@@ -10,6 +11,7 @@ interface MediaUploaderProps {
 }
 
 export function MediaUploader({ onUpload }: MediaUploaderProps) {
+  const { t } = useT()
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -23,14 +25,14 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
       const formData = new FormData()
       formData.append("file", file)
 
-      const res = await fetch("/api/upload", {
+      const res = await apiFetch("/api/upload", {
         method: "POST",
         body: formData,
       })
 
       if (res.ok) {
         const data = await res.json()
-        toast.success("Image uploaded successfully!")
+        toast.success(t("admin.uploadSuccess") as string)
         if (onUpload) {
           onUpload(data.url)
         }
@@ -40,10 +42,10 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
         }
       } else {
         const err = await res.json()
-        toast.error(err.error || "Upload failed")
+        toast.error(err.error || (t("admin.uploadFailed") as string))
       }
     } catch {
-      toast.error("Network error. Upload failed.")
+      toast.error(t("admin.networkError") as string)
     } finally {
       setUploading(false)
     }
@@ -64,7 +66,9 @@ export function MediaUploader({ onUpload }: MediaUploaderProps) {
         disabled={uploading}
         onClick={() => fileInputRef.current?.click()}
       >
-        {uploading ? "Uploading..." : "Upload Image"}
+        {uploading
+          ? (t("admin.uploading") as string)
+          : (t("admin.uploadImage") as string)}
       </Button>
     </div>
   )
