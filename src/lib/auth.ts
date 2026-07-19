@@ -14,10 +14,25 @@ function getJwtSecret(): Uint8Array {
   return new TextEncoder().encode(secret)
 }
 
-let currentPasswordHash: string | undefined = process.env.ADMIN_PASSWORD_HASH
+function decodePasswordHash(hash: string | undefined): string | undefined {
+  if (!hash) return undefined
+  try {
+    return Buffer.from(hash, "base64").toString("utf8")
+  } catch {
+    return hash
+  }
+}
+
+let currentPasswordHash: string | undefined = decodePasswordHash(
+  process.env.ADMIN_PASSWORD_HASH
+)
 
 export function getPasswordVersion(): string {
   return (currentPasswordHash || "").slice(0, 8)
+}
+
+export function encodePasswordHash(hash: string): string {
+  return Buffer.from(hash).toString("base64")
 }
 
 export function setPasswordHash(hash: string): void {
@@ -52,7 +67,8 @@ export async function verifyLogin(
   password: string
 ): Promise<AuthUser | null> {
   const adminUsername = process.env.ADMIN_USERNAME
-  const adminPasswordHash = currentPasswordHash || process.env.ADMIN_PASSWORD_HASH
+  const adminPasswordHash =
+    currentPasswordHash || decodePasswordHash(process.env.ADMIN_PASSWORD_HASH)
 
   if (!adminUsername || !adminPasswordHash) return null
   if (username !== adminUsername) return null

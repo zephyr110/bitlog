@@ -35,6 +35,13 @@ export function PostStats({ posts }: PostStatsProps) {
 
   const publishedPosts = useMemo(() => posts.filter((p) => !p.draft), [posts])
 
+  const timeRangeLabels: Record<TimeRange, string> = {
+    "7d": t("admin.days7") as string,
+    "30d": t("admin.days30") as string,
+    "90d": t("admin.days90") as string,
+    all: t("admin.allTime") as string,
+  }
+
   const filteredPosts = useMemo(() => {
     const now = new Date()
     const rangeMap: Record<TimeRange, number> = {
@@ -85,7 +92,7 @@ export function PostStats({ posts }: PostStatsProps) {
           onValueChange={(v) => setTimeRange(v as TimeRange)}
         >
           <SelectTrigger className="w-32">
-            <SelectValue />
+            <SelectValue>{timeRangeLabels[timeRange]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="7d">{t("admin.days7") as string}</SelectItem>

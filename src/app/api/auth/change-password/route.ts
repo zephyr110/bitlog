@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { requireAuth } from "@/lib/api-auth"
-import { verifyLogin, hashPassword, setPasswordHash } from "@/lib/auth"
+import {
+  verifyLogin,
+  hashPassword,
+  setPasswordHash,
+  encodePasswordHash,
+} from "@/lib/auth"
 import fs from "fs"
 import path from "path"
 
@@ -43,6 +48,8 @@ export async function POST(request: NextRequest) {
 
     // Persist to .env.local as a backup; still requires a restart to fully
     // replace process.env, but the in-memory value is now authoritative.
+    // Base64-encode the hash to avoid $-expansion issues in .env files.
+    const encodedHash = encodePasswordHash(newHash)
     const envPath = path.join(process.cwd(), ".env.local")
     let envContent = ""
 
@@ -50,15 +57,16 @@ export async function POST(request: NextRequest) {
       envContent = fs.readFileSync(envPath, "utf-8")
       const updated = envContent.replace(
         /^\s*ADMIN_PASSWORD_HASH=.*$/m,
-        `ADMIN_PASSWORD_HASH=${newHash}`
+        () => `ADMIN_PASSWORD_HASH=${encodedHash}`
       )
       if (updated === envContent) {
-        envContent = envContent.trimEnd() + `\nADMIN_PASSWORD_HASH=${newHash}\n`
+        envContent =
+          envContent.trimEnd() + `\nADMIN_PASSWORD_HASH=${encodedHash}\n`
       } else {
         envContent = updated
       }
     } else {
-      envContent = `ADMIN_USERNAME=${user.username}\nADMIN_PASSWORD_HASH=${newHash}\n`
+      envContent = `ADMIN_USERNAME=${user.username}\nADMIN_PASSWORD_HASH=${encodedHash}\n`
     }
 
     fs.writeFileSync(envPath, envContent, "utf-8")
