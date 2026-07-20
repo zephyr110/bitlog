@@ -14,9 +14,10 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { siteConfig } from "@/lib/site-config"
-import { apiFetch } from "@/lib/api-client"
+import { apiFetch, clearToken } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 interface SettingsDialogProps {
   open: boolean
@@ -25,6 +26,7 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { t } = useT()
+  const router = useRouter()
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -36,6 +38,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       toast.error(t("admin.passwordsNotMatch") as string)
       return
     }
+    if (newPassword.length < 8) {
+      toast.error(t("admin.passwordLength") as string)
+      return
+    }
     setLoading(true)
     try {
       const res = await apiFetch("/api/auth/change-password", {
@@ -43,13 +49,18 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentPassword, newPassword }),
       })
+      const data = await res.json()
       if (res.ok) {
         toast.success(t("admin.passwordChanged") as string)
         setCurrentPassword("")
         setNewPassword("")
         setConfirmPassword("")
+        onOpenChange(false)
+        if (data.requireRelogin) {
+          clearToken()
+          router.push("/admin/login")
+        }
       } else {
-        const data = await res.json()
         toast.error(data.error || (t("admin.currentPasswordWrong") as string))
       }
     } catch {
@@ -87,7 +98,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder={t("admin.currentPasswordPlaceholder") as string}
                     required
                   />
                 </div>
@@ -98,7 +109,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder={t("admin.passwordLength") as string}
+                    placeholder={t("admin.newPasswordPlaceholder") as string}
                     required
                     minLength={8}
                   />
@@ -110,7 +121,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder={t("admin.confirmPassword") as string}
+                    placeholder={t("admin.confirmPasswordPlaceholder") as string}
                     required
                   />
                 </div>
@@ -144,17 +155,17 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </div>
               <Separator />
               <div className="flex justify-between py-2">
-                <span className="text-muted-foreground">GitHub</span>
+                <span className="text-muted-foreground">{t("admin.github") as string}</span>
                 <span className="font-medium max-w-[200px] truncate">{siteConfig.social.github}</span>
               </div>
               <Separator />
               <div className="flex justify-between py-2">
-                <span className="text-muted-foreground">Twitter / X</span>
+                <span className="text-muted-foreground">{t("admin.twitter") as string}</span>
                 <span className="font-medium max-w-[200px] truncate">{siteConfig.social.twitter}</span>
               </div>
               <Separator />
               <div className="flex justify-between py-2">
-                <span className="text-muted-foreground">URL</span>
+                <span className="text-muted-foreground">{t("admin.url") as string}</span>
                 <span className="font-medium">{siteConfig.siteUrl}</span>
               </div>
             </CardContent>

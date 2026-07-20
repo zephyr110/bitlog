@@ -4,6 +4,7 @@ import Link from "next/link"
 import { getPostsByTag, getAllTags } from "@/lib/content"
 import { PostCard } from "@/components/blog/post-card"
 import { Trans } from "@/components/layout/trans"
+import { defaultLocale, t } from "@/lib/i18n"
 
 interface TagPageProps {
   params: Promise<{ tag: string }>
@@ -19,9 +20,11 @@ export async function generateMetadata({
 }: TagPageProps): Promise<Metadata> {
   const { tag } = await params
   const decodedTag = decodeURIComponent(tag)
+  const titleFn = t(defaultLocale, "site.postsTagged") as (tag: string) => string
+  const descFn = t(defaultLocale, "site.postsTaggedDesc") as (tag: string) => string
   return {
-    title: `Posts tagged "${decodedTag}"`,
-    description: `All blog posts tagged with "${decodedTag}".`,
+    title: titleFn(decodedTag),
+    description: descFn(decodedTag),
   }
 }
 
@@ -59,7 +62,7 @@ export default async function TagPage({ params }: TagPageProps) {
               {decodedTag}
             </h1>
             <p className="text-muted-foreground">
-              {posts.length} {posts.length === 1 ? "post" : "posts"}
+              <Trans k="site.postsCount" args={[posts.length]} />
             </p>
           </div>
         </div>

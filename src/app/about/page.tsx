@@ -6,32 +6,32 @@ import { GitBranch, MessageCircle, Sparkles, Palette, Code2, FileCode, Cloud, Ro
 const techStack = [
   {
     name: "Next.js 16",
-    desc: "Static site generation with App Router",
+    descKey: "about.rendered",
     icon: Rocket,
   },
   {
     name: "shadcn/ui",
-    desc: "Beautiful, accessible UI components",
+    descKey: "about.components",
     icon: Sparkles,
   },
   {
     name: "Tailwind CSS",
-    desc: "Utility-first responsive styling",
+    descKey: "about.styling",
     icon: Palette,
   },
   {
     name: "MDX",
-    desc: "Rich content with Markdown + JSX",
+    descKey: "about.content",
     icon: FileCode,
   },
   {
     name: "GitHub Pages",
-    desc: "Free, reliable static hosting",
+    descKey: "about.hosting",
     icon: Cloud,
   },
   {
     name: "GitHub Actions",
-    desc: "Automated build and deployment",
+    descKey: "about.cicd",
     icon: Code2,
   },
 ]
@@ -95,7 +95,7 @@ export default function AboutPage() {
                   <div>
                     <h3 className="font-semibold text-sm">{tech.name}</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {tech.desc}
+                      <Trans k={tech.descKey} />
                     </p>
                   </div>
                 </div>

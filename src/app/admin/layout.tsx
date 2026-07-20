@@ -71,6 +71,7 @@ export default function AdminLayout({
       <AdminSidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        user={user}
       />
       <div
         className="transition-all duration-300 min-h-screen"

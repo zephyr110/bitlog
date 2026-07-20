@@ -11,6 +11,7 @@ import { siteConfig } from "@/lib/site-config"
 import { useLocale } from "@/components/layout/i18n-provider"
 import { useT } from "@/components/layout/trans"
 import { localeLabels, locales } from "@/lib/i18n"
+import { type AuthUser } from "@/types"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -45,9 +46,10 @@ type ThemeMode = "light" | "dark" | "system"
 interface AdminSidebarProps {
   collapsed: boolean
   onToggle: () => void
+  user: AuthUser
 }
 
-export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
+export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
   const { t } = useT()
   const pathname = usePathname()
   const router = useRouter()
@@ -95,7 +97,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
             </span>
             <div className="leading-tight min-w-0">
               <span className="font-bold text-base tracking-tight block truncate">{siteConfig.name}</span>
-              <span className="block text-[10px] text-sidebar-foreground/60 font-medium tracking-wide uppercase">Admin</span>
+              <span className="block text-[10px] text-sidebar-foreground/60 font-medium tracking-wide uppercase">{t("admin.adminPanel") as string}</span>
             </div>
           </Link>
         )}
@@ -212,7 +214,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
               <>
                 <div className="flex-1 text-left min-w-0 leading-tight">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-semibold truncate">admin</p>
+                    <p className="text-sm font-semibold truncate">{user.username}</p>
                     <Badge variant="secondary" className="h-4 px-1 text-[9px] font-medium">
                       {t("admin.administrator") as string}
                     </Badge>
@@ -240,7 +242,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
                 </Avatar>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-semibold truncate">admin</p>
+                    <p className="text-sm font-semibold truncate">{user.username}</p>
                     <Badge variant="secondary" className="h-4 px-1 text-[9px] font-medium">
                       {t("admin.administrator") as string}
                     </Badge>

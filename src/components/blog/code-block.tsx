@@ -86,12 +86,12 @@ export function CodeBlock({
           {copied ? (
             <>
               <Check size={13} />
-              {t("admin.copied") as string}
+              {t("post.codeCopied") as string}
             </>
           ) : (
             <>
               <Copy size={13} />
-              {t("admin.copy") as string}
+              {t("post.copyCode") as string}
             </>
           )}
         </Button>

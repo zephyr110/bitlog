@@ -6,22 +6,28 @@ import { useT } from "@/components/layout/trans"
 import { type PostSummary } from "@/types"
 import { Calendar, Clock } from "lucide-react"
 
-function formatRelativeDate(dateStr: string): string {
+function formatRelativeDate(
+  dateStr: string,
+  t: (path: string) => unknown
+): string {
   const date = new Date(dateStr)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 0) return "Today"
-  if (diffDays === 1) return "Yesterday"
-  if (diffDays < 7) return `${diffDays} days ago`
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
+  if (diffDays === 0) return t("post.today") as string
+  if (diffDays === 1) return t("post.yesterday") as string
+  if (diffDays < 7)
+    return (t("post.daysAgo") as (n: number) => string)(diffDays)
+  if (diffDays < 30)
+    return (t("post.weeksAgo") as (n: number) => string)(
+      Math.floor(diffDays / 7)
+    )
+  if (diffDays < 365)
+    return (t("post.monthsAgo") as (n: number) => string)(
+      Math.floor(diffDays / 30)
+    )
+  return (t("post.shortDate") as (d: Date) => string)(date)
 }
 
 const gradientPairs = [
@@ -38,7 +44,7 @@ const gradientPairs = [
 export function PostCard({ post }: { post: PostSummary }) {
   const { t } = useT()
   const haveCover = !!post.cover
-  const shortDate = formatRelativeDate(post.date)
+  const shortDate = formatRelativeDate(post.date, t)
   const minReadLabel = t("post.minRead") as (n: number) => string
   const gradient = gradientPairs[post.title.length % gradientPairs.length]
 

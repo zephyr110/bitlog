@@ -2,6 +2,7 @@
 
 import { Link } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useT } from "@/components/layout/trans"
 import type { HTMLAttributes, ReactNode } from "react"
 
 interface HeadingLinkProps extends HTMLAttributes<HTMLHeadingElement> {
@@ -31,7 +32,12 @@ function slugify(children: ReactNode): string {
 }
 
 export function HeadingLink({ as: Tag, id, children, className, ...props }: HeadingLinkProps) {
+  const { t } = useT()
   const anchor = id || slugify(children)
+  const ariaLabel =
+    typeof children === "string"
+      ? (t("a11y.linkTo") as (title: string) => string)(children)
+      : (t("a11y.linkToHeading") as string)
 
   const baseStyles = cn(
     "group relative flex items-center gap-2 font-bold tracking-tight scroll-mt-20",
@@ -47,7 +53,7 @@ export function HeadingLink({ as: Tag, id, children, className, ...props }: Head
       <a
         href={`#${anchor}`}
         className="inline-flex items-center justify-center -ml-1 size-6 rounded opacity-0 group-hover:opacity-100 hover:bg-muted transition-all duration-200 text-muted-foreground hover:text-primary"
-        aria-label={`Link to ${typeof children === "string" ? children : "heading"}`}
+        aria-label={ariaLabel}
       >
         <Link size={14} />
       </a>

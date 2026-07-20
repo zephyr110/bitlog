@@ -167,7 +167,7 @@ export default function AdminMediaPage() {
           />
           <p className="font-medium">{t("admin.uploadImage") as string}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Drag & drop or click to upload
+            {t("admin.dragDropToUpload") as string}
           </p>
         </div>
       )}
@@ -199,7 +199,7 @@ export default function AdminMediaPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={file.url}
-                  alt={file.name || "Uploaded image"}
+                  alt={file.name || (t("admin.uploadedImageAlt") as string)}
                   className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
                   onError={(e) => {

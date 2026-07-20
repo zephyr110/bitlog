@@ -3,6 +3,7 @@ import { type Metadata } from "next"
 import Link from "next/link"
 import { getPostBySlug, getPublishedPosts } from "@/lib/content"
 import { siteConfig } from "@/lib/site-config"
+import { defaultLocale, t } from "@/lib/i18n"
 import { MDXRenderer } from "@/components/blog/mdx-renderer"
 import { TagBadge } from "@/components/blog/tag-badge"
 import { ReadingProgress } from "@/components/blog/reading-progress"
@@ -31,7 +32,7 @@ export async function generateMetadata({
 }: PostPageProps): Promise<Metadata> {
   const { slug } = await params
   const post = getPostBySlug(slug)
-  if (!post) return { title: "Not Found" }
+  if (!post) return { title: t(defaultLocale, "site.notFound") as string }
 
   const postImage = post.cover
     ? ogImageUrl(post.cover)
@@ -228,7 +229,7 @@ export default async function PostPage({ params }: PostPageProps) {
                     </p>
                     <p className="text-[10px] text-muted-foreground/80 flex items-center gap-1.5">
                       <Calendar size={10} />
-                      {new Date(rp.date).toLocaleDateString()}
+                      <FormattedDate date={rp.date} month="short" />
                       <span>·</span>
                       <Clock size={10} />
                       <Trans k="post.minRead" args={[rp.readingTime]} />

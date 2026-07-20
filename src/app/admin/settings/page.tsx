@@ -71,7 +71,7 @@ export default function AdminSettingsPage() {
           router.push("/admin/login")
         }
       } else {
-        toast.error(data.error || "Failed to change password")
+        toast.error(data.error || (t("admin.changePasswordFailed") as string))
       }
     } catch {
       toast.error(t("admin.networkError") as string)
@@ -116,21 +116,21 @@ export default function AdminSettingsPage() {
           </div>
           <Separator />
           <div className="flex justify-between py-2">
-            <span className="text-muted-foreground">GitHub</span>
+            <span className="text-muted-foreground">{t("admin.github") as string}</span>
             <a href={siteConfig.social.github} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline max-w-[200px] truncate">
               {siteConfig.social.github}
             </a>
           </div>
           <Separator />
           <div className="flex justify-between py-2">
-            <span className="text-muted-foreground">Twitter / X</span>
+            <span className="text-muted-foreground">{t("admin.twitter") as string}</span>
             <a href={siteConfig.social.twitter} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline max-w-[200px] truncate">
               {siteConfig.social.twitter}
             </a>
           </div>
           <Separator />
           <div className="flex justify-between py-2">
-            <span className="text-muted-foreground">URL</span>
+            <span className="text-muted-foreground">{t("admin.url") as string}</span>
             <span className="font-medium">{siteConfig.siteUrl}</span>
           </div>
         </CardContent>
@@ -153,7 +153,7 @@ export default function AdminSettingsPage() {
                 type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Enter current password"
+                placeholder={t("admin.currentPasswordPlaceholder") as string}
                 required
               />
             </div>
@@ -164,7 +164,7 @@ export default function AdminSettingsPage() {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="At least 8 characters"
+                placeholder={t("admin.newPasswordPlaceholder") as string}
                 required
                 minLength={8}
               />
@@ -176,7 +176,7 @@ export default function AdminSettingsPage() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter new password"
+                placeholder={t("admin.confirmPasswordPlaceholder") as string}
                 required
               />
             </div>

@@ -49,7 +49,7 @@ export function PostFeed({ posts, allTags }: PostFeedProps) {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={(t("admin.searchPosts") as string) || "Search posts..."}
+              placeholder={t("site.searchPosts") as string}
               className="pl-9"
             />
             {searchQuery && (
