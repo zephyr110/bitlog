@@ -70,8 +70,8 @@ export function PostCard({ post }: { post: PostSummary }) {
             </>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-4xl font-extrabold text-white/90 select-none drop-shadow-lg">
-                {post.title.charAt(0).toUpperCase()}
+              <span className="text-4xl font-extrabold text-white/90 select-none drop-shadow-lg text-center px-4">
+                {post.title}
               </span>
             </div>
           )}

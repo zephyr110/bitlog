@@ -9,8 +9,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -20,6 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
 import { useT } from "@/components/layout/trans"
 import { type PostSummary } from "@/types"
 
@@ -116,14 +119,22 @@ export function PostStats({ posts }: PostStatsProps) {
                 {t("admin.noDataForRange") as string}
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
+              <ChartContainer
+                config={{
+                  count: {
+                    label: t("admin.posts") as string,
+                    color: "hsl(var(--primary))",
+                  },
+                }}
+                className="aspect-auto h-[240px] w-full"
+              >
                 <AreaChart data={timelineData}>
                   <defs>
                     <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
                       <stop
                         offset="5%"
                         stopColor="hsl(var(--primary))"
-                        stopOpacity={0.3}
+                        stopOpacity={0.25}
                       />
                       <stop
                         offset="95%"
@@ -132,27 +143,34 @@ export function PostStats({ posts }: PostStatsProps) {
                       />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis
                     dataKey="date"
-                    tick={{ fontSize: 12 }}
-                    className="text-muted-foreground"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tickFormatter={(value) => value.slice(5)}
                   />
                   <YAxis
                     allowDecimals={false}
-                    tick={{ fontSize: 12 }}
-                    className="text-muted-foreground"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
                   />
-                  <Tooltip />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="line" />}
+                  />
                   <Area
                     type="monotone"
                     dataKey="count"
                     stroke="hsl(var(--primary))"
+                    strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorCount)"
                   />
                 </AreaChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             )}
           </CardContent>
         </Card>
@@ -168,30 +186,43 @@ export function PostStats({ posts }: PostStatsProps) {
                 {t("admin.noTags") as string}
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
+              <ChartContainer
+                config={{
+                  count: {
+                    label: t("admin.posts") as string,
+                    color: "hsl(var(--primary))",
+                  },
+                }}
+                className="aspect-auto h-[240px] w-full"
+              >
                 <BarChart data={tagData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                   <XAxis
                     type="number"
                     allowDecimals={false}
-                    tick={{ fontSize: 12 }}
-                    className="text-muted-foreground"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
                   />
                   <YAxis
                     type="category"
                     dataKey="tag"
-                    tick={{ fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={false}
                     width={80}
-                    className="text-muted-foreground"
+                    tickMargin={8}
                   />
-                  <Tooltip />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent hideLabel />}
+                  />
                   <Bar
                     dataKey="count"
                     fill="hsl(var(--primary))"
                     radius={[0, 4, 4, 0]}
                   />
                 </BarChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             )}
           </CardContent>
         </Card>

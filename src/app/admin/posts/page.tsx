@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { EllipsisVertical, Search, FileText } from "lucide-react"
+import { EllipsisVertical, Search, FileText, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TableSkeleton } from "@/components/ui/loading"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -31,6 +31,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+} from "@/components/ui/pagination"
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
@@ -46,7 +53,7 @@ export default function AdminPostsPage() {
   const [page, setPage] = useState(1)
   const [deleteTarget, setDeleteTarget] = useState<PostSummary | null>(null)
   const [deleting, setDeleting] = useState(false)
-  const PAGE_SIZE = 10
+  const PAGE_SIZE = 20
 
   async function fetchPosts() {
     try {
@@ -85,6 +92,19 @@ export default function AdminPostsPage() {
   }, [filteredPosts, page])
 
   const totalPages = Math.ceil(filteredPosts.length / PAGE_SIZE)
+
+  const paginationItems = useMemo<(number | "ellipsis")[]>(() => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
+    }
+    if (page <= 3) {
+      return [1, 2, 3, 4, "ellipsis", totalPages]
+    }
+    if (page >= totalPages - 2) {
+      return [1, "ellipsis", totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+    }
+    return [1, "ellipsis", page - 1, page, page + 1, "ellipsis", totalPages]
+  }, [page, totalPages])
 
   async function handleDelete() {
     if (!deleteTarget) return
@@ -346,27 +366,53 @@ export default function AdminPostsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <p className="text-sm text-muted-foreground">
                 {filteredPosts.length} {t("admin.posts") as string} · {t("admin.page") as string} {page}/{totalPages}
               </p>
-              <div className="flex gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page <= 1}
-                  onClick={() => setPage(page - 1)}
-                >
-                  {t("admin.prev") as string}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage(page + 1)}
-                >
-                  {t("admin.next") as string}
-                </Button>
+              <div className="flex items-center gap-3">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => setPage(page - 1)}
+                        disabled={page <= 1}
+                        size="default"
+                        className="gap-1 pl-2.5"
+                      >
+                        <ChevronLeft className="size-4" />
+                        <span>{t("admin.prev") as string}</span>
+                      </PaginationLink>
+                    </PaginationItem>
+                    {paginationItems.map((item, index) =>
+                      item === "ellipsis" ? (
+                        <PaginationItem key={`ellipsis-${index}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={item}>
+                          <PaginationLink
+                            isActive={page === item}
+                            onClick={() => setPage(item)}
+                          >
+                            {item}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    )}
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => setPage(page + 1)}
+                        disabled={page >= totalPages}
+                        size="default"
+                        className="gap-1 pr-2.5"
+                      >
+                        <span>{t("admin.next") as string}</span>
+                        <ChevronRight className="size-4" />
+                      </PaginationLink>
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </div>
             </div>
           )}

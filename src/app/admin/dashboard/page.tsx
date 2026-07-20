@@ -48,19 +48,19 @@ export default function AdminDashboardPage() {
       label: t("admin.published") as string,
       value: published.length,
       icon: PenLine,
-      color: "text-emerald-600",
+      color: "text-emerald-600 dark:text-emerald-400",
     },
     {
       label: t("admin.drafts") as string,
       value: drafts.length,
       icon: Clock,
-      color: "text-amber-600",
+      color: "text-amber-600 dark:text-amber-400",
     },
     {
       label: t("admin.tags") as string,
       value: allTags.size,
       icon: Tag,
-      color: "text-blue-600",
+      color: "text-blue-600 dark:text-blue-400",
     },
   ]
 
