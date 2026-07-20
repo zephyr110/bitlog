@@ -77,7 +77,6 @@ export function CodeBlock({
           onClick={handleCopy}
           className={cn(
             "h-7 px-2 rounded-md text-xs gap-1.5 -mr-1 transition-all",
-            "opacity-0 group-hover/code:opacity-100 focus-visible:opacity-100",
             copied
               ? "text-emerald-400 opacity-100 hover:text-emerald-300 hover:bg-emerald-500/10"
               : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800"
