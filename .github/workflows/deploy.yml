@@ -30,6 +30,12 @@ jobs:
 
       - name: Build static site
         run: pnpm run export
+        env:
+          NEXT_PUBLIC_SITE_URL: https://zephyr110.github.io
+          NEXT_PUBLIC_GISCUS_REPO: ${{ vars.GISCUS_REPO || 'zephyr110/bitlog' }}
+          NEXT_PUBLIC_GISCUS_REPO_ID: ${{ vars.GISCUS_REPO_ID || 'R_kgDOTcGjYg' }}
+          NEXT_PUBLIC_GISCUS_CATEGORY: ${{ vars.GISCUS_CATEGORY || 'Announcements' }}
+          NEXT_PUBLIC_GISCUS_CATEGORY_ID: ${{ vars.GISCUS_CATEGORY_ID || 'DIC_kwDOTcGjYs4DBcmw' }}
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
