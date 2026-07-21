@@ -92,9 +92,12 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
       >
         {!collapsed && (
           <Link href="/admin/dashboard" className="flex items-center gap-2.5 group">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-extrabold shadow-sm shadow-primary/20 transition-all group-hover:shadow-md group-hover:shadow-primary/25 group-hover:scale-[1.02]">
-              B
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/spooky.svg"
+              alt=""
+              className="size-8 rounded-lg object-contain dark:invert"
+            />
             <div className="leading-tight min-w-0">
               <span className="font-bold text-base tracking-tight block truncate">{siteConfig.name}</span>
               <span className="block text-[10px] text-sidebar-foreground/60 font-medium tracking-wide uppercase">{t("admin.adminPanel") as string}</span>
@@ -102,8 +105,13 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
           </Link>
         )}
         {collapsed && (
-          <Link href="/admin/dashboard" className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-extrabold shrink-0 shadow-sm shadow-primary/20 transition-all hover:shadow-md hover:shadow-primary/25 hover:scale-[1.02]">
-            B
+          <Link href="/admin/dashboard" className="flex size-9 items-center justify-center rounded-lg shrink-0 transition-all hover:scale-[1.02]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/spooky.svg"
+              alt=""
+              className="size-8 rounded-lg object-contain dark:invert"
+            />
           </Link>
         )}
       </div>

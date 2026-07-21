@@ -9,10 +9,23 @@ export function HeroSection({ postCount }: { postCount: number }) {
   const articlesLabel = t("site.articlesPublished") as (n: number) => string
 
   return (
-    <section className="relative overflow-hidden border-b bg-muted/20">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
-      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
-      <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
+    <section className="relative overflow-hidden border-b bg-background">
+      {/* Base gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.07] via-muted/30 to-secondary/[0.08]" />
+      {/* Top-right glow */}
+      <div className="absolute -top-24 -right-24 w-[32rem] h-[32rem] bg-primary/15 rounded-full blur-[100px] opacity-80" />
+      {/* Bottom-left glow */}
+      <div className="absolute -bottom-32 -left-32 w-[28rem] h-[28rem] bg-secondary/20 rounded-full blur-[100px] opacity-70" />
+      {/* Accent blob */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-accent/10 rounded-full blur-[120px] opacity-60" />
+      {/* Soft radial overlay */}
+      <div
+        className="absolute inset-0 opacity-[0.4]"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.12), transparent 55%)",
+        }}
+      />
 
       <div className="container mx-auto px-4 py-12 md:py-20 relative">
         <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">

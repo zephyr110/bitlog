@@ -49,11 +49,11 @@ export function PostCard({ post }: { post: PostSummary }) {
   const gradient = gradientPairs[post.title.length % gradientPairs.length]
 
   return (
-    <Link href={`/posts/${encodeURIComponent(post.slug)}`} className="group block">
-      <article className="h-full rounded-xl border bg-card overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1">
+    <Link href={`/posts/${encodeURIComponent(post.slug)}`} className="group block h-full">
+      <article className="h-full flex flex-col rounded-xl border bg-card overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/20 hover:-translate-y-1">
         {/* Cover Image or Gradient Fallback */}
         <div
-          className={`relative h-48 overflow-hidden ${
+          className={`relative h-48 overflow-hidden shrink-0 ${
             !haveCover ? `bg-gradient-to-br ${gradient}` : "bg-muted"
           }`}
         >

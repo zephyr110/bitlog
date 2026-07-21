@@ -8,18 +8,12 @@ import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { LanguageSwitcher } from "@/components/layout/language-switcher"
 import { siteConfig } from "@/lib/site-config"
 import { useT } from "@/components/layout/trans"
-import { Menu, X, User } from "lucide-react"
+import { Menu, X } from "lucide-react"
 
 const navLinks = [
   { href: "/", i18nKey: "site.home" },
   { href: "/about", i18nKey: "site.about" },
 ]
-
-function SeparatorDot() {
-  return (
-    <span className="mx-1.5 h-1 w-1 rounded-full bg-border" aria-hidden="true" />
-  )
-}
 
 function VerticalRule({ className }: { className?: string }) {
   return (
@@ -68,43 +62,44 @@ export function Header() {
             : "border-transparent bg-background"
         )}
       >
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 max-w-5xl">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
           {/* Left: Logo + Navigation */}
           <div className="flex items-center">
             <Link
               href="/"
               className="flex items-center gap-2.5 font-semibold text-base tracking-tight hover:opacity-90 transition-opacity shrink-0 group"
             >
-              <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-extrabold shadow-sm shadow-primary/20 transition-all group-hover:shadow-md group-hover:shadow-primary/25 group-hover:-translate-y-px">
-                B
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/spooky.svg"
+                alt=""
+                className="size-8 rounded-lg object-contain dark:invert"
+              />
               <span className="hidden sm:inline">{siteConfig.name}</span>
             </Link>
 
             <VerticalRule />
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center">
-              {navLinks.map((link, index) => {
+            <nav className="hidden md:flex items-center gap-1">
+              {navLinks.map((link) => {
                 const isActive = pathname === link.href
                 return (
-                  <div key={link.href} className="flex items-center">
-                    {index > 0 && <SeparatorDot />}
-                    <Link
-                      href={link.href}
-                      className={cn(
-                        "relative px-2 py-1.5 text-sm font-medium transition-colors duration-200",
-                        isActive
-                          ? "text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      {t(link.i18nKey) as string}
-                      {isActive && (
-                        <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/80" />
-                      )}
-                    </Link>
-                  </div>
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={cn(
+                      "relative px-2 py-1.5 text-sm font-medium transition-colors duration-200",
+                      isActive
+                        ? "text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {t(link.i18nKey) as string}
+                    {isActive && (
+                      <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/80" />
+                    )}
+                  </Link>
                 )
               })}
             </nav>
@@ -117,20 +112,9 @@ export function Header() {
               <LanguageSwitcher />
             </div>
 
-            <VerticalRule className="hidden sm:inline-flex" />
-
-            {/* Admin link */}
-            <Link
-              href="/admin/login"
-              className="hidden md:inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-              title={t("site.admin") as string}
-            >
-              <User size={17} />
-            </Link>
-
             {/* Mobile menu toggle */}
             <button
-              className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted transition-colors md:ml-2"
+              className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted transition-colors md:hidden"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
             >
@@ -177,15 +161,6 @@ export function Header() {
                 </span>
                 <LanguageSwitcher />
               </div>
-              <div className="my-2 mx-3 border-t" />
-              <Link
-                href="/admin/login"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-150"
-              >
-                <User size={16} />
-                {t("site.admin") as string}
-              </Link>
             </nav>
           </div>
         </>

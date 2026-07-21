@@ -124,11 +124,11 @@ export function PostFeed({ posts, allTags }: PostFeedProps) {
           </p>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 [&>div]:h-full">
           {filteredPosts.map((post, index) => (
             <div
               key={post.slug}
-              className="animate-in fade-in slide-in-from-bottom-4"
+              className="h-full animate-in fade-in slide-in-from-bottom-4"
               style={{
                 animationDuration: "500ms",
                 animationDelay: `${index * 80}ms`,
