@@ -106,11 +106,9 @@ export function Header() {
           </div>
 
           {/* Right: Utilities */}
-          <div className="flex items-center">
-            <div className="hidden sm:flex items-center rounded-full border bg-muted/30 p-1">
-              <ThemeToggle />
-              <LanguageSwitcher />
-            </div>
+          <div className="flex items-center gap-0.5">
+            <ThemeToggle />
+            <LanguageSwitcher />
 
             <a
               href="https://github.com/zephyr110"
