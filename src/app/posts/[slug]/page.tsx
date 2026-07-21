@@ -96,7 +96,7 @@ export default async function PostPage({ params }: PostPageProps) {
             </>
           )}
 
-          <div className="container mx-auto px-4 py-12 md:py-20 max-w-4xl relative">
+          <div className="container mx-auto px-4 py-12 md:py-20 max-w-5xl relative">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8 animate-in fade-in slide-in-from-top-2 duration-500">
               <Link
@@ -172,7 +172,7 @@ export default async function PostPage({ params }: PostPageProps) {
         </header>
 
         {/* Content */}
-        <div className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
+        <div className="container mx-auto px-4 py-12 md:py-16 max-w-5xl">
           <div className="prose dark:prose-invert prose-lg max-w-none
             prose-headings:scroll-mt-20
             prose-p:leading-relaxed prose-p:my-5
@@ -210,7 +210,7 @@ export default async function PostPage({ params }: PostPageProps) {
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
           <section className="border-t bg-muted/10">
-            <div className="container mx-auto px-4 py-16 max-w-4xl">
+            <div className="container mx-auto px-4 py-16 max-w-5xl">
               <h2 className="text-2xl font-bold mb-8">
                 <Trans k="post.relatedPosts" />
               </h2>

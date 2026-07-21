@@ -96,7 +96,7 @@ export function CommentSection() {
   }, [mounted, resolvedTheme, locale])
 
   return (
-    <section className="container mx-auto px-4 py-12 max-w-4xl">
+    <section className="container mx-auto px-4 py-12 max-w-5xl">
       <div className="border-t pt-12">
         <div className="flex items-center gap-2 mb-6">
           <MessageSquare size={20} className="text-primary" />
