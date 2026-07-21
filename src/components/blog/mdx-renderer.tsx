@@ -57,19 +57,16 @@ const components = {
     )
   },
 
-  // Images - rounded with shadow and caption support
+  // Images — keep inline-compatible to avoid invalid nesting inside <p>
   img: ({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    <figure className="my-8">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt || ""}
-        className="rounded-xl shadow-lg border border-border/60 w-full"
-        loading="lazy"
-        {...props}
-      />
-      {alt && <figcaption className="mt-3 text-center text-xs text-muted-foreground">{alt}</figcaption>}
-    </figure>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt || ""}
+      className="rounded-xl shadow-lg border border-border/60"
+      loading="lazy"
+      {...props}
+    />
   ),
 
   // Blockquotes - styled with accent border and background
