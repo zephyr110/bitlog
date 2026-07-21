@@ -115,21 +115,41 @@ const greeting = "Hello, BitLog!"
 
 ## 部署
 
-### 静态导出（推荐用于 GitHub Pages / CDN）
+### GitHub Pages
+
+项目包含 GitHub Actions 工作流（`.github/workflows/deploy.yml`），每次推送到 `main` 分支时自动构建并部署到 GitHub Pages。
+
+**配置步骤：**
+
+1. Fork 或推送此仓库到你的 GitHub 账号。
+2. 在目标 GitHub Pages 仓库中，进入 **Settings → Secrets and variables → Actions**，添加：
+   - `GH_PAT`：具有 `repo` 权限的[个人访问令牌](https://github.com/settings/tokens)。
+3. 修改 `.github/workflows/deploy.yml`：
+   - 将 `external_repository` 改为 `你的用户名/你的用户名.github.io`。
+4. 在工作流中设置 `NEXT_PUBLIC_SITE_URL` 环境变量为你的 Pages URL。
+5. 如需评论功能，在工作流中配置 `NEXT_PUBLIC_GISCUS_*` 变量。
+6. 推送到 `main` — 工作流将自动构建并部署。
+
+**手动静态导出：**
 
 ```bash
 pnpm export
 ```
 
-此命令会在 `out/` 目录中生成静态站点。
+此命令会在 `out/` 目录中生成静态站点，可部署到任何静态托管服务。
 
-### Vercel / Node 服务器
+### Vercel
 
-```bash
-pnpm build
-```
+1. 将仓库导入 [Vercel](https://vercel.com)。
+2. **Build Command** 设置为 `pnpm build`（**不要**用 `pnpm export`）。
+3. **Output Directory** 使用默认的 `.next`。
+4. 在 Vercel 项目设置中添加环境变量：
+   - `ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH` / `SESSION_SECRET` — 后台认证。
+   - `NEXT_PUBLIC_SITE_URL` — 你的 Vercel 域名。
+   - `NEXT_PUBLIC_GISCUS_*` — 如果使用 Giscus 评论。
+5. 部署。Vercel 上 `/admin/login` 后台管理面板可正常使用，因为 Vercel 运行 Node 服务器。
 
-然后使用 `pnpm start` 启动生产服务器，或将构建产物部署到你的平台。
+> **注意：** 静态导出（`pnpm export`）会移除后台 API — 仅用于 GitHub Pages。Vercel/Node 托管保留完整的后台 CMS 功能。
 
 ## 项目结构
 

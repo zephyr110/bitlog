@@ -115,21 +115,41 @@ const greeting = "Hello, BitLog!"
 
 ## Deployment
 
-### Static Export (recommended for GitHub Pages / CDN)
+### GitHub Pages
+
+This project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that automatically builds and deploys to GitHub Pages on every push to `main`.
+
+**Setup steps:**
+
+1. Fork or push this repo to your GitHub account.
+2. In your target GitHub Pages repo, go to **Settings → Secrets and variables → Actions** and add:
+   - `GH_PAT`: A [personal access token](https://github.com/settings/tokens) with `repo` scope.
+3. Update `.github/workflows/deploy.yml`:
+   - Change `external_repository` to `your-username/your-username.github.io`.
+4. Set the `NEXT_PUBLIC_SITE_URL` env var in the workflow to your Pages URL.
+5. Optionally configure `NEXT_PUBLIC_GISCUS_*` vars in the workflow for comments.
+6. Push to `main` — the workflow builds and deploys automatically.
+
+**Manual static export:**
 
 ```bash
 pnpm export
 ```
 
-This generates a static site in `out/`.
+This generates a static site in `out/` that you can deploy to any static host.
 
-### Vercel / Node Server
+### Vercel
 
-```bash
-pnpm build
-```
+1. Import the repo into [Vercel](https://vercel.com).
+2. Set the **Build Command** to `pnpm build` (NOT `pnpm export`).
+3. Set the **Output Directory** to `.next` (Vercel default).
+4. Add environment variables in Vercel's project settings:
+   - `ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH` / `SESSION_SECRET` for admin auth.
+   - `NEXT_PUBLIC_SITE_URL` — your Vercel domain.
+   - `NEXT_PUBLIC_GISCUS_*` — if using Giscus comments.
+5. Deploy. The admin panel at `/admin/login` will work on Vercel since it runs a Node server.
 
-Then start the production server with `pnpm start` or deploy the build output to your platform.
+> **Note:** Static export (`pnpm export`) strips the admin API — use it only for GitHub Pages. Vercel/Node hosting preserves the full admin CMS.
 
 ## Project Structure
 
