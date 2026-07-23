@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { verifyToken } from "@/lib/auth"
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Only protect admin routes; public routes and login are always accessible.
@@ -15,7 +15,14 @@ export async function middleware(request: NextRequest) {
   }
 
   const token = request.cookies.get("blog-admin-token")?.value
-  const user = token ? await verifyToken(decodeURIComponent(token)) : null
+  let user = null
+  if (token) {
+    try {
+      user = await verifyToken(decodeURIComponent(token))
+    } catch {
+      // decodeURIComponent may throw on malformed cookie value
+    }
+  }
 
   if (!user) {
     const loginUrl = new URL("/admin/login", request.url)

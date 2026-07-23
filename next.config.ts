@@ -3,6 +3,9 @@ import type { NextConfig } from "next"
 const isExport = process.env.NEXT_EXPORT === "true"
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: new URL(".", import.meta.url).pathname,
+  },
   ...(isExport
     ? {
         output: "export" as const,

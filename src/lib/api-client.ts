@@ -9,7 +9,7 @@ export function getToken(): string | null {
 export function setToken(token: string): void {
   if (typeof window !== "undefined") {
     localStorage.setItem(TOKEN_KEY, token)
-    // Keep a cookie in sync so middleware can validate admin routes.
+    // Keep a cookie in sync so proxy can validate admin routes.
     const maxAge = 60 * 60 * 24 * 7 // 7 days
     document.cookie = `${COOKIE_NAME}=${encodeURIComponent(token)}; path=/; max-age=${maxAge}; SameSite=Lax`
   }
