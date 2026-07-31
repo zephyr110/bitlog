@@ -47,85 +47,12 @@ async function ensureTable(db: Client): Promise<void> {
   if (!tableReady) {
     tableReady = (async () => {
       await db.executeMultiple(SCHEMA)
-
-      // One-time fix: normalize dates that were stored as epoch millis
-      const bad = await db.execute(
-        "SELECT slug, date FROM posts WHERE date NOT GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'"
-      )
-      for (const row of bad.rows) {
-        const corrected = normalizeDate(row.date as string)
-        await db.execute({
-          sql: "UPDATE posts SET date = ? WHERE slug = ?",
-          args: [corrected, row.slug],
-        })
-      }
-
-      // One-time fix: normalize tags to prefix format (e.g. ["css"] → ["frontend-css"])
-      const tagMap: Record<string, string> = {
-        css: "frontend", javascript: "frontend", js: "frontend", typescript: "frontend",
-        react: "frontend", vue: "frontend", "design-pattern": "frontend",
-        protocol: "frontend", framework: "frontend", node: "frontend", npm: "frontend",
-        webpack: "frontend", babel: "frontend", eslint: "frontend", stylelint: "frontend",
-        python: "backend", server: "backend", mysql: "backend", nginx: "backend",
-        linux: "backend", mangodb: "backend",
-        appium: "automator", jest: "automator", testing: "automator", automator: "automator",
-        component: "components", components: "components", publish: "components",
-        git: "gear", gear: "gear", terminal: "gear", iterm: "gear", vscode: "gear",
-        webstorm: "gear", markdown: "gear", picgo: "gear", tree: "gear", yarn: "gear",
-        storybook: "gear", ish: "gear",
-        miniprogram: "miniprogram", "mini-program": "miniprogram",
-        summary: "summary", vpn: "summary", scriptable: "summary",
-        application: "frontend", tools: "gear",
-      }
-      const all = await db.execute("SELECT slug, tags FROM posts")
-      for (const row of all.rows) {
-        let tags: string[]
-        try { tags = JSON.parse(row.tags as string) } catch { continue }
-        if (!Array.isArray(tags)) continue
-        const fixed = tags.map((t: string) => {
-          const lower = t.toLowerCase()
-          if (lower.includes("-")) return lower
-          const prefix = tagMap[lower]
-          return prefix ? `${prefix}-${lower}` : lower
-        })
-        if (JSON.stringify(tags) !== JSON.stringify(fixed)) {
-          await db.execute({
-            sql: "UPDATE posts SET tags = ? WHERE slug = ?",
-            args: [JSON.stringify(fixed), row.slug as string],
-          })
-        }
-      }
-
-      // One-time cleanup: delete placeholder index pages (VuePress leftovers)
-      const placeholders = await db.execute(
-        "SELECT slug FROM posts WHERE (title = '首页' AND length(content) < 100) OR (title = '介绍' AND slug = 'about')"
-      )
-      for (const row of placeholders.rows) {
-        await db.execute({ sql: "DELETE FROM posts WHERE slug = ?", args: [row.slug] })
-      }
     })().catch((err) => {
       tableReady = null // reset on failure so next call retries
       throw err
     })
   }
   await tableReady
-}
-
-/** Normalize dates that were stored as epoch millis by the migration script. */
-function normalizeDate(raw: string): string {
-  if (!raw) return new Date().toISOString().split("T")[0]
-  // Already a valid YYYY-MM-DD string
-  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw
-  // Epoch millis float (e.g. "1704067200000.0") — gray-matter parsed unquoted YAML dates
-  const ms = Number(raw)
-  if (Number.isFinite(ms) && ms > 0) {
-    return new Date(ms).toISOString().split("T")[0]
-  }
-  // Fallback: try to parse as-is
-  const d = new Date(raw)
-  if (!Number.isNaN(d.getTime())) return d.toISOString().split("T")[0]
-  // Last resort
-  return new Date().toISOString().split("T")[0]
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -140,7 +67,7 @@ function rowToPost(row: any): Post {
   return {
     slug: row.slug,
     title: row.title,
-    date: normalizeDate(row.date),
+    date: row.date,
     updated: row.updated ?? undefined,
     tags,
     description: row.description,
