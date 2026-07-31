@@ -208,7 +208,11 @@ export default function AdminSettingsPage() {
           <Separator />
           <div className="flex justify-between py-2">
             <span className="text-muted-foreground">{t("admin.environment") as string}</span>
-            <span className="font-medium">{t("admin.localDev") as string}</span>
+            <span className="font-medium">
+              {process.env.NODE_ENV === "production"
+                ? (t("admin.environmentProd") as string)
+                : (t("admin.localDev") as string)}
+            </span>
           </div>
         </CardContent>
       </Card>

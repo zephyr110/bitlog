@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, Suspense } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { EllipsisVertical, Search, FileText, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TableSkeleton } from "@/components/ui/loading"
@@ -38,22 +38,39 @@ import {
   PaginationItem,
   PaginationLink,
 } from "@/components/ui/pagination"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
 import { type PostSummary } from "@bitlog/database"
 
-export default function AdminPostsPage() {
+function AdminPostsContent() {
   const { t } = useT()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const initialStatus = searchParams?.get("status")
   const [posts, setPosts] = useState<PostSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "drafts">("all")
+  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "drafts">(
+    initialStatus === "published" || initialStatus === "drafts" ? initialStatus : "all"
+  )
+  const [tagFilter, setTagFilter] = useState<string>("all")
   const [page, setPage] = useState(1)
   const [deleteTarget, setDeleteTarget] = useState<PostSummary | null>(null)
   const [deleting, setDeleting] = useState(false)
   const PAGE_SIZE = 20
+
+  const allTags = useMemo(
+    () => [...new Set(posts.flatMap((p) => p.tags))].sort(),
+    [posts]
+  )
 
   async function fetchPosts() {
     try {
@@ -79,12 +96,17 @@ export default function AdminPostsPage() {
     let result = posts
     if (statusFilter === "published") result = result.filter((p) => !p.draft)
     if (statusFilter === "drafts") result = result.filter((p) => p.draft)
+    if (tagFilter !== "all") {
+      result = result.filter((p) =>
+        p.tags.some((tag) => tag.toLowerCase() === tagFilter.toLowerCase())
+      )
+    }
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       result = result.filter((p) => p.title.toLowerCase().includes(query))
     }
     return result
-  }, [posts, searchQuery, statusFilter])
+  }, [posts, searchQuery, statusFilter, tagFilter])
 
   const paginatedPosts = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE
@@ -229,6 +251,24 @@ export default function AdminPostsPage() {
               ))}
             </div>
 
+            {/* Tag filter */}
+            <Select
+              value={tagFilter}
+              onValueChange={(v) => { setTagFilter(v || "all"); setPage(1) }}
+            >
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder={t("admin.allTags") as string} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("admin.allTags") as string}</SelectItem>
+                {allTags.map((tag) => (
+                  <SelectItem key={tag} value={tag}>
+                    {tag}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <div className="relative flex-1 max-w-sm">
               <Search
                 size={16}
@@ -241,7 +281,7 @@ export default function AdminPostsPage() {
                 className="pl-9"
               />
             </div>
-            {searchQuery && (
+            {(searchQuery || tagFilter !== "all") && (
               <p className="text-sm text-muted-foreground">
                 {filteredPosts.length} / {posts.length} {t("admin.posts") as string}
               </p>
@@ -447,5 +487,25 @@ export default function AdminPostsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export default function AdminPostsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="h-8 w-24 bg-muted animate-pulse rounded-md" />
+              <div className="h-4 w-64 bg-muted animate-pulse rounded-md" />
+            </div>
+          </div>
+          <TableSkeleton rows={5} />
+        </div>
+      }
+    >
+      <AdminPostsContent />
+    </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/api-auth"
-import { writeFile, mkdir, readdir } from "fs/promises"
+import { writeFile, mkdir, readdir, unlink } from "fs/promises"
 import path from "path"
 
 const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"]
@@ -132,6 +132,50 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url, filename }, { status: 201 })
   } catch (error) {
     console.error("Upload error:", error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await requireAuth(request)
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const filename = request.nextUrl.searchParams.get("filename")
+    if (!filename) {
+      return NextResponse.json(
+        { error: "Missing filename" },
+        { status: 400 }
+      )
+    }
+
+    // Path traversal protection — only allow files inside public/images
+    const imagesDir = path.join(process.cwd(), "public", "images")
+    const filePath = path.resolve(imagesDir, filename)
+    if (!filePath.startsWith(imagesDir + path.sep)) {
+      return NextResponse.json({ error: "Invalid filename" }, { status: 400 })
+    }
+
+    // Only allow deleting files with image extensions
+    const ext = path.extname(filePath).toLowerCase()
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      return NextResponse.json({ error: "Invalid file type" }, { status: 400 })
+    }
+
+    try {
+      await unlink(filePath)
+    } catch {
+      return NextResponse.json({ error: "File not found" }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Delete error:", error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -43,18 +43,21 @@ export default function AdminDashboardPage() {
       value: posts.length,
       icon: FileText,
       color: "text-foreground",
+      href: "/admin/posts",
     },
     {
       label: t("admin.published") as string,
       value: published.length,
       icon: PenLine,
       color: "text-emerald-600 dark:text-emerald-400",
+      href: "/admin/posts?status=published",
     },
     {
       label: t("admin.drafts") as string,
       value: drafts.length,
       icon: Clock,
       color: "text-amber-600 dark:text-amber-400",
+      href: "/admin/posts?status=drafts",
     },
     {
       label: t("admin.tags") as string,
@@ -103,8 +106,8 @@ export default function AdminDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon
-          return (
-            <Card key={stat.label} className="hover:border-primary/10 transition-colors">
+          const inner = (
+            <>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Icon size={14} />
@@ -114,6 +117,21 @@ export default function AdminDashboardPage() {
               <CardContent>
                 <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
               </CardContent>
+            </>
+          )
+          return stat.href ? (
+            <Link
+              key={stat.label}
+              href={stat.href}
+              className="block rounded-xl transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Card className="hover:border-primary/20 transition-colors h-full">
+                {inner}
+              </Card>
+            </Link>
+          ) : (
+            <Card key={stat.label} className="hover:border-primary/10 transition-colors">
+              {inner}
             </Card>
           )
         })}
@@ -124,9 +142,18 @@ export default function AdminDashboardPage() {
 
       {/* Recent Posts */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">
-          {t("admin.recentPosts") as string}
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">
+            {t("admin.recentPosts") as string}
+          </h2>
+          <Link
+            href="/admin/posts"
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+          >
+            {t("admin.viewAll") as string}
+            <span aria-hidden="true">→</span>
+          </Link>
+        </div>
         {posts.length === 0 ? (
           <EmptyState
             icon={<FileText size={32} className="text-muted-foreground" />}

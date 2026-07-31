@@ -15,11 +15,52 @@ import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
 import { type Post } from "@bitlog/database"
+import { MediaPickerDialog } from "@/components/admin/media-picker-dialog"
+import {
+  Bold,
+  Italic,
+  Heading2,
+  Link as LinkIcon,
+  Image as ImageIcon,
+  Code,
+  List,
+  ListOrdered,
+  Quote,
+  ExternalLink,
+  ImagePlus,
+  type LucideIcon,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface PostEditorProps {
   initialPost?: Post
   isNew?: boolean
 }
+
+interface ToolbarItem {
+  key: string
+  i18nKey: string
+  icon: LucideIcon
+  /** Prefix inserted before selection */
+  prefix: string
+  /** Suffix inserted after selection */
+  suffix?: string
+  /** Fallback text when nothing is selected */
+  placeholder?: string
+  /** Treat selection as URL and wrap inline (for link/image) */
+  inline?: boolean
+}
+
+const TOOLBAR: ToolbarItem[] = [
+  { key: "bold", i18nKey: "admin.bold", icon: Bold, prefix: "**", suffix: "**", placeholder: "加粗文本" },
+  { key: "italic", i18nKey: "admin.italic", icon: Italic, prefix: "*", suffix: "*", placeholder: "斜体文本" },
+  { key: "heading", i18nKey: "admin.heading", icon: Heading2, prefix: "## ", placeholder: "标题" },
+  { key: "quote", i18nKey: "admin.quote", icon: Quote, prefix: "> ", placeholder: "引用内容" },
+  { key: "ul", i18nKey: "admin.unorderedList", icon: List, prefix: "- ", placeholder: "列表项" },
+  { key: "ol", i18nKey: "admin.orderedList", icon: ListOrdered, prefix: "1. ", placeholder: "列表项" },
+  { key: "code", i18nKey: "admin.codeBlock", icon: Code, prefix: "```\n", suffix: "\n```", placeholder: "代码" },
+  { key: "link", i18nKey: "admin.link", icon: LinkIcon, prefix: "[", suffix: "](https://)", placeholder: "链接文字", inline: true },
+]
 
 export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
   const { t } = useT()
@@ -34,6 +75,9 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
   const [cover, setCover] = useState(initialPost?.cover || "")
   const [draft, setDraft] = useState(initialPost?.draft ?? true)
   const [saving, setSaving] = useState(false)
+  const [coverPickerOpen, setCoverPickerOpen] = useState(false)
+  const [imagePickerOpen, setImagePickerOpen] = useState(false)
+  const contentRef = useRef<HTMLTextAreaElement>(null)
 
   // Track unsaved changes
   const hasUnsavedChanges = useCallback(() => {
@@ -91,8 +135,20 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [])
 
+  // Auto-save draft every 30s when there are unsaved changes
+  const autoSavedRef = useRef(false)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (hasUnsavedChanges() && !saving) {
+        autoSavedRef.current = true
+        savePostRef.current(false)
+      }
+    }, 30_000)
+    return () => clearInterval(interval)
+  }, [hasUnsavedChanges, saving])
+
   // Word / char count — CJK characters count as words too
-  const cjkRegex = /[\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g
+  const cjkRegex = /[一-龥぀-ゟ゠-ヿ가-힯]/g
   const cjkCount = (content.match(cjkRegex) || []).length
   const nonCjkWords = content
     .replace(cjkRegex, " ")
@@ -143,7 +199,42 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     }
   }
 
-  async function savePost(publish = false) {
+  /** Insert markdown at the current textarea cursor position. */
+  function insertAtCursor(text: string) {
+    const textarea = contentRef.current
+    const start = textarea?.selectionStart ?? content.length
+    const end = textarea?.selectionEnd ?? content.length
+    const next = content.slice(0, start) + text + content.slice(end)
+    setContent(next)
+    requestAnimationFrame(() => {
+      if (!textarea) return
+      textarea.focus()
+      const pos = start + text.length
+      textarea.setSelectionRange(pos, pos)
+    })
+  }
+
+  function applyToolbar(item: ToolbarItem) {
+    const textarea = contentRef.current
+    const start = textarea?.selectionStart ?? content.length
+    const end = textarea?.selectionEnd ?? content.length
+    const selected = content.slice(start, end)
+
+    if (item.inline) {
+      const inner = selected || item.placeholder || "text"
+      insertAtCursor(item.prefix + inner + item.suffix)
+      return
+    }
+
+    const body = selected || item.placeholder || ""
+    insertAtCursor(item.prefix + body + (item.suffix ?? ""))
+  }
+
+  function insertImage(url: string) {
+    insertAtCursor(`![${t("admin.uploadedImageAlt") as string}](${url})`)
+  }
+
+  async function savePost(publish = false, silent = false) {
     setSaving(true)
 
     const postData = {
@@ -174,12 +265,15 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
         setDraft(savedDraft)
         if (publish) {
           toast.success(t("admin.publishSuccess") as string)
-        } else {
+        } else if (!silent) {
           toast.success(
             savedDraft
               ? (t("admin.draftSaved") as string)
               : (t("admin.postUpdated") as string)
           )
+        } else if (autoSavedRef.current) {
+          autoSavedRef.current = false
+          toast.success(t("admin.autoSaved") as string)
         }
         if (isNew) {
           router.push(
@@ -189,23 +283,75 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
         router.refresh()
       } else {
         const err = await res.json()
-        toast.error(err.error || (t("admin.failedToSavePost") as string))
+        if (!silent) {
+          toast.error(err.error || (t("admin.failedToSavePost") as string))
+        }
       }
     } catch {
-      toast.error(t("admin.networkErrorSave") as string)
+      if (!silent) {
+        toast.error(t("admin.networkErrorSave") as string)
+      }
     } finally {
       setSaving(false)
     }
   }
 
+  const previewPanel = (
+    <div className="prose dark:prose-invert max-w-none min-h-[400px] lg:min-h-[calc(100vh-24rem)] border rounded-lg p-6 bg-card prose-p:my-4 prose-headings:mt-6 prose-headings:mb-3">
+      {content ? (
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            a: ({ href, children }) => (
+              <a href={href} target="_blank" rel="noopener noreferrer">
+                {children}
+              </a>
+            ),
+            img: ({ src, alt }) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={src}
+                alt={alt || ""}
+                className="rounded-lg"
+                loading="lazy"
+              />
+            ),
+            pre: ({ children }) => (
+              <pre className="overflow-x-auto rounded-lg bg-muted/40 p-4">
+                {children}
+              </pre>
+            ),
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      ) : (
+        <p className="text-muted-foreground italic">
+          {t("admin.previewEmpty") as string}
+        </p>
+      )}
+    </div>
+  )
+
   return (
     <div className="space-y-6">
       {/* Top Actions */}
       <div className="sticky top-0 z-30 -mx-4 px-4 py-3 bg-background/95 backdrop-blur-xl border-b flex items-center justify-between gap-4">
-        <div className="min-w-0">
+        <div className="min-w-0 flex items-center gap-3">
           <h1 className="text-xl md:text-2xl font-bold tracking-tight truncate">
             {isNew ? (t("admin.newPost") as string) : (t("admin.editPost") as string)}
           </h1>
+          {!isNew && !draft && (
+            <a
+              href={`/posts/${encodeURIComponent(slug)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline shrink-0"
+            >
+              <ExternalLink size={12} />
+              {t("admin.viewOnline") as string}
+            </a>
+          )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Button
@@ -248,12 +394,24 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="cover">{t("admin.coverImage") as string}</Label>
-              <Input
-                id="cover"
-                value={cover}
-                onChange={(e) => setCover(e.target.value)}
-                placeholder={t("admin.coverPlaceholder") as string}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="cover"
+                  value={cover}
+                  onChange={(e) => setCover(e.target.value)}
+                  placeholder={t("admin.coverPlaceholder") as string}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  title={t("admin.pickCoverImage") as string}
+                  onClick={() => setCoverPickerOpen(true)}
+                >
+                  <ImagePlus size={16} />
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -315,10 +473,52 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
         </CardContent>
       </Card>
 
-      {/* Content Editor */}
+      {/* Content Editor — split view on desktop, tabs on mobile */}
       <Card>
         <CardContent className="pt-6">
-          <Tabs defaultValue="edit">
+          {/* Toolbar */}
+          <div className="flex items-center gap-0.5 mb-3 flex-wrap">
+            {TOOLBAR.map((item) => {
+              const Icon = item.icon
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  title={t(item.i18nKey) as string}
+                  aria-label={t(item.i18nKey) as string}
+                  onClick={() => applyToolbar(item)}
+                  className="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <Icon size={15} />
+                </button>
+              )
+            })}
+            <span className="w-px h-5 bg-border mx-1" />
+            <button
+              type="button"
+              title={t("admin.insertImage") as string}
+              aria-label={t("admin.insertImage") as string}
+              onClick={() => setImagePickerOpen(true)}
+              className="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <ImageIcon size={15} />
+            </button>
+          </div>
+
+          {/* Split view (lg+) */}
+          <div className="hidden lg:grid grid-cols-2 gap-4">
+            <Textarea
+              ref={contentRef}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder={t("admin.contentPlaceholder") as string}
+              className="font-mono min-h-[400px] lg:min-h-[calc(100vh-24rem)] resize-y"
+            />
+            {previewPanel}
+          </div>
+
+          {/* Tabs (mobile) */}
+          <Tabs defaultValue="edit" className="lg:hidden">
             <TabsList className="mb-4">
               <TabsTrigger value="edit">{t("admin.editTab") as string}</TabsTrigger>
               <TabsTrigger value="preview">{t("admin.previewTab") as string}</TabsTrigger>
@@ -330,42 +530,13 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
                 placeholder={t("admin.contentPlaceholder") as string}
                 className="font-mono min-h-[400px]"
               />
-              <p className="text-xs text-muted-foreground mt-2">
-                {t("admin.editHint") as string}
-              </p>
             </TabsContent>
-            <TabsContent value="preview">
-              <div className="prose dark:prose-invert max-w-none min-h-[400px] border rounded-lg p-6 bg-card">
-                {content ? (
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      a: ({ href, children }) => (
-                        <a href={href} target="_blank" rel="noopener noreferrer">
-                          {children}
-                        </a>
-                      ),
-                      img: ({ src, alt }) => (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={src}
-                          alt={alt || ""}
-                          className="rounded-lg"
-                          loading="lazy"
-                        />
-                      ),
-                    }}
-                  >
-                    {content}
-                  </ReactMarkdown>
-                ) : (
-                  <p className="text-muted-foreground italic">
-                    {t("admin.previewEmpty") as string}
-                  </p>
-                )}
-              </div>
-            </TabsContent>
+            <TabsContent value="preview">{previewPanel}</TabsContent>
           </Tabs>
+
+          <p className="text-xs text-muted-foreground mt-2">
+            {t("admin.editHint") as string}
+          </p>
         </CardContent>
       </Card>
 
@@ -377,7 +548,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
       </div>
 
       {/* Status */}
-      <div className="flex items-center gap-3 text-sm text-muted-foreground rounded-lg border bg-card p-3">
+      <div className={cn("flex items-center gap-3 text-sm text-muted-foreground rounded-lg border bg-card p-3")}>
         <Badge
           variant={draft ? "secondary" : "default"}
           className={
@@ -396,6 +567,17 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
             : (t("admin.publishedDesc") as string)}
         </span>
       </div>
+
+      <MediaPickerDialog
+        open={coverPickerOpen}
+        onOpenChange={setCoverPickerOpen}
+        onSelect={setCover}
+      />
+      <MediaPickerDialog
+        open={imagePickerOpen}
+        onOpenChange={setImagePickerOpen}
+        onSelect={insertImage}
+      />
     </div>
   )
 }

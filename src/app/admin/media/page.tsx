@@ -4,10 +4,18 @@ import { useEffect, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
-import { ImageIcon, Upload, Copy, FileCode } from "lucide-react"
+import { ImageIcon, Upload, Copy, FileCode, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface MediaFile {
@@ -22,6 +30,9 @@ export default function AdminMediaPage() {
   const [uploading, setUploading] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
+  const [previewFile, setPreviewFile] = useState<MediaFile | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<MediaFile | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   async function fetchMedia() {
     try {
@@ -42,6 +53,14 @@ export default function AdminMediaPage() {
   }, [])
 
   const uploadFile = useCallback(async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error(t("admin.uploadFailed") as string)
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("admin.fileTooLarge") as string)
+      return
+    }
     setUploading(true)
 
     try {
@@ -114,6 +133,30 @@ export default function AdminMediaPage() {
       .then(() => {
         toast.success(t("admin.markdownCopied") as string)
       })
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+
+    try {
+      const res = await apiFetch(
+        `/api/upload?filename=${encodeURIComponent(deleteTarget.name)}`,
+        { method: "DELETE" }
+      )
+      if (res.ok) {
+        setFiles((prev) => prev.filter((f) => f.name !== deleteTarget.name))
+        toast.success(t("admin.imageDeleted") as string)
+        if (previewFile?.name === deleteTarget.name) setPreviewFile(null)
+      } else {
+        toast.error(t("admin.deleteImageFailed") as string)
+      }
+    } catch {
+      toast.error(t("admin.networkError") as string)
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
   }
 
   return (
@@ -195,7 +238,12 @@ export default function AdminMediaPage() {
               key={file.url}
               className="overflow-hidden group hover:border-primary/20 transition-colors"
             >
-              <div className="aspect-video bg-muted flex items-center justify-center relative">
+              <button
+                type="button"
+                onClick={() => setPreviewFile(file)}
+                className="block w-full aspect-video bg-muted relative cursor-zoom-in"
+                title={t("admin.viewFullImage") as string}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={file.url}
@@ -208,7 +256,27 @@ export default function AdminMediaPage() {
                   }}
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-              </div>
+                {/* Delete button on hover */}
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label={t("admin.deleteImage") as string}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setDeleteTarget(file)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setDeleteTarget(file)
+                    }
+                  }}
+                  className="absolute top-2 right-2 inline-flex items-center justify-center size-8 rounded-full bg-black/50 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80 cursor-pointer"
+                >
+                  <Trash2 size={14} />
+                </span>
+              </button>
               <CardContent className="p-3 space-y-2">
                 <p
                   className="text-sm font-medium truncate"
@@ -237,12 +305,97 @@ export default function AdminMediaPage() {
                     <FileCode size={12} />
                     {t("admin.copyMD") as string}
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7 gap-1 ml-auto text-destructive hover:text-destructive"
+                    onClick={() => setDeleteTarget(file)}
+                  >
+                    <Trash2 size={12} />
+                    {t("admin.deleteImage") as string}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      {/* Full image preview */}
+      <Dialog open={!!previewFile} onOpenChange={(open) => !open && setPreviewFile(null)}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{previewFile?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewFile?.url}
+              alt={previewFile?.name || ""}
+              className="w-full max-h-[70vh] object-contain bg-muted"
+            />
+            <button
+              onClick={() => setPreviewFile(null)}
+              className="absolute top-3 right-3 inline-flex items-center justify-center size-8 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition-colors"
+              aria-label="Close"
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <div className="px-4 py-3 flex items-center justify-between gap-3 border-t">
+            <p className="text-sm font-medium truncate">{previewFile?.name}</p>
+            <div className="flex gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => previewFile && copyToClipboard(previewFile.url)}
+              >
+                <Copy size={12} className="mr-1" />
+                {t("admin.copyURL") as string}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                onClick={() => previewFile && setDeleteTarget(previewFile)}
+              >
+                <Trash2 size={12} className="mr-1" />
+                {t("admin.deleteImage") as string}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("admin.deleteImage") as string}</DialogTitle>
+            <DialogDescription>
+              {t("admin.deleteImageConfirm") as string}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteTarget(null)}
+              disabled={deleting}
+            >
+              {t("admin.cancel") as string}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting
+                ? (t("admin.deletingImage") as string)
+                : (t("admin.deleteImage") as string)}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
