@@ -117,12 +117,12 @@ export function Header({ categories }: { categories: Category[] }) {
                         key={cat.key}
                         onClick={() => router.push(`/category/${encodeURIComponent(cat.key)}`)}
                         className={cn(
-                          "flex items-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors",
+                          "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors",
                           active && "bg-primary/5"
                         )}
                       >
                         <div className={cn(
-                          "flex size-8 shrink-0 items-center justify-center rounded-lg mt-0.5",
+                          "flex size-8 shrink-0 items-center justify-center rounded-lg",
                           active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                         )}>
                           <Icon size={16} />
