@@ -7,6 +7,12 @@ import { FileText, Search, X } from "lucide-react"
 import { type PostSummary } from "@bitlog/database"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { categoryMeta, type CategoryKey } from "@/lib/categories"
+
+function catLabel(key: string, t: (k: string) => string | ((...args: unknown[]) => string)): string {
+  const meta = categoryMeta[key as CategoryKey]
+  return meta ? (t(meta.i18nKey) as string) : key
+}
 
 interface PostFeedProps {
   posts: PostSummary[]
@@ -19,8 +25,8 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState(initialSearch)
 
-  // Tags look like "frontend--css" — collapse to major categories ("frontend")
-  const majorTag = (tag: string) => tag.split("--")[0]
+  // Tags use "category-topic" format — extract the major category
+  const majorTag = (tag: string) => (tag.includes("-") ? tag.split("-")[0] : tag)
   const categories = useMemo(
     () => [...new Set(allTags.map(majorTag))],
     [allTags]
@@ -74,16 +80,16 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
             <span className="text-sm font-medium text-muted-foreground mr-1">
               {t("site.topics") as string}
             </span>
-            {categories.map((tag) => (
+            {categories.map((cat) => (
               <button
-                key={tag}
-                onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+                key={cat}
+                onClick={() => setActiveTag(activeTag === cat ? null : cat)}
               >
                 <Badge
-                  variant={activeTag === tag ? "default" : "secondary"}
+                  variant={activeTag === cat ? "default" : "secondary"}
                   className="cursor-pointer transition-all"
                 >
-                  {tag}
+                  {catLabel(cat, t)}
                 </Badge>
               </button>
             ))}
