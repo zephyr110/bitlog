@@ -218,3 +218,25 @@
     color: #71717a;
   }
 }
+/* ── Hero particle animations ── */
+@keyframes hero-rise {
+  0% { transform: translateY(0); opacity: 0; }
+  8% { opacity: 0.9; }
+  80% { opacity: 0.5; }
+  100% { transform: translateY(-75vh); opacity: 0; }
+}
+@keyframes hero-pixel-blink {
+  0% { opacity: 0; }
+  12% { opacity: 0.55; }
+  24% { opacity: 0.1; }
+  38% { opacity: 0.45; }
+  52% { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes hero-cells-sweep {
+  from { mask-position: 100% 0; -webkit-mask-position: 100% 0; }
+  to { mask-position: 0% 0; -webkit-mask-position: 0% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-particle, .hero-pixel { animation: none !important; }
+}
