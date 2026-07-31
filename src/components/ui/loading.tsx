@@ -2,11 +2,15 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function PostCardSkeleton() {
   return (
-    <div className="rounded-xl border bg-card overflow-hidden">
-      {/* Cover placeholder */}
-      <div className="h-48 bg-muted animate-pulse" />
+    <div className="h-full flex flex-col rounded-xl border bg-card overflow-hidden">
+      {/* Cover placeholder with reading-time badge */}
+      <div className="relative h-48 shrink-0 bg-muted animate-pulse">
+        <div className="absolute bottom-3 right-3">
+          <Skeleton className="h-5 w-14 rounded-md bg-background/20" />
+        </div>
+      </div>
       {/* Content */}
-      <div className="p-5 space-y-3">
+      <div className="flex-1 p-5 flex flex-col space-y-3">
         <div className="flex items-center gap-2">
           <Skeleton className="h-3 w-20" />
         </div>
@@ -14,7 +18,7 @@ export function PostCardSkeleton() {
         <Skeleton className="h-5 w-full" />
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-2/3" />
-        <div className="flex gap-1.5 pt-1">
+        <div className="flex gap-1.5 pt-1 mt-auto">
           <Skeleton className="h-5 w-14 rounded-full" />
           <Skeleton className="h-5 w-12 rounded-full" />
         </div>
@@ -36,7 +40,7 @@ export function PostFeedSkeleton({ count = 6 }: { count?: number }) {
         </div>
       </div>
       {/* Card grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 [&>div]:h-full">
         {Array.from({ length: count }).map((_, i) => (
           <PostCardSkeleton key={i} />
         ))}
@@ -73,32 +77,6 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
             <Skeleton className="h-8 w-8 rounded-lg ml-auto" />
           </div>
         ))}
-      </div>
-    </div>
-  )
-}
-
-export function FormSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-8 w-32" />
-        <div className="flex gap-2">
-          <Skeleton className="h-9 w-24" />
-          <Skeleton className="h-9 w-20" />
-        </div>
-      </div>
-      <div className="rounded-xl border bg-card p-6 space-y-4">
-        <Skeleton className="h-6 w-48" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-10 w-full" />
-      </div>
-      <div className="rounded-xl border bg-card p-6">
-        <Skeleton className="h-[400px] w-full" />
       </div>
     </div>
   )
