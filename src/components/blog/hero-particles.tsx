@@ -57,7 +57,7 @@ function makeParticles(
   const [tMin, tMax] = opts.durRange
   const pad = opts.leftPad ?? 2
   return Array.from({ length: count }, () => ({
-    left: `${(rand() * (100 - pad * 2) + pad).toFixed(1)}%`,
+    left: `${(rand() * (100 - pad * 2 - pad) + pad).toFixed(1)}%`,
     ...(opts.includeTop ? { top: `${(rand() * 85 + 5).toFixed(1)}%` } : {}),
     size: Math.round(rand() * (szMax - szMin) + szMin),
     hue: pick(rand, HUES),

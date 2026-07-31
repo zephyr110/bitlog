@@ -16,7 +16,7 @@ export const categoryMeta: Record<CategoryKey, { i18nKey: string; desc: string; 
   summary: { i18nKey: "cat.summary", desc: "Notes · Tips · Reflections", icon: FileText },
 }
 
-/** Resolve a tag to its major category prefix using greedy match (longest first). */
+/** Resolve a tag to its major category prefix. Category keys are checked in definition order. */
 export function resolveCategory(tag: string): string {
   const lower = tag.toLowerCase()
   for (const key of categoryKeys) {
