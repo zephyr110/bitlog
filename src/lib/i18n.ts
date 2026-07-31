@@ -22,7 +22,7 @@ export const translations = {
       notFound: "未找到",
       noPosts: "暂无文章",
       noPostsDesc: "第一篇文章即将发布，敬请期待。",
-      topics: "主题：",
+      topics: "分类",
       clearFilter: "清除筛选",
       noMatchPosts: "没有匹配的文章",
       noMatchPostsDesc: (tag: string) =>
@@ -243,7 +243,7 @@ export const translations = {
       notFound: "Not Found",
       noPosts: "No posts yet",
       noPostsDesc: "The first article is on its way. Check back soon.",
-      topics: "Topics:",
+      topics: "分类",
       clearFilter: "Clear filter",
       noMatchPosts: "No matching posts",
       noMatchPostsDesc: (tag: string) =>
