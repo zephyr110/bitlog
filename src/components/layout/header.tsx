@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -8,21 +8,18 @@ import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { LanguageSwitcher } from "@/components/layout/language-switcher"
 import { siteConfig } from "@/lib/site-config"
 import { useT } from "@/components/layout/trans"
-import { Hash, Menu, X } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
+import { Hash, Menu, X, ChevronDown } from "lucide-react"
 
 const navLinks = [
   { href: "/", i18nKey: "site.home" },
   { href: "/about", i18nKey: "site.about" },
 ]
-
-function VerticalRule({ className }: { className?: string }) {
-  return (
-    <span
-      className={cn("mx-3 h-4 w-px bg-border", className)}
-      aria-hidden="true"
-    />
-  )
-}
 
 const categoryLabels: Record<string, string> = {
   frontend: "前端",
@@ -34,14 +31,22 @@ const categoryLabels: Record<string, string> = {
   summary: "总结",
 }
 
+function VerticalRule({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn("mx-3 h-4 w-px bg-border", className)}
+      aria-hidden="true"
+    />
+  )
+}
+
 export function Header({ categories }: { categories: string[] }) {
   const { t } = useT()
   const pathname = usePathname()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [topicsOpen, setTopicsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const topicsRef = useRef<HTMLDivElement>(null)
+  const [topicsOpen, setTopicsOpen] = useState(false)
 
   useEffect(() => {
     function handleScroll() {
@@ -51,19 +56,6 @@ export function Header({ categories }: { categories: string[] }) {
     handleScroll()
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
-
-  // Close topics dropdown on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (topicsRef.current && !topicsRef.current.contains(e.target as Node)) {
-        setTopicsOpen(false)
-      }
-    }
-    if (topicsOpen) {
-      document.addEventListener("mousedown", handleClick)
-      return () => document.removeEventListener("mousedown", handleClick)
-    }
-  }, [topicsOpen])
 
   useEffect(() => {
     if (mobileOpen) {
@@ -76,10 +68,7 @@ export function Header({ categories }: { categories: string[] }) {
     }
   }, [mobileOpen])
 
-  function handleCategoryClick(cat: string) {
-    setTopicsOpen(false)
-    router.push(`/category/${encodeURIComponent(cat)}`)
-  }
+  const isCategoryActive = pathname?.startsWith("/category/")
 
   if (pathname?.startsWith("/admin")) return null
 
@@ -134,55 +123,53 @@ export function Header({ categories }: { categories: string[] }) {
                 )
               })}
 
-              {/* Topics button + dropdown */}
-              <div ref={topicsRef} className="relative">
-                <button
-                  onClick={() => setTopicsOpen(!topicsOpen)}
+              {/* Topics — shadcn DropdownMenu */}
+              <DropdownMenu onOpenChange={setTopicsOpen}>
+                <DropdownMenuTrigger
                   className={cn(
-                    "relative flex items-center gap-1 px-2 py-1.5 text-sm font-medium transition-colors duration-200 rounded",
-                    topicsOpen
-                      ? "text-primary"
+                    "relative flex items-center gap-0.5 px-2 py-1.5 text-sm font-medium transition-colors duration-200 rounded cursor-pointer outline-none",
+                    topicsOpen || isCategoryActive
+                      ? "text-foreground"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <Hash size={14} />
                   <span>{t("site.topics") as string}</span>
-                </button>
-
-                {topicsOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-56 p-3 rounded-xl border bg-card shadow-xl shadow-black/5 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
-                    {categories.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-2">
-                        {t("site.noTopics") as string}
-                      </p>
-                    ) : (
-                      <div className="flex flex-col gap-0.5">
-                        {categories.map((cat) => {
-                          const label = categoryLabels[cat] || cat
-                          const isActive = pathname === `/category/${encodeURIComponent(cat)}`
-                          return (
-                            <button
-                              key={cat}
-                              onClick={() => handleCategoryClick(cat)}
-                              className={cn(
-                                "flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
-                                isActive
-                                  ? "bg-primary/10 text-primary"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                              )}
-                            >
-                              <span>{label}</span>
-                              <span className="text-[10px] text-muted-foreground/50 font-mono">
-                                {cat}
-                              </span>
-                            </button>
-                          )
-                        })}
-                      </div>
+                  <ChevronDown
+                    size={12}
+                    className={cn(
+                      "transition-transform duration-200",
+                      topicsOpen && "rotate-180"
                     )}
-                  </div>
-                )}
-              </div>
+                  />
+                  {(topicsOpen || isCategoryActive) && (
+                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/80" />
+                  )}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" sideOffset={8} className="w-48">
+                  {categories.length === 0 ? (
+                    <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                      {t("site.noTopics") as string}
+                    </div>
+                  ) : (
+                    categories.map((cat) => {
+                      const label = categoryLabels[cat] || cat
+                      return (
+                        <DropdownMenuItem
+                          key={cat}
+                          onClick={() => router.push(`/category/${encodeURIComponent(cat)}`)}
+                          className="flex items-center justify-between"
+                        >
+                          <span>{label}</span>
+                          <span className="text-[10px] text-muted-foreground/50 font-mono">
+                            {cat}
+                          </span>
+                        </DropdownMenuItem>
+                      )
+                    })
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </nav>
           </div>
 
@@ -237,6 +224,33 @@ export function Header({ categories }: { categories: string[] }) {
                   {t(link.i18nKey) as string}
                 </Link>
               ))}
+              {/* Mobile categories */}
+              {categories.length > 0 && (
+                <>
+                  <div className="my-2 mx-3 border-t" />
+                  <div className="px-3 py-1 text-xs font-medium text-muted-foreground">
+                    {t("site.topics") as string}
+                  </div>
+                  {categories.map((cat) => {
+                    const label = categoryLabels[cat] || cat
+                    return (
+                      <Link
+                        key={cat}
+                        href={`/category/${encodeURIComponent(cat)}`}
+                        onClick={() => setMobileOpen(false)}
+                        className={cn(
+                          "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
+                          pathname === `/category/${encodeURIComponent(cat)}`
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        )}
+                      >
+                        {label}
+                      </Link>
+                    )
+                  })}
+                </>
+              )}
               <div className="my-2 mx-3 border-t" />
               <a
                 href="https://github.com/zephyr110/bitlog"
