@@ -1,5 +1,4 @@
-import matter from "gray-matter"
-import { type Post, type PostFrontmatter, type PostSummary } from "@/types"
+import { type Post, type PostSummary } from "@/types"
 import { READING_SPEED_WPM } from "@/lib/constants"
 
 export function computeReadingStats(content: string): {
@@ -9,30 +8,6 @@ export function computeReadingStats(content: string): {
   const wordCount = content.split(/\s+/).filter(Boolean).length
   const readingTime = Math.max(1, Math.ceil(wordCount / READING_SPEED_WPM))
   return { wordCount, readingTime }
-}
-
-export function parsePostFromFile(
-  rawContent: string,
-  fileSlug: string
-): Post {
-  const { data, content } = matter(rawContent)
-
-  const frontmatter = data as Partial<PostFrontmatter>
-  const stats = computeReadingStats(content)
-
-  return {
-    slug: frontmatter.slug || fileSlug,
-    title: frontmatter.title || "Untitled",
-    date: frontmatter.date || new Date().toISOString().split("T")[0],
-    updated: frontmatter.updated,
-    tags: frontmatter.tags || [],
-    description: frontmatter.description || "",
-    cover: frontmatter.cover,
-    draft: frontmatter.draft ?? false,
-    content,
-    wordCount: stats.wordCount,
-    readingTime: stats.readingTime,
-  }
 }
 
 export function toPostSummary(post: Post): PostSummary {

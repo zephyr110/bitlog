@@ -78,14 +78,7 @@ Optional Giscus variables for comments:
 
 ### Database Setup
 
-BitLog uses Turso (libSQL) for content storage. For local development without a Turso Cloud account, use a local SQLite file — set `TURSO_DATABASE_URL=file:./bitlog.db` in `.env.local`.
-
-If you have existing MDX files in `content/posts/`, migrate them to the database:
-
-```bash
-pnpm migrate          # write to database
-pnpm migrate --dry-run  # preview without writing
-```
+BitLog uses Turso (libSQL) for content storage. For local development without a Turso Cloud account, use a local SQLite file — set `TURSO_DATABASE_URL=file:./bitlog.db` in `.env.local`. The table schema is created automatically on first request.
 
 ### Run Development Server
 
@@ -105,11 +98,9 @@ Open [http://localhost:3000](http://localhost:3000) for the blog and [http://loc
 
 ## Content
 
-Posts are stored in a Turso (libSQL) database. The `content/posts/` directory still contains the original MDX files as a backup, but the app reads from the database at runtime.
+Posts are stored in a Turso (libSQL) database. A post's metadata (title, date, tags, etc.) is stored as columns in the `posts` table, while the Markdown body is stored in the `content` column and rendered via MDX at runtime.
 
-A post's frontmatter is stored as columns in the `posts` table, while the Markdown body is stored in the `content` column and rendered via MDX.
-
-Example frontmatter (from the database or migration source):
+Example frontmatter (stored as database columns):
 
 ```yaml
 ---
@@ -176,9 +167,8 @@ This generates a static site in `out/` that you can deploy to any static host.
 
 ```
 bitlog/
-├── content/              # MDX files (backup / migration source)
 ├── public/               # Static assets
-├── scripts/              # Build helpers & migration
+├── scripts/              # Build helpers
 ├── src/
 │   ├── app/              # Next.js App Router pages
 │   ├── components/       # React components
@@ -203,7 +193,6 @@ bitlog/
 | `pnpm export` | Build static export |
 | `pnpm start` | Start production server |
 | `pnpm lint` | Run ESLint |
-| `pnpm migrate` | Migrate MDX files to the database |
 
 ## Customization
 

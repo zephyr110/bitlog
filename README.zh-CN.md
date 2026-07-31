@@ -78,14 +78,7 @@ Giscus 评论（可选）：
 
 ### 数据库配置
 
-BitLog 使用 Turso (libSQL) 存储文章内容。本地开发无需 Turso Cloud 账号，只需在 `.env.local` 中设置 `TURSO_DATABASE_URL=file:./bitlog.db` 即可使用本地 SQLite 文件。
-
-如果 `content/posts/` 目录中有已有的 MDX 文件，运行迁移命令导入数据库：
-
-```bash
-pnpm migrate              # 写入数据库
-pnpm migrate --dry-run    # 预览，不写入
-```
+BitLog 使用 Turso (libSQL) 存储文章内容。本地开发无需 Turso Cloud 账号，只需在 `.env.local` 中设置 `TURSO_DATABASE_URL=file:./bitlog.db` 即可使用本地 SQLite 文件。首次请求时自动创建表结构。
 
 ### 启动开发服务器
 
@@ -105,11 +98,9 @@ pnpm dev
 
 ## 内容管理
 
-文章存储在 Turso (libSQL) 数据库中。`content/posts/` 目录中仍保留原始 MDX 文件作为备份，但应用运行时从数据库读取数据。
+文章存储在 Turso (libSQL) 数据库中。文章元数据（标题、日期、标签等）作为 `posts` 表的列存储，Markdown 正文存储在 `content` 列中，运行时通过 MDX 渲染。
 
-Frontmatter 字段作为 `posts` 表的列存储，Markdown 正文存储在 `content` 列中，通过 MDX 渲染。
-
-Frontmatter 示例（来自数据库或迁移源）：
+Frontmatter 示例（对应数据库列）：
 
 ```yaml
 ---
@@ -176,9 +167,8 @@ pnpm export
 
 ```
 bitlog/
-├── content/              # MDX 文件（备份 / 迁移源）
 ├── public/               # 静态资源
-├── scripts/              # 构建辅助脚本 & 数据迁移
+├── scripts/              # 构建辅助脚本
 ├── src/
 │   ├── app/              # Next.js App Router 页面
 │   ├── components/       # React 组件
@@ -203,7 +193,6 @@ bitlog/
 | `pnpm export` | 静态导出构建 |
 | `pnpm start` | 启动生产服务器 |
 | `pnpm lint` | 运行 ESLint |
-| `pnpm migrate` | 迁移 MDX 文件到数据库 |
 
 ## 自定义
 

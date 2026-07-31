@@ -1,14 +1,3 @@
-export interface PostFrontmatter {
-  title: string
-  slug: string
-  date: string
-  updated?: string
-  tags: string[]
-  description: string
-  cover?: string
-  draft: boolean
-}
-
 export interface Post {
   slug: string
   title: string
