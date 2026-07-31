@@ -14,7 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { Hash, Menu, X, Clock } from "lucide-react"
+import { Menu, X } from "lucide-react"
 
 const navLinks = [
   { href: "/", i18nKey: "site.home" },
@@ -122,15 +122,13 @@ export function Header({ categories }: { categories: string[] }) {
             </nav>
           </div>
 
-          {/* Right: Theme · Language · Topics · Timeline · GitHub */}
+          {/* Right: 分类 · 时间轴 · 主题 · 语言 · GitHub */}
           <div className="flex items-center gap-0.5">
-            <ThemeToggle />
-            <LanguageSwitcher />
 
-            {/* Topics — shadcn DropdownMenu */}
+            {/* 分类 — text button with dropdown */}
             <DropdownMenu>
-              <DropdownMenuTrigger className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground cursor-pointer outline-none">
-                <Hash size={18} />
+              <DropdownMenuTrigger className="relative hidden md:flex items-center gap-1 px-2 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 rounded cursor-pointer outline-none">
+                <span>{t("site.topics") as string}</span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" sideOffset={8} className="w-48">
                 {categories.length === 0 ? (
@@ -157,14 +155,19 @@ export function Header({ categories }: { categories: string[] }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Timeline */}
+            {/* 时间轴 — text link */}
             <Link
               href="/timeline"
-              className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-              title={t("site.timeline") as string}
+              className="relative hidden md:flex items-center px-2 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
-              <Clock size={18} />
+              {t("site.timeline") as string}
             </Link>
+
+            {/* Separator */}
+            <span className="mx-1 h-4 w-px bg-border hidden md:block" aria-hidden="true" />
+
+            <ThemeToggle />
+            <LanguageSwitcher />
 
             {/* GitHub */}
             <a
