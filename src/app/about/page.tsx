@@ -1,7 +1,7 @@
 import { Separator } from "@/components/ui/separator"
 import { siteConfig } from "@/lib/site-config"
 import { Trans } from "@/components/layout/trans"
-import { GitBranch, MessageCircle, Sparkles, Palette, Code2, FileCode, Cloud, Rocket } from "lucide-react"
+import { GitBranch, MessageCircle, Sparkles, Palette, Code2, FileCode, Cloud, Rocket, Database } from "lucide-react"
 
 const techStack = [
   {
@@ -25,14 +25,14 @@ const techStack = [
     icon: FileCode,
   },
   {
-    name: "GitHub Pages",
-    descKey: "about.hosting",
-    icon: Cloud,
+    name: "Turso",
+    descKey: "about.database",
+    icon: Database,
   },
   {
-    name: "GitHub Actions",
-    descKey: "about.cicd",
-    icon: Code2,
+    name: "Vercel",
+    descKey: "about.hosting",
+    icon: Cloud,
   },
 ]
 
