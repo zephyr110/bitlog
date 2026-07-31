@@ -2,11 +2,12 @@ import { type Metadata } from "next"
 import Link from "next/link"
 import { getPublishedPosts } from "@bitlog/database"
 import { Trans } from "@/components/layout/trans"
+import { defaultLocale, t } from "@/lib/i18n"
 import { YearSection } from "./year-section"
 
 export const metadata: Metadata = {
-  title: "时间轴",
-  description: "按时间顺序浏览所有文章",
+  title: "时间轴 | Timeline",
+  description: "按时间顺序浏览所有文章 | Browse articles in chronological order",
 }
 
 function groupByYear(posts: { date: string; slug: string; title: string }[]) {
@@ -36,10 +37,12 @@ export default async function TimelinePage() {
                 <Trans k="site.home" />
               </Link>
               <span className="opacity-40">/</span>
-              <span className="text-foreground font-medium">时间轴</span>
+              <span className="text-foreground font-medium">
+                <Trans k="timeline.title" />
+              </span>
             </nav>
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
-              时间轴
+              <Trans k="timeline.title" />
             </h1>
             <p className="text-muted-foreground">
               共 {posts.length} 篇文章

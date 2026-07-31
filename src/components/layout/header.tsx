@@ -14,22 +14,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { Menu, X, Search, Monitor, Server, Bot, Package, Wrench, Smartphone, FileText } from "lucide-react"
+import { Menu, X, Search, FileText } from "lucide-react"
+import { categoryMeta } from "@/lib/categories"
 
 const navLinks = [
   { href: "/", i18nKey: "site.home" },
   { href: "/about", i18nKey: "site.about" },
 ]
-
-const categoryMeta: Record<string, { label: string; desc: string; icon: typeof Monitor }> = {
-  frontend: { label: "前端", desc: "JavaScript · CSS · React · Vue", icon: Monitor },
-  backend: { label: "后端", desc: "Python · MySQL · Nginx", icon: Server },
-  automator: { label: "自动化", desc: "Appium · Jest · 测试", icon: Bot },
-  components: { label: "组件", desc: "NPM · UI 组件 · 工具库", icon: Package },
-  gear: { label: "工具", desc: "Git · Webpack · VSCode", icon: Wrench },
-  miniprogram: { label: "小程序", desc: "微信小程序开发", icon: Smartphone },
-  summary: { label: "总结", desc: "笔记 · 踩坑记录 · 思考", icon: FileText },
-}
 
 type Category = { key: string; count: number }
 
@@ -117,7 +108,8 @@ export function Header({ categories }: { categories: Category[] }) {
                   </p>
                 ) : (
                   categories.map((cat) => {
-                    const meta = categoryMeta[cat.key] || { label: cat.key, desc: "", icon: FileText }
+                    const meta = categoryMeta[cat.key as keyof typeof categoryMeta]
+                    if (!meta) return null
                     const Icon = meta.icon
                     const active = pathname === `/category/${encodeURIComponent(cat.key)}`
                     return (
@@ -141,15 +133,12 @@ export function Header({ categories }: { categories: Category[] }) {
                               "text-sm font-medium",
                               active ? "text-primary" : "text-foreground"
                             )}>
-                              {meta.label}
+                              {t(meta.i18nKey as never) as string}
                             </span>
                             <span className="text-[11px] text-muted-foreground/60 tabular-nums font-mono">
                               {cat.count}
                             </span>
                           </div>
-                          <p className="text-[11px] text-muted-foreground/50 mt-0.5 leading-tight truncate">
-                            {meta.desc}
-                          </p>
                         </div>
                       </DropdownMenuItem>
                     )
@@ -226,7 +215,8 @@ export function Header({ categories }: { categories: Category[] }) {
                     {t("site.topics") as string}
                   </div>
                   {categories.map((cat) => {
-                    const meta = categoryMeta[cat.key] || { label: cat.key, desc: "", icon: FileText }
+                    const meta = categoryMeta[cat.key as keyof typeof categoryMeta]
+                    if (!meta) return null
                     return (
                       <Link
                         key={cat.key}
@@ -239,7 +229,7 @@ export function Header({ categories }: { categories: Category[] }) {
                             : "text-muted-foreground hover:text-foreground hover:bg-muted"
                         )}
                       >
-                        {meta.label}
+                        {t(meta.i18nKey as never) as string}
                       </Link>
                     )
                   })}

@@ -3,6 +3,7 @@
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { Sun, Moon, Monitor } from "lucide-react"
+import { useT } from "@/components/layout/trans"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -10,14 +11,9 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 
-const options = [
-  { key: "light", label: "浅色", icon: Sun, iconClass: "text-amber-500" },
-  { key: "dark", label: "深色", icon: Moon, iconClass: "text-indigo-400" },
-  { key: "system", label: "跟随系统", icon: Monitor, iconClass: "text-emerald-500" },
-] as const
-
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
+  const { t } = useT()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
@@ -25,6 +21,12 @@ export function ThemeToggle() {
   if (!mounted) {
     return <div className="size-9" />
   }
+
+  const options = [
+    { key: "light", label: t("admin.light") as string, icon: Sun, iconClass: "text-amber-500" },
+    { key: "dark", label: t("admin.dark") as string, icon: Moon, iconClass: "text-indigo-400" },
+    { key: "system", label: t("admin.system") as string, icon: Monitor, iconClass: "text-emerald-500" },
+  ] as const
 
   const current = options.find((o) => o.key === theme) || options[2]
   const Icon = current.icon
