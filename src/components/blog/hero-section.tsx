@@ -149,6 +149,41 @@ export function HeroSection({ postCount }: { postCount: number }) {
         }}
       />
 
+      {/* ── Layer 4b: Light beams — conic rays radiating from cursor ── */}
+      <div
+        className="absolute inset-0 motion-safe:block hidden pointer-events-none"
+        style={{
+          background: `
+            repeating-conic-gradient(
+              from 0deg at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
+              hsl(var(--primary) / 0.0) 0deg,
+              hsl(var(--primary) / 0.06) 2deg,
+              hsl(var(--primary) / 0.0) 4deg,
+              hsl(var(--primary) / 0.04) 6deg,
+              hsl(var(--primary) / 0.0) 10deg
+            )
+           `,
+           opacity: "var(--so, 0)",
+           transition: "opacity 0.5s ease",
+           maskImage: `
+             radial-gradient(
+               600px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
+               black 0%,
+               black 40%,
+               transparent 70%
+             )
+           `,
+           WebkitMaskImage: `
+             radial-gradient(
+               600px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
+               black 0%,
+               black 40%,
+               transparent 70%
+             )
+           `,
+        }}
+      />
+
       {/* ── Layer 5: Lit dots — revealed by spotlight ── */}
       <div
         className="absolute inset-0 motion-safe:block hidden"
