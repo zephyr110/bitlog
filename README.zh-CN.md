@@ -107,11 +107,12 @@ Frontmatter 示例（对应数据库列）：
 title: "我的第一篇文章"
 slug: "my-first-post"
 date: "2026-07-19"
-tags: ["nextjs", "blog"]
+tags: ["frontend-nextjs", "frontend-blog"]
 description: "用于 SEO 和预览的简短描述。"
-draft: false
 ---
 ```
+
+标签使用 `{分类}-{主题}` 格式，便于自动归类。
 
 代码块支持语法高亮和一键复制：
 

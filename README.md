@@ -107,11 +107,12 @@ Example frontmatter (stored as database columns):
 title: "My First Post"
 slug: "my-first-post"
 date: "2026-07-19"
-tags: ["nextjs", "blog"]
+tags: ["frontend-nextjs", "frontend-blog"]
 description: "A short description for SEO and previews."
-draft: false
 ---
 ```
+
+Tags use a `{category}-{topic}` format for automatic category grouping.
 
 Code blocks support syntax highlighting and a copy button:
 

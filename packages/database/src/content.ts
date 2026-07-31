@@ -49,8 +49,6 @@ async function ensureTable(db: Client): Promise<void> {
       await db.executeMultiple(SCHEMA)
 
       // One-time fix: normalize dates that were stored as epoch millis
-      // (gray-matter parsed unquoted YAML dates into JS Date objects,
-      //  and @libsql/client serialized them via valueOf() → epoch millis strings)
       const bad = await db.execute(
         "SELECT slug, date FROM posts WHERE date NOT GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'"
       )
@@ -60,6 +58,42 @@ async function ensureTable(db: Client): Promise<void> {
           sql: "UPDATE posts SET date = ? WHERE slug = ?",
           args: [corrected, row.slug],
         })
+      }
+
+      // One-time fix: normalize tags to prefix format (e.g. ["css"] → ["frontend-css"])
+      const tagMap: Record<string, string> = {
+        css: "frontend", javascript: "frontend", js: "frontend", typescript: "frontend",
+        react: "frontend", vue: "frontend", "design-pattern": "frontend",
+        protocol: "frontend", framework: "frontend", node: "frontend", npm: "frontend",
+        webpack: "frontend", babel: "frontend", eslint: "frontend", stylelint: "frontend",
+        python: "backend", server: "backend", mysql: "backend", nginx: "backend",
+        linux: "backend", mangodb: "backend",
+        appium: "automator", jest: "automator", testing: "automator", automator: "automator",
+        component: "components", components: "components", publish: "components",
+        git: "gear", gear: "gear", terminal: "gear", iterm: "gear", vscode: "gear",
+        webstorm: "gear", markdown: "gear", picgo: "gear", tree: "gear", yarn: "gear",
+        storybook: "gear", ish: "gear",
+        miniprogram: "miniprogram", "mini-program": "miniprogram",
+        summary: "summary", vpn: "summary", scriptable: "summary",
+        application: "frontend", tools: "gear",
+      }
+      const all = await db.execute("SELECT slug, tags FROM posts")
+      for (const row of all.rows) {
+        let tags: string[]
+        try { tags = JSON.parse(row.tags as string) } catch { continue }
+        if (!Array.isArray(tags)) continue
+        const fixed = tags.map((t: string) => {
+          const lower = t.toLowerCase()
+          if (lower.includes("-")) return lower
+          const prefix = tagMap[lower]
+          return prefix ? `${prefix}-${lower}` : lower
+        })
+        if (JSON.stringify(tags) !== JSON.stringify(fixed)) {
+          await db.execute({
+            sql: "UPDATE posts SET tags = ? WHERE slug = ?",
+            args: [JSON.stringify(fixed), row.slug as string],
+          })
+        }
       }
     })().catch((err) => {
       tableReady = null // reset on failure so next call retries
