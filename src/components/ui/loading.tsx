@@ -25,7 +25,7 @@ export function PostCardSkeleton() {
 
 export function PostFeedSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-12 max-w-5xl 2xl:max-w-7xl">
       {/* Search bar skeleton */}
       <div className="mb-8 space-y-4">
         <Skeleton className="h-10 max-w-md rounded-lg" />
