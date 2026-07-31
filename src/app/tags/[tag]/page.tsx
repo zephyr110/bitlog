@@ -11,7 +11,7 @@ interface TagPageProps {
 }
 
 export async function generateStaticParams() {
-  const tags = getAllTags()
+  const tags = await getAllTags()
   return tags.map((tag) => ({ tag }))
 }
 
@@ -31,13 +31,13 @@ export async function generateMetadata({
 export default async function TagPage({ params }: TagPageProps) {
   const { tag } = await params
   const decodedTag = decodeURIComponent(tag)
-  const allTags = getAllTags()
+  const allTags = await getAllTags()
 
   if (!allTags.some((t) => t.toLowerCase() === decodedTag.toLowerCase())) {
     notFound()
   }
 
-  const posts = getPostsByTag(decodedTag)
+  const posts = await getPostsByTag(decodedTag)
 
   return (
     <div className="min-h-[calc(100vh-4rem)]">

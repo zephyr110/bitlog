@@ -11,7 +11,7 @@ function escapeXml(s: string) {
 }
 
 export async function GET() {
-  const posts = getPublishedPosts()
+  const posts = await getPublishedPosts()
   const siteUrl = siteConfig.siteUrl.replace(/\/+$/, "")
   const today = new Date().toISOString().slice(0, 10)
 

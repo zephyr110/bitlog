@@ -11,7 +11,7 @@ function escapeXml(str: string): string {
 }
 
 export async function GET() {
-  const posts = getPublishedPosts()
+  const posts = await getPublishedPosts()
   const siteUrl = siteConfig.siteUrl.replace(/\/+$/, "")
 
   const feedEntries = posts

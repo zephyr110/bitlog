@@ -35,22 +35,6 @@ export function parsePostFromFile(
   }
 }
 
-export function serializeFrontmatter(post: Post): string {
-  const fm: Record<string, unknown> = {
-    title: post.title,
-    slug: post.slug,
-    date: post.date,
-    tags: post.tags,
-    description: post.description,
-    draft: post.draft,
-  }
-
-  if (post.updated) fm.updated = post.updated
-  if (post.cover) fm.cover = post.cover
-
-  return matter.stringify(post.content, fm)
-}
-
 export function toPostSummary(post: Post): PostSummary {
   return {
     slug: post.slug,

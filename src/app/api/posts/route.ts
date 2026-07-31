@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   // Single post query
   const slug = searchParams.get("slug")
   if (slug) {
-    const post = getPostBySlug(slug, true)
+    const post = await getPostBySlug(slug, true)
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 })
     }
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
   // List query — default to published only for safety.
   const includeDrafts = searchParams.get("includeDrafts") === "true"
-  const posts = includeDrafts ? getAllPosts(true) : getPublishedPosts()
+  const posts = includeDrafts ? await getAllPosts(true) : await getPublishedPosts()
   return NextResponse.json({ posts })
 }
 
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Check for duplicate slug
-  const existing = getPostBySlug(slug, true)
+  const existing = await getPostBySlug(slug, true)
   if (existing) {
     return NextResponse.json(
       { error: "A post with this slug already exists" },
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     readingTime: stats.readingTime,
   }
 
-  savePost(post)
+  await savePost(post)
   return NextResponse.json({ post }, { status: 201 })
 }
 
@@ -116,7 +116,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: "Slug is required" }, { status: 400 })
   }
 
-  const existingPost = getPostBySlug(slug, true)
+  const existingPost = await getPostBySlug(slug, true)
   if (!existingPost) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 })
   }
@@ -133,14 +133,14 @@ export async function PUT(request: NextRequest) {
   const newSlug = body.slug || slug
   if (newSlug !== slug) {
     // Check for duplicate slug on rename
-    const conflict = getPostBySlug(newSlug, true)
+    const conflict = await getPostBySlug(newSlug, true)
     if (conflict) {
       return NextResponse.json(
         { error: "A post with this slug already exists" },
         { status: 409 }
       )
     }
-    deletePost(slug)
+    await deletePost(slug)
   }
 
   const content = body.content ?? existingPost.content
@@ -161,7 +161,7 @@ export async function PUT(request: NextRequest) {
     readingTime: stats.readingTime,
   }
 
-  savePost(updatedPost, slug)
+  await savePost(updatedPost, slug)
   return NextResponse.json({ post: updatedPost })
 }
 
@@ -178,7 +178,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Slug is required" }, { status: 400 })
   }
 
-  const deleted = deletePost(slug)
+  const deleted = await deletePost(slug)
   if (!deleted) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 })
   }
@@ -199,7 +199,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Slug is required" }, { status: 400 })
   }
 
-  const existingPost = getPostBySlug(slug, true)
+  const existingPost = await getPostBySlug(slug, true)
   if (!existingPost) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 })
   }
@@ -215,7 +215,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   const toDraft = parseResult.data.draft
-  const updatedPost = movePost(slug, toDraft)
+  const updatedPost = await movePost(slug, toDraft)
   if (!updatedPost) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 })
   }

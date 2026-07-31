@@ -23,7 +23,7 @@ interface PostPageProps {
 }
 
 export async function generateStaticParams() {
-  const posts = getPublishedPosts()
+  const posts = await getPublishedPosts()
   return posts.map((post) => ({ slug: post.slug }))
 }
 
@@ -31,7 +31,7 @@ export async function generateMetadata({
   params,
 }: PostPageProps): Promise<Metadata> {
   const { slug } = await params
-  const post = getPostBySlug(slug)
+  const post = await getPostBySlug(slug)
   if (!post) return { title: t(defaultLocale, "site.notFound") as string }
 
   const postImage = post.cover
@@ -68,11 +68,11 @@ export async function generateMetadata({
 
 export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params
-  const post = getPostBySlug(slug)
+  const post = await getPostBySlug(slug)
 
   if (!post || post.draft) notFound()
 
-  const relatedPosts = getPublishedPosts()
+  const relatedPosts = (await getPublishedPosts())
     .filter((p) => p.slug !== slug && p.tags.some((t) => post.tags.includes(t)))
     .slice(0, 3)
 

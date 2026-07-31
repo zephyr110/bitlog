@@ -1,67 +1,101 @@
-import fs from "fs"
-import path from "path"
-import { POSTS_DIR, DRAFTS_DIR } from "@/lib/constants"
+import { type Client } from "@libsql/client"
+import { getDb } from "@/lib/db"
 import { type Post, type PostSummary } from "@/types"
-import {
-  parsePostFromFile,
-  toPostSummary,
-  serializeFrontmatter,
-} from "@/lib/mdx-utils"
+import { toPostSummary } from "@/lib/mdx-utils"
+import { safeSlug, slugify } from "@/lib/slug"
 
-function ensureDir(dir: string) {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true })
+export { slugify }
+
+// ── Schema ──────────────────────────────────────────────────────────────
+
+const SCHEMA = `
+CREATE TABLE IF NOT EXISTS posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT UNIQUE NOT NULL,
+  title TEXT NOT NULL DEFAULT 'Untitled',
+  date TEXT NOT NULL,
+  updated TEXT,
+  tags TEXT NOT NULL DEFAULT '[]',
+  description TEXT NOT NULL DEFAULT '',
+  cover TEXT,
+  draft INTEGER NOT NULL DEFAULT 0,
+  content TEXT NOT NULL DEFAULT '',
+  word_count INTEGER NOT NULL DEFAULT 0,
+  reading_time INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(date DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_draft ON posts(draft);
+`
+
+// ── Helpers ─────────────────────────────────────────────────────────────
+
+function requireDb(): Client {
+  const db = getDb()
+  if (!db) {
+    throw new Error(
+      "TURSO_DATABASE_URL environment variable is required. " +
+        "Set it to a libsql:// or file: URL (and TURSO_AUTH_TOKEN for remote databases)."
+    )
+  }
+  return db
+}
+
+let tableReady: Promise<void> | null = null
+
+export async function ensureTable(db: Client): Promise<void> {
+  if (!tableReady) {
+    tableReady = (async () => {
+      await db.execute(SCHEMA)
+    })()
+  }
+  await tableReady
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToPost(row: any): Post {
+  let tags: string[] = []
+  try {
+    tags = JSON.parse(row.tags || "[]")
+  } catch {
+    tags = []
+  }
+
+  return {
+    slug: row.slug,
+    title: row.title,
+    date: row.date,
+    updated: row.updated ?? undefined,
+    tags,
+    description: row.description,
+    cover: row.cover ?? undefined,
+    draft: Boolean(row.draft),
+    content: row.content,
+    wordCount: row.word_count,
+    readingTime: row.reading_time,
   }
 }
 
-/** Sanitize a slug: lowercase, strip path traversal, keep only safe chars. */
-function safeSlug(slug: string): string {
-  if (!slug.trim()) return `untitled-${Date.now()}`
-  return (
-    slug
-      .toLowerCase()
-      .replace(/\.\./g, "")
-      .replace(/[\/\\]/g, "-")
-      .replace(/[^a-z0-9_-]/g, "")
-      .slice(0, 100) || `untitled-${Date.now()}`
-  )
+function toParams(post: Post) {
+  return {
+    slug: safeSlug(post.slug),
+    title: post.title,
+    date: post.date,
+    updated: post.updated ?? null,
+    tags: JSON.stringify(post.tags),
+    description: post.description,
+    cover: post.cover ?? null,
+    draft: post.draft ? 1 : 0,
+    content: post.content,
+    word_count: post.wordCount,
+    reading_time: post.readingTime,
+  }
 }
 
-/** Generate a slug from a title with non-ASCII fallback */
-export function slugify(title: string): string {
-  const slug = title
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .slice(0, 80)
-  return slug || `post-${Date.now()}`
-}
-
-export function getAllPosts(includeDrafts = false): Post[] {
-  ensureDir(POSTS_DIR)
-  ensureDir(DRAFTS_DIR)
-
-  const posts: Post[] = []
-
-  const readDir = (dir: string) => {
-    if (!fs.existsSync(dir)) return
-    const files = fs.readdirSync(dir)
-    for (const file of files) {
-      if (!file.endsWith(".mdx") && !file.endsWith(".md")) continue
-      const filePath = path.join(dir, file)
-      const rawContent = fs.readFileSync(filePath, "utf-8")
-      const slug = file.replace(/\.(mdx|md)$/, "")
-      const post = parsePostFromFile(rawContent, slug)
-      posts.push(post)
-    }
-  }
-
-  readDir(POSTS_DIR)
-  if (includeDrafts) {
-    readDir(DRAFTS_DIR)
-  }
-
-  // Sort by date, newest first. Invalid dates fall to the end.
+/** Sort comparator: newest first, invalid dates sink to the end. */
+function sortByDate(posts: Post[]): Post[] {
   posts.sort((a, b) => {
     const ta = new Date(a.date).getTime()
     const tb = new Date(b.date).getTime()
@@ -70,92 +104,142 @@ export function getAllPosts(includeDrafts = false): Post[] {
     if (Number.isNaN(tb)) return -1
     return tb - ta
   })
-
   return posts
 }
 
-export function getPublishedPosts(): PostSummary[] {
-  const allPosts = getAllPosts(false)
-  return allPosts.filter((p) => !p.draft).map(toPostSummary)
+// ── Public API ──────────────────────────────────────────────────────────
+
+export async function getAllPosts(includeDrafts = false): Promise<Post[]> {
+  const db = requireDb()
+  await ensureTable(db)
+
+  let rows
+  if (includeDrafts) {
+    const result = await db.execute("SELECT * FROM posts")
+    rows = result.rows
+  } else {
+    const result = await db.execute("SELECT * FROM posts WHERE draft = 0")
+    rows = result.rows
+  }
+
+  return sortByDate(rows.map(rowToPost))
 }
 
-export function getPostBySlug(
+export async function getPublishedPosts(): Promise<PostSummary[]> {
+  const posts = await getAllPosts(false)
+  return posts.map(toPostSummary)
+}
+
+export async function getPostBySlug(
   slug: string,
   includeDrafts = false
-): Post | null {
-  const clean = safeSlug(slug)
-  const extensions = [".mdx", ".md"]
+): Promise<Post | null> {
+  const db = requireDb()
+  await ensureTable(db)
 
-  for (const ext of extensions) {
-    for (const dir of [POSTS_DIR, ...(includeDrafts ? [DRAFTS_DIR] : [])]) {
-      const filePath = path.join(dir, `${clean}${ext}`)
-      if (fs.existsSync(filePath)) {
-        const rawContent = fs.readFileSync(filePath, "utf-8")
-        return parsePostFromFile(rawContent, clean)
-      }
-    }
+  const clean = safeSlug(slug)
+
+  let result
+  if (includeDrafts) {
+    result = await db.execute({
+      sql: "SELECT * FROM posts WHERE slug = ?",
+      args: [clean],
+    })
+  } else {
+    result = await db.execute({
+      sql: "SELECT * FROM posts WHERE slug = ? AND draft = 0",
+      args: [clean],
+    })
   }
 
-  return null
+  if (result.rows.length === 0) return null
+  return rowToPost(result.rows[0])
 }
 
-export function savePost(post: Post, previousSlug?: string): void {
-  ensureDir(POSTS_DIR)
-  ensureDir(DRAFTS_DIR)
+export async function savePost(
+  post: Post,
+  previousSlug?: string
+): Promise<void> {
+  const db = requireDb()
+  await ensureTable(db)
 
   const clean = safeSlug(post.slug)
-  const targetDir = post.draft ? DRAFTS_DIR : POSTS_DIR
-  const filePath = path.join(targetDir, `${clean}.mdx`)
 
-  // If the slug changed, remove the old file to avoid duplicates.
+  // If the slug changed, remove the old row to avoid duplicates.
   if (previousSlug && safeSlug(previousSlug) !== clean) {
-    deletePost(previousSlug)
+    await db.execute({
+      sql: "DELETE FROM posts WHERE slug = ?",
+      args: [safeSlug(previousSlug)],
+    })
   }
 
-  fs.writeFileSync(filePath, serializeFrontmatter(post), "utf-8")
+  const p = toParams(post)
+  await db.execute({
+    sql: `INSERT INTO posts (slug, title, date, updated, tags, description, cover, draft, content, word_count, reading_time)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(slug) DO UPDATE SET
+            title=excluded.title, date=excluded.date, updated=excluded.updated,
+            tags=excluded.tags, description=excluded.description, cover=excluded.cover,
+            draft=excluded.draft, content=excluded.content,
+            word_count=excluded.word_count, reading_time=excluded.reading_time,
+            updated_at=datetime('now')`,
+    args: [
+      p.slug,
+      p.title,
+      p.date,
+      p.updated,
+      p.tags,
+      p.description,
+      p.cover,
+      p.draft,
+      p.content,
+      p.word_count,
+      p.reading_time,
+    ],
+  })
 }
 
-export function deletePost(slug: string): boolean {
+export async function deletePost(slug: string): Promise<boolean> {
+  const db = requireDb()
+  await ensureTable(db)
+
   const clean = safeSlug(slug)
-  const extensions = [".mdx", ".md"]
-  let deleted = false
+  const result = await db.execute({
+    sql: "DELETE FROM posts WHERE slug = ?",
+    args: [clean],
+  })
 
-  for (const ext of extensions) {
-    for (const dir of [POSTS_DIR, DRAFTS_DIR]) {
-      const filePath = path.join(dir, `${clean}${ext}`)
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath)
-        deleted = true
-      }
-    }
-  }
-
-  return deleted
+  return result.rowsAffected > 0
 }
 
-export function movePost(slug: string, toDraft: boolean): Post | null {
-  const post = getPostBySlug(slug, true)
+export async function movePost(
+  slug: string,
+  toDraft: boolean
+): Promise<Post | null> {
+  const post = await getPostBySlug(slug, true)
   if (!post) return null
 
-  // Use the filesystem-resolved slug for deletion and saving.
-  const resolvedSlug = safeSlug(post.slug)
-
-  // Delete from current location(s).
-  deletePost(resolvedSlug)
-
-  // Update draft status and save to new location.
   post.draft = toDraft
-  savePost(post)
+  await savePost(post)
 
   return post
 }
 
-export function getAllTags(): string[] {
-  const posts = getAllPosts(true)
+export async function getAllTags(): Promise<string[]> {
+  const db = requireDb()
+  await ensureTable(db)
+
+  const result = await db.execute("SELECT tags FROM posts")
   const tagSet = new Set<string>()
 
-  for (const post of posts) {
-    for (const tag of post.tags) {
+  for (const row of result.rows) {
+    let tags: string[]
+    try {
+      tags = JSON.parse((row.tags as string) || "[]")
+    } catch {
+      continue
+    }
+    for (const tag of tags) {
       if (tag) tagSet.add(tag.toLowerCase())
     }
   }
@@ -163,8 +247,8 @@ export function getAllTags(): string[] {
   return Array.from(tagSet).sort()
 }
 
-export function getPostsByTag(tag: string): PostSummary[] {
-  const posts = getPublishedPosts()
+export async function getPostsByTag(tag: string): Promise<PostSummary[]> {
+  const posts = await getPublishedPosts()
   return posts.filter((p) =>
     p.tags.some((t) => t.toLowerCase() === tag.toLowerCase())
   )
