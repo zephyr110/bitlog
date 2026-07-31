@@ -292,7 +292,7 @@ function SearchInput({ t, router }: { t: ReturnType<typeof useT>["t"]; router: R
   }
 
   return (
-    <form onSubmit={handleSubmit} className="hidden md:flex items-center">
+    <form onSubmit={handleSubmit} className="hidden md:flex items-center mr-2">
       <div className="relative">
         <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         <input
