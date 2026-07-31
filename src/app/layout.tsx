@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/layout/theme-provider"
 import { I18nProvider } from "@/components/layout/i18n-provider"
 import { siteConfig } from "@/lib/site-config"
 import { defaultLocale } from "@/lib/i18n"
-import { getAllCategories } from "@bitlog/database"
+import { getAllTags } from "@bitlog/database"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -57,7 +57,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const categories = await getAllCategories()
+  const tags = await getAllTags()
+  // Derive categories from tag prefixes (e.g. "frontend-css" → "frontend")
+  const categories = Array.from(
+    new Set(
+      tags
+        .filter((t) => t.includes("-"))
+        .map((t) => t.split("-")[0])
+    )
+  ).sort()
 
   return (
     <html
