@@ -14,7 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { Menu, X } from "lucide-react"
+import { Menu, X, Search } from "lucide-react"
 
 const navLinks = [
   { href: "/", i18nKey: "site.home" },
@@ -87,8 +87,11 @@ export function Header({ categories }: { categories: string[] }) {
             </Link>
           </div>
 
-          {/* Right: 首页 · 分类 · 时间轴 · 关于 · | · 主题 · 语言 · GitHub */}
+          {/* Right: Search · 首页 · 分类 · 时间轴 · 关于 · | · 主题 · 语言 · GitHub */}
           <div className="flex items-center gap-0.5">
+
+            {/* Search */}
+            <SearchInput />
 
             {/* 首页 — text link */}
             <Link
@@ -267,5 +270,48 @@ export function Header({ categories }: { categories: string[] }) {
         </>
       )}
     </>
+  )
+}
+
+function SearchInput() {
+  const { t } = useT()
+  const router = useRouter()
+  const [value, setValue] = useState("")
+
+  // Sync initial value from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setValue(params.get("q") || "")
+  }, [])
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const q = value.trim()
+    if (q) {
+      router.push(`/?q=${encodeURIComponent(q)}`)
+    } else {
+      router.push("/")
+    }
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="hidden md:flex items-center"
+    >
+      <div className="relative">
+        <Search
+          size={14}
+          className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+        />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={t("site.searchPosts") as string}
+          className="w-32 h-8 pl-8 pr-2 text-sm rounded-lg border border-transparent bg-muted/50 text-muted-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/30 focus:bg-background focus:text-foreground focus:w-48 transition-all duration-200"
+        />
+      </div>
+    </form>
   )
 }

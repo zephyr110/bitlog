@@ -11,12 +11,13 @@ import { Badge } from "@/components/ui/badge"
 interface PostFeedProps {
   posts: PostSummary[]
   allTags: string[]
+  initialSearch?: string
 }
 
-export function PostFeed({ posts, allTags }: PostFeedProps) {
+export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) {
   const { t } = useT()
   const [activeTag, setActiveTag] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(initialSearch)
 
   const filteredPosts = useMemo(() => {
     let result = posts
