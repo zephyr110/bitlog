@@ -6,6 +6,8 @@ export {
   deletePost,
   movePost,
   getAllTags,
+  getAllCategories,
+  getPostsByCategory,
   getPostsByTag,
 } from "./content"
 export { slugify } from "./slug"

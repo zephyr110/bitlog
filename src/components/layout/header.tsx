@@ -1,14 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { LanguageSwitcher } from "@/components/layout/language-switcher"
 import { siteConfig } from "@/lib/site-config"
 import { useT } from "@/components/layout/trans"
-import { Menu, X } from "lucide-react"
+import { Hash, Menu, X } from "lucide-react"
 
 const navLinks = [
   { href: "/", i18nKey: "site.home" },
@@ -24,11 +24,24 @@ function VerticalRule({ className }: { className?: string }) {
   )
 }
 
-export function Header() {
+const categoryLabels: Record<string, string> = {
+  frontend: "前端",
+  backend: "后端",
+  automator: "自动化",
+  components: "组件",
+  gear: "工具",
+  miniprogram: "小程序",
+  summary: "总结",
+}
+
+export function Header({ categories }: { categories: string[] }) {
   const { t } = useT()
   const pathname = usePathname()
+  const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [topicsOpen, setTopicsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const topicsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function handleScroll() {
@@ -38,6 +51,19 @@ export function Header() {
     handleScroll()
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Close topics dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (topicsRef.current && !topicsRef.current.contains(e.target as Node)) {
+        setTopicsOpen(false)
+      }
+    }
+    if (topicsOpen) {
+      document.addEventListener("mousedown", handleClick)
+      return () => document.removeEventListener("mousedown", handleClick)
+    }
+  }, [topicsOpen])
 
   useEffect(() => {
     if (mobileOpen) {
@@ -49,6 +75,11 @@ export function Header() {
       document.body.style.overflow = ""
     }
   }, [mobileOpen])
+
+  function handleCategoryClick(cat: string) {
+    setTopicsOpen(false)
+    router.push(`/category/${encodeURIComponent(cat)}`)
+  }
 
   if (pathname?.startsWith("/admin")) return null
 
@@ -102,6 +133,52 @@ export function Header() {
                   </Link>
                 )
               })}
+
+              {/* Topics button + dropdown */}
+              {categories.length > 0 && (
+                <div ref={topicsRef} className="relative">
+                  <button
+                    onClick={() => setTopicsOpen(!topicsOpen)}
+                    className={cn(
+                      "relative flex items-center gap-1 px-2 py-1.5 text-sm font-medium transition-colors duration-200 rounded",
+                      topicsOpen
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Hash size={14} />
+                    <span>{t("site.topics") as string}</span>
+                  </button>
+
+                  {topicsOpen && (
+                    <div className="absolute top-full left-0 mt-2 w-56 p-3 rounded-xl border bg-card shadow-xl shadow-black/5 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
+                      <div className="flex flex-col gap-0.5">
+                        {categories.map((cat) => {
+                          const label = categoryLabels[cat] || cat
+                          const isActive = pathname === `/category/${encodeURIComponent(cat)}`
+                          return (
+                            <button
+                              key={cat}
+                              onClick={() => handleCategoryClick(cat)}
+                              className={cn(
+                                "flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
+                                isActive
+                                  ? "bg-primary/10 text-primary"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                              )}
+                            >
+                              <span>{label}</span>
+                              <span className="text-[10px] text-muted-foreground/50 font-mono">
+                                {cat}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </nav>
           </div>
 

@@ -249,6 +249,40 @@ export async function getAllTags(): Promise<string[]> {
   return Array.from(tagSet).sort()
 }
 
+export async function getAllCategories(): Promise<string[]> {
+  const db = requireDb()
+  await ensureTable(db)
+
+  const result = await db.execute("SELECT tags FROM posts")
+  const catSet = new Set<string>()
+
+  for (const row of result.rows) {
+    let tags: string[]
+    try {
+      tags = JSON.parse((row.tags as string) || "[]")
+    } catch {
+      continue
+    }
+    for (const tag of tags) {
+      if (!tag) continue
+      const dash = tag.indexOf("-")
+      if (dash > 0) {
+        catSet.add(tag.slice(0, dash).toLowerCase())
+      }
+    }
+  }
+
+  return Array.from(catSet).sort()
+}
+
+export async function getPostsByCategory(category: string): Promise<PostSummary[]> {
+  const posts = await getPublishedPosts()
+  const prefix = category.toLowerCase() + "-"
+  return posts.filter((p) =>
+    p.tags.some((t) => t.toLowerCase().startsWith(prefix))
+  )
+}
+
 export async function getPostsByTag(tag: string): Promise<PostSummary[]> {
   const posts = await getPublishedPosts()
   return posts.filter((p) =>

@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/layout/theme-provider"
 import { I18nProvider } from "@/components/layout/i18n-provider"
 import { siteConfig } from "@/lib/site-config"
 import { defaultLocale } from "@/lib/i18n"
+import { getAllCategories } from "@bitlog/database"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -51,11 +52,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const categories = await getAllCategories()
+
   return (
     <html
       lang={defaultLocale}
@@ -73,7 +76,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <I18nProvider>
-            <Header />
+            <Header categories={categories} />
             <main className="flex-1">{children}</main>
             <Toaster />
           </I18nProvider>
