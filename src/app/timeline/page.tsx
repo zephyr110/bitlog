@@ -50,10 +50,12 @@ export default async function TimelinePage() {
       {/* Timeline */}
       <div className="container mx-auto px-4 py-12 md:py-16 max-w-3xl">
         <div className="relative">
-          {/* Vertical line */}
-          <div className="absolute left-4 md:left-6 top-0 bottom-0 w-px bg-border" />
+          {/* Vertical line — subtle gradient, fading at edges */}
+          <div className="absolute left-[19px] md:left-[27px] top-0 bottom-0 w-px">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/15 to-transparent" />
+          </div>
 
-          <div className="space-y-12">
+          <div className="space-y-16">
             {grouped.map(([year, yearPosts], groupIdx) => (
               <YearSection
                 key={year}
@@ -86,26 +88,35 @@ function YearSection({
 }) {
   return (
     <details open={defaultOpen} className="group">
-      <summary className="flex items-center gap-3 cursor-pointer list-none mb-6">
-        {/* Year dot on the line */}
-        <div className="relative z-10 flex size-3 shrink-0 items-center justify-center ml-[2px] md:ml-[6px]">
-          <div className="size-3 rounded-full bg-primary ring-4 ring-background group-open:scale-125 transition-transform" />
+      <summary className="flex items-center gap-4 cursor-pointer list-none mb-6">
+        {/* Year dot — nested rings with glow */}
+        <div className="relative z-10 flex shrink-0 items-center justify-center ml-[3px] md:ml-[3px]">
+          {/* Outer glow ring */}
+          <div className="absolute size-4 rounded-full bg-primary/20 group-open:bg-primary/30 transition-colors" />
+          {/* Ring */}
+          <div className="absolute size-3 rounded-full border-2 border-primary/30 group-open:border-primary/50 group-open:scale-125 transition-all duration-300" />
+          {/* Inner dot */}
+          <div className="size-1.5 rounded-full bg-primary group-open:scale-110 transition-transform duration-300" />
         </div>
-        <h2 className="text-2xl font-bold tracking-tight">{year}</h2>
-        <span className="text-sm text-muted-foreground">
+
+        {/* Horizontal tick connecting dot to content */}
+        <div className="hidden md:block w-6 h-px bg-primary/15 group-open:bg-primary/25 transition-colors -ml-1" />
+
+        <h2 className="text-2xl font-bold tracking-tight tabular-nums">{year}</h2>
+        <span className="text-sm text-muted-foreground/70 font-medium tabular-nums">
           {posts.length} 篇
         </span>
-        <div className="ml-auto text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="ml-auto text-xs text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block tabular-nums">
           {posts[0]?.date && (
             <>
-              {posts[posts.length - 1]?.date.split("-")[1]}月 —{" "}
-              {posts[0]?.date.split("-")[1]}月
+              {posts[posts.length - 1]?.date?.split("-")[1]}月 —{" "}
+              {posts[0]?.date?.split("-")[1]}月
             </>
           )}
         </div>
-        {/* Chevron arrow */}
+        {/* Chevron */}
         <svg
-          className="shrink-0 size-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180"
+          className="shrink-0 size-4 text-muted-foreground/60 transition-transform duration-300 group-open:rotate-180"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -117,21 +128,28 @@ function YearSection({
         </svg>
       </summary>
 
-      <div className="ml-[22px] md:ml-[30px] space-y-1">
-        {posts.map((post) => (
-          <Link
-            key={post.slug}
-            href={`/posts/${encodeURIComponent(post.slug)}`}
-            className="group/link flex items-center gap-4 px-3 py-2 -mx-3 rounded-lg hover:bg-muted/50 transition-colors"
-          >
-            <time className="shrink-0 w-[3rem] text-xs text-muted-foreground font-mono tabular-nums">
-              {post.date.slice(5)}
-            </time>
-            <span className="text-sm font-medium truncate group-hover/link:text-primary transition-colors">
-              {post.title}
-            </span>
-          </Link>
-        ))}
+      <div className="relative ml-[27px] md:ml-[40px]">
+        {/* Subtle horizontal connector line */}
+        <div className="absolute -top-3 left-0 w-4 h-px bg-primary/10 hidden md:block" />
+
+        <div className="space-y-0.5">
+          {posts.map((post) => (
+            <Link
+              key={post.slug}
+              href={`/posts/${encodeURIComponent(post.slug)}`}
+              className="group/link flex items-center gap-4 px-3 py-2 -mx-3 rounded-lg hover:bg-muted/40 transition-colors"
+            >
+              {/* Bullet */}
+              <div className="shrink-0 size-1 rounded-full bg-primary/25 group-hover/link:bg-primary/50 transition-colors" />
+              <time className="shrink-0 w-[3.5rem] text-xs text-muted-foreground/60 font-mono tabular-nums group-hover/link:text-muted-foreground transition-colors">
+                {post.date.slice(5)}
+              </time>
+              <span className="text-sm font-medium truncate group-hover/link:text-primary transition-colors">
+                {post.title}
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
     </details>
   )
