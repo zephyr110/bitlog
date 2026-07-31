@@ -34,6 +34,7 @@ export const translations = {
       about: "关于",
       searchPosts: "搜索文章...",
       noTopics: "暂无分类",
+      timeline: "时间轴",
     },
     post: {
       minRead: (n: number) => `${n} 分钟阅读`,
@@ -254,6 +255,7 @@ export const translations = {
       about: "About",
       searchPosts: "Search posts...",
       noTopics: "No topics",
+      timeline: "Timeline",
     },
     post: {
       minRead: (n: number) => `${n} min read`,
@@ -342,6 +344,7 @@ export const translations = {
       noPostsYetDesc: "Get started by creating your first post.",
       searchPosts: "Search posts...",
       noTopics: "No topics",
+      timeline: "Timeline",
       noMatchSearch: "No posts match your search",
       all: "All",
       page: "Page",

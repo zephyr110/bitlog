@@ -14,7 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { Hash, Menu, X, ChevronDown } from "lucide-react"
+import { Hash, Menu, X, Clock } from "lucide-react"
 
 const navLinks = [
   { href: "/", i18nKey: "site.home" },
@@ -46,7 +46,6 @@ export function Header({ categories }: { categories: string[] }) {
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [topicsOpen, setTopicsOpen] = useState(false)
 
   useEffect(() => {
     function handleScroll() {
@@ -67,8 +66,6 @@ export function Header({ categories }: { categories: string[] }) {
       document.body.style.overflow = ""
     }
   }, [mobileOpen])
-
-  const isCategoryActive = pathname?.startsWith("/category/")
 
   if (pathname?.startsWith("/admin")) return null
 
@@ -122,62 +119,54 @@ export function Header({ categories }: { categories: string[] }) {
                   </Link>
                 )
               })}
-
-              {/* Topics — shadcn DropdownMenu */}
-              <DropdownMenu onOpenChange={setTopicsOpen}>
-                <DropdownMenuTrigger
-                  className={cn(
-                    "relative flex items-center gap-0.5 px-2 py-1.5 text-sm font-medium transition-colors duration-200 rounded cursor-pointer outline-none",
-                    topicsOpen || isCategoryActive
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Hash size={14} />
-                  <span>{t("site.topics") as string}</span>
-                  <ChevronDown
-                    size={12}
-                    className={cn(
-                      "transition-transform duration-200",
-                      topicsOpen && "rotate-180"
-                    )}
-                  />
-                  {(topicsOpen || isCategoryActive) && (
-                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/80" />
-                  )}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" sideOffset={8} className="w-48">
-                  {categories.length === 0 ? (
-                    <div className="px-2 py-3 text-xs text-muted-foreground text-center">
-                      {t("site.noTopics") as string}
-                    </div>
-                  ) : (
-                    categories.map((cat) => {
-                      const label = categoryLabels[cat] || cat
-                      return (
-                        <DropdownMenuItem
-                          key={cat}
-                          onClick={() => router.push(`/category/${encodeURIComponent(cat)}`)}
-                          className="flex items-center justify-between"
-                        >
-                          <span>{label}</span>
-                          <span className="text-[10px] text-muted-foreground/50 font-mono">
-                            {cat}
-                          </span>
-                        </DropdownMenuItem>
-                      )
-                    })
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
             </nav>
           </div>
 
-          {/* Right: Utilities */}
+          {/* Right: Theme · Language · Topics · Timeline · GitHub */}
           <div className="flex items-center gap-0.5">
             <ThemeToggle />
             <LanguageSwitcher />
 
+            {/* Topics — shadcn DropdownMenu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground cursor-pointer outline-none">
+                <Hash size={18} />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={8} className="w-48">
+                {categories.length === 0 ? (
+                  <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                    {t("site.noTopics") as string}
+                  </div>
+                ) : (
+                  categories.map((cat) => {
+                    const label = categoryLabels[cat] || cat
+                    return (
+                      <DropdownMenuItem
+                        key={cat}
+                        onClick={() => router.push(`/category/${encodeURIComponent(cat)}`)}
+                        className="flex items-center justify-between"
+                      >
+                        <span>{label}</span>
+                        <span className="text-[10px] text-muted-foreground/50 font-mono">
+                          {cat}
+                        </span>
+                      </DropdownMenuItem>
+                    )
+                  })
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Timeline */}
+            <Link
+              href="/timeline"
+              className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              title={t("site.timeline") as string}
+            >
+              <Clock size={18} />
+            </Link>
+
+            {/* GitHub */}
             <a
               href="https://github.com/zephyr110/bitlog"
               target="_blank"
