@@ -20,8 +20,16 @@ const categoryLabels: Record<string, string> = {
 }
 
 export async function generateStaticParams() {
-  const cats = await getAllCategories()
-  return cats.map((name) => ({ name }))
+  try {
+    const cats = await getAllCategories()
+    if (cats.length > 0) {
+      return cats.map((name) => ({ name }))
+    }
+  } catch {
+    // DB unreachable or empty — no category pages to generate
+  }
+  // Next.js static export requires at least one path
+  return [{ name: "_fallback" }]
 }
 
 export async function generateMetadata({
