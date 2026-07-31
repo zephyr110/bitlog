@@ -46,8 +46,21 @@ let tableReady: Promise<void> | null = null
 async function ensureTable(db: Client): Promise<void> {
   if (!tableReady) {
     tableReady = (async () => {
-      // execute() only runs the first statement; use executeMultiple() for the full schema
       await db.executeMultiple(SCHEMA)
+
+      // One-time fix: normalize dates that were stored as epoch millis
+      // (gray-matter parsed unquoted YAML dates into JS Date objects,
+      //  and @libsql/client serialized them via valueOf() → epoch millis strings)
+      const bad = await db.execute(
+        "SELECT slug, date FROM posts WHERE date NOT GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'"
+      )
+      for (const row of bad.rows) {
+        const corrected = normalizeDate(row.date as string)
+        await db.execute({
+          sql: "UPDATE posts SET date = ? WHERE slug = ?",
+          args: [corrected, row.slug],
+        })
+      }
     })().catch((err) => {
       tableReady = null // reset on failure so next call retries
       throw err
