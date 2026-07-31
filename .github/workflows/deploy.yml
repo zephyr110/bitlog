@@ -31,6 +31,8 @@ jobs:
       - name: Build static site
         run: pnpm run export
         env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
           NEXT_PUBLIC_SITE_URL: https://zephyr110.github.io
           NEXT_PUBLIC_GISCUS_REPO: ${{ vars.GISCUS_REPO || 'zephyr110/bitlog' }}
           NEXT_PUBLIC_GISCUS_REPO_ID: ${{ vars.GISCUS_REPO_ID || 'R_kgDOTcGjYg' }}

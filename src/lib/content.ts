@@ -48,8 +48,12 @@ let tableReady: Promise<void> | null = null
 export async function ensureTable(db: Client): Promise<void> {
   if (!tableReady) {
     tableReady = (async () => {
-      await db.execute(SCHEMA)
-    })()
+      // execute() only runs the first statement; use executeMultiple() for the full schema
+      await db.executeMultiple(SCHEMA)
+    })().catch((err) => {
+      tableReady = null // reset on failure so next call retries
+      throw err
+    })
   }
   await tableReady
 }

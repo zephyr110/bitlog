@@ -13,6 +13,7 @@ import path from "path"
 import { createClient } from "@libsql/client"
 import { parsePostFromFile } from "../src/lib/mdx-utils"
 import { ensureTable } from "../src/lib/content"
+import { safeSlug } from "../src/lib/slug"
 
 // ── .env.local loader (tsx does not auto-load .env files) ──────────────
 
@@ -22,10 +23,24 @@ function loadEnv(filePath: string): void {
   for (const line of lines) {
     const trimmed = line.trim()
     if (!trimmed || trimmed.startsWith("#")) continue
-    const eqIndex = trimmed.indexOf("=")
+    // Strip leading "export " if present
+    const withoutExport = trimmed.replace(/^export\s+/, "")
+    const eqIndex = withoutExport.indexOf("=")
     if (eqIndex === -1) continue
-    const key = trimmed.slice(0, eqIndex).trim()
-    const value = trimmed.slice(eqIndex + 1).trim()
+    const key = withoutExport.slice(0, eqIndex).trim()
+    let value = withoutExport.slice(eqIndex + 1).trim()
+    // Strip surrounding quotes (single or double)
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1)
+    }
+    // Strip inline comments after whitespace (but not inside quotes)
+    const commentIdx = value.indexOf(" #")
+    if (commentIdx !== -1) {
+      value = value.slice(0, commentIdx).trim()
+    }
     if (!process.env[key]) {
       process.env[key] = value
     }
@@ -75,8 +90,13 @@ async function main() {
   }
 
   const db = createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN })
-  await ensureTable(db)
-  console.log("✅ Turso connected and table ready\n")
+
+  if (!dryRun) {
+    await ensureTable(db)
+    console.log("✅ Turso connected and table ready\n")
+  } else {
+    console.log("✅ Turso connected (dry-run, schema not written)\n")
+  }
 
   // Read all posts
   const published = readPostsFromDir(POSTS_DIR)
@@ -105,12 +125,22 @@ async function main() {
     }
   }
   if (duplicates.length > 0) {
-    console.warn(`⚠ ${duplicates.length} duplicate slug(s) — the last one inserted will win\n`)
+    console.warn(`⚠ ${duplicates.length} duplicate slug(s) — the published version will be kept\n`)
   }
 
-  // Parse and insert
+  // Warn if DB already has rows (re-run guard)
+  if (!dryRun) {
+    const existing = await db.execute("SELECT COUNT(*) AS n FROM posts")
+    const existingCount = (existing.rows[0] as unknown as { n: number }).n
+    if (existingCount > 0) {
+      console.warn(`⚠ Database already has ${existingCount} rows. Using INSERT OR IGNORE — existing rows will NOT be overwritten.\n`)
+    }
+  }
+
+  // Parse and insert — published first (so they take priority over drafts on conflict)
   const allPosts = [...published, ...drafts]
   let inserted = 0
+  let skipped = 0
   const slugs: string[] = []
 
   for (const { slug, raw, draft } of allPosts) {
@@ -118,12 +148,15 @@ async function main() {
       const post = parsePostFromFile(raw, slug)
       // Ensure the draft flag matches the source directory (source of truth for migration)
       post.draft = draft
+      // Sanitize the slug to match runtime lookup behavior
+      post.slug = safeSlug(post.slug)
 
       if (dryRun) {
         console.log(`  ${draft ? "[DRAFT]" : "[PUB]  "} ${post.slug} — "${post.title}" (${post.tags.length} tags, ${post.wordCount} words)`)
+        inserted++
       } else {
-        await db.execute({
-          sql: `INSERT OR REPLACE INTO posts (slug, title, date, updated, tags, description, cover, draft, content, word_count, reading_time)
+        const result = await db.execute({
+          sql: `INSERT OR IGNORE INTO posts (slug, title, date, updated, tags, description, cover, draft, content, word_count, reading_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           args: [
             post.slug,
@@ -139,8 +172,12 @@ async function main() {
             post.readingTime,
           ],
         })
+        if (result.rowsAffected > 0) {
+          inserted++
+        } else {
+          skipped++
+        }
       }
-      inserted++
       slugs.push(post.slug)
     } catch (err) {
       console.error(`❌ Failed to parse ${slug}:`, err instanceof Error ? err.message : err)
@@ -155,11 +192,7 @@ async function main() {
   // Validate
   const result = await db.execute("SELECT COUNT(*) AS n FROM posts")
   const rowCount = (result.rows[0] as unknown as { n: number }).n
-  console.log(`\n✅ Inserted ${inserted} posts (database now has ${rowCount} rows)`)
-
-  if (rowCount !== inserted) {
-    console.warn(`⚠ Row count mismatch: inserted ${inserted} but DB has ${rowCount}`)
-  }
+  console.log(`\n✅ Inserted ${inserted} posts (${skipped} skipped, database now has ${rowCount} rows)`)
 
   // Spot-check a few slugs
   const samples = slugs.slice(0, 3)
