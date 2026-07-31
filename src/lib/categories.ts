@@ -15,3 +15,21 @@ export const categoryMeta: Record<CategoryKey, { i18nKey: string; desc: string; 
   miniprogram: { i18nKey: "cat.miniprogram", desc: "WeChat Mini Program", icon: Smartphone },
   summary: { i18nKey: "cat.summary", desc: "Notes · Tips · Reflections", icon: FileText },
 }
+
+/** Resolve a tag to its major category prefix using greedy match (longest first). */
+export function resolveCategory(tag: string): string {
+  const lower = tag.toLowerCase()
+  for (const key of categoryKeys) {
+    if (lower.startsWith(key + "-") || lower === key) return key
+  }
+  return lower
+}
+
+/** Get the localized label for a category key. Falls back to the raw key. */
+export function getCategoryLabel(
+  key: string,
+  t: (k: string) => string | ((...args: unknown[]) => string)
+): string {
+  const meta = categoryMeta[key as CategoryKey]
+  return meta ? (t(meta.i18nKey) as string) : key
+}

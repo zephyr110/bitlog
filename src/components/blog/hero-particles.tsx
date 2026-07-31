@@ -42,32 +42,40 @@ function shapeStyle(shape: ParticleShape, size: number, color: string, glow?: st
   }
 }
 
-/** Floating particles — drift upward from the bottom */
-export const floatingParticles: ParticleDef[] = (() => {
-  const rand = mulberry32(42)
-  return Array.from({ length: 24 }, () => ({
-    left: `${(rand() * 95 + 2).toFixed(1)}%`,
-    size: Math.round(rand() * 4 + 2),
-    hue: HUES[Math.floor(rand() * HUES.length)],
-    delay: +(rand() * 8).toFixed(1),
-    duration: +(rand() * 5 + 8).toFixed(1),
-    shape: SHAPES[Math.floor(rand() * SHAPES.length)],
+function pick<T>(rand: () => number, arr: readonly T[]): T {
+  return arr[Math.floor(rand() * arr.length)]
+}
+
+function makeParticles(
+  seed: number,
+  count: number,
+  opts: { sizeRange: [number, number]; delayRange: [number, number]; durRange: [number, number]; leftPad?: number; includeTop?: boolean }
+): ParticleDef[] {
+  const rand = mulberry32(seed)
+  const [szMin, szMax] = opts.sizeRange
+  const [dMin, dMax] = opts.delayRange
+  const [tMin, tMax] = opts.durRange
+  const pad = opts.leftPad ?? 2
+  return Array.from({ length: count }, () => ({
+    left: `${(rand() * (100 - pad * 2) + pad).toFixed(1)}%`,
+    ...(opts.includeTop ? { top: `${(rand() * 85 + 5).toFixed(1)}%` } : {}),
+    size: Math.round(rand() * (szMax - szMin) + szMin),
+    hue: pick(rand, HUES),
+    delay: +(rand() * (dMax - dMin) + dMin).toFixed(1),
+    duration: +(rand() * (tMax - tMin) + tMin).toFixed(1),
+    shape: pick(rand, SHAPES),
   }))
-})()
+}
+
+/** Floating particles — drift upward from the bottom */
+export const floatingParticles = makeParticles(42, 24, {
+  sizeRange: [2, 6], delayRange: [0, 8], durRange: [8, 13], leftPad: 2,
+})
 
 /** Blinking particles — scattered across the hero */
-export const blinkingParticles: ParticleDef[] = (() => {
-  const rand = mulberry32(7)
-  return Array.from({ length: 40 }, () => ({
-    left: `${(rand() * 92 + 3).toFixed(1)}%`,
-    top: `${(rand() * 85 + 5).toFixed(1)}%`,
-    size: Math.round(rand() * 10 + 4),
-    hue: HUES[Math.floor(rand() * HUES.length)],
-    delay: +(rand() * 6).toFixed(1),
-    duration: +(rand() * 3 + 3).toFixed(1),
-    shape: SHAPES[Math.floor(rand() * SHAPES.length)],
-  }))
-})()
+export const blinkingParticles = makeParticles(7, 40, {
+  sizeRange: [4, 14], delayRange: [0, 6], durRange: [3, 6], leftPad: 3, includeTop: true,
+})
 
 export function HeroParticle({ p, className }: { p: ParticleDef; className: string }) {
   return (

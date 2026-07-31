@@ -7,12 +7,7 @@ import { FileText, Search, X } from "lucide-react"
 import { type PostSummary } from "@bitlog/database"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { categoryMeta, type CategoryKey } from "@/lib/categories"
-
-function catLabel(key: string, t: (k: string) => string | ((...args: unknown[]) => string)): string {
-  const meta = categoryMeta[key as CategoryKey]
-  return meta ? (t(meta.i18nKey) as string) : key
-}
+import { resolveCategory, getCategoryLabel } from "@/lib/categories"
 
 interface PostFeedProps {
   posts: PostSummary[]
@@ -25,17 +20,8 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState(initialSearch)
 
-  // Known category prefixes (longest first for greedy match)
-  const catPrefixes = ["miniprogram", "frontend", "backend", "automator", "components", "gear", "summary"]
-  const majorTag = (tag: string) => {
-    const lower = tag.toLowerCase()
-    for (const prefix of catPrefixes) {
-      if (lower.startsWith(prefix + "-") || lower === prefix) return prefix
-    }
-    return lower
-  }
   const categories = useMemo(
-    () => [...new Set(allTags.map(majorTag))],
+    () => [...new Set(allTags.map(resolveCategory))],
     [allTags]
   )
 
@@ -43,7 +29,7 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
     let result = posts
     if (activeTag) {
       result = result.filter((p) =>
-        p.tags.some((tag) => majorTag(tag).toLowerCase() === activeTag.toLowerCase())
+        p.tags.some((tag) => resolveCategory(tag).toLowerCase() === activeTag.toLowerCase())
       )
     }
     if (searchQuery.trim()) {
@@ -96,7 +82,7 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
                   variant={activeTag === cat ? "default" : "secondary"}
                   className="cursor-pointer transition-all"
                 >
-                  {catLabel(cat, t)}
+                  {getCategoryLabel(cat, t)}
                 </Badge>
               </button>
             ))}
