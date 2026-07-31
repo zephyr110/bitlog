@@ -14,24 +14,26 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { Menu, X, Search } from "lucide-react"
+import { Menu, X, Search, Monitor, Server, Bot, Package, Wrench, Smartphone, FileText } from "lucide-react"
 
 const navLinks = [
   { href: "/", i18nKey: "site.home" },
   { href: "/about", i18nKey: "site.about" },
 ]
 
-const categoryLabels: Record<string, string> = {
-  frontend: "前端",
-  backend: "后端",
-  automator: "自动化",
-  components: "组件",
-  gear: "工具",
-  miniprogram: "小程序",
-  summary: "总结",
+const categoryMeta: Record<string, { label: string; desc: string; icon: typeof Monitor }> = {
+  frontend: { label: "前端", desc: "JavaScript · CSS · React · Vue", icon: Monitor },
+  backend: { label: "后端", desc: "Python · MySQL · Nginx", icon: Server },
+  automator: { label: "自动化", desc: "Appium · Jest · 测试", icon: Bot },
+  components: { label: "组件", desc: "NPM · UI 组件 · 工具库", icon: Package },
+  gear: { label: "工具", desc: "Git · Webpack · VSCode", icon: Wrench },
+  miniprogram: { label: "小程序", desc: "微信小程序开发", icon: Smartphone },
+  summary: { label: "总结", desc: "笔记 · 踩坑记录 · 思考", icon: FileText },
 }
 
-export function Header({ categories }: { categories: string[] }) {
+type Category = { key: string; count: number }
+
+export function Header({ categories }: { categories: Category[] }) {
   const { t } = useT()
   const pathname = usePathname()
   const router = useRouter()
@@ -48,17 +50,15 @@ export function Header({ categories }: { categories: string[] }) {
   }, [])
 
   useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
-    return () => {
-      document.body.style.overflow = ""
-    }
+    document.body.style.overflow = mobileOpen ? "hidden" : ""
+    return () => { document.body.style.overflow = "" }
   }, [mobileOpen])
 
   if (pathname?.startsWith("/admin")) return null
+
+  const atHome = pathname === "/"
+  const atAbout = pathname === "/about"
+  const atCategory = pathname?.startsWith("/category/")
 
   return (
     <>
@@ -66,72 +66,91 @@ export function Header({ categories }: { categories: string[] }) {
         className={cn(
           "sticky top-0 z-50 w-full transition-all duration-300",
           scrolled
-            ? "border-b border-border/50 bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80"
+            ? "border-b border-border/40 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/75"
             : "border-transparent bg-background"
         )}
       >
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          {/* Left: Logo + Navigation */}
-          <div className="flex items-center">
-            <Link
-              href="/"
-              className="flex items-center gap-2.5 font-semibold text-base tracking-tight hover:opacity-90 transition-opacity shrink-0 group"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/spooky.svg"
-                alt=""
-                className="size-8 rounded-lg object-contain dark:invert"
-              />
-              <span className="hidden sm:inline">{siteConfig.name}</span>
-            </Link>
-          </div>
+          {/* Logo */}
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 font-semibold text-base tracking-tight hover:opacity-85 transition-opacity shrink-0"
+          >
+            <img
+              src="/spooky.svg"
+              alt=""
+              className="size-8 rounded-lg object-contain dark:invert"
+            />
+            <span className="hidden sm:inline">{siteConfig.name}</span>
+          </Link>
 
           {/* Right: Search · 首页 · 分类 · 时间轴 · 关于 · | · 主题 · 语言 · GitHub */}
           <div className="flex items-center gap-0.5">
 
             {/* Search */}
-            <SearchInput />
+            <SearchInput t={t} router={router} />
 
-            {/* 首页 — text link */}
-            <Link
-              href="/"
-              className={cn(
-                "relative hidden md:flex items-center px-2 py-1.5 text-sm font-medium transition-colors duration-200",
-                pathname === "/"
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
+            {/* ── Text links with polished active/hover states ── */}
+
+            {/* 首页 */}
+            <NavLink href="/" active={atHome}>
               {t("site.home") as string}
-              {pathname === "/" && (
-                <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/80" />
-              )}
-            </Link>
+            </NavLink>
 
-            {/* 分类 — text button with dropdown */}
+            {/* 分类 — premium dropdown */}
             <DropdownMenu>
-              <DropdownMenuTrigger className="relative hidden md:flex items-center gap-1 px-2 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 rounded cursor-pointer outline-none">
+              <DropdownMenuTrigger
+                className={cn(
+                  "relative hidden md:flex items-center gap-1 px-2 py-1.5 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer outline-none",
+                  atCategory
+                    ? "text-foreground bg-muted/60"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                )}
+              >
                 <span>{t("site.topics") as string}</span>
+                <svg className="size-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="m6 9 6 6 6-6" /></svg>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={8} className="w-48">
+              <DropdownMenuContent align="start" sideOffset={12} className="w-64 p-2">
                 {categories.length === 0 ? (
-                  <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                  <p className="px-3 py-4 text-xs text-muted-foreground text-center">
                     {t("site.noTopics") as string}
-                  </div>
+                  </p>
                 ) : (
                   categories.map((cat) => {
-                    const label = categoryLabels[cat] || cat
+                    const meta = categoryMeta[cat.key] || { label: cat.key, desc: "", icon: FileText }
+                    const Icon = meta.icon
+                    const active = pathname === `/category/${encodeURIComponent(cat.key)}`
                     return (
                       <DropdownMenuItem
-                        key={cat}
-                        onClick={() => router.push(`/category/${encodeURIComponent(cat)}`)}
-                        className="flex items-center justify-between"
+                        key={cat.key}
+                        onClick={() => router.push(`/category/${encodeURIComponent(cat.key)}`)}
+                        className={cn(
+                          "flex items-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors",
+                          active && "bg-primary/5"
+                        )}
                       >
-                        <span>{label}</span>
-                        <span className="text-[10px] text-muted-foreground/50 font-mono">
-                          {cat}
-                        </span>
+                        <div className={cn(
+                          "flex size-8 shrink-0 items-center justify-center rounded-lg mt-0.5",
+                          active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                        )}>
+                          <Icon size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className={cn(
+                              "text-sm font-medium",
+                              active ? "text-primary" : "text-foreground"
+                            )}>
+                              {meta.label}
+                            </span>
+                            <span className="text-[11px] text-muted-foreground/60 tabular-nums font-mono">
+                              {cat.count}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground/50 mt-0.5 leading-tight truncate">
+                            {meta.desc}
+                          </p>
+                        </div>
                       </DropdownMenuItem>
                     )
                   })
@@ -139,33 +158,20 @@ export function Header({ categories }: { categories: string[] }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* 时间轴 — text link */}
-            <Link
-              href="/timeline"
-              className="relative hidden md:flex items-center px-2 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
-            >
+            {/* 时间轴 */}
+            <NavLink href="/timeline" active={pathname === "/timeline"}>
               {t("site.timeline") as string}
-            </Link>
+            </NavLink>
 
-            {/* 关于 — text link */}
-            <Link
-              href="/about"
-              className={cn(
-                "relative hidden md:flex items-center px-2 py-1.5 text-sm font-medium transition-colors duration-200",
-                pathname === "/about"
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
+            {/* 关于 */}
+            <NavLink href="/about" active={atAbout}>
               {t("site.about") as string}
-              {pathname === "/about" && (
-                <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/80" />
-              )}
-            </Link>
+            </NavLink>
 
             {/* Separator */}
-            <span className="mx-1 h-4 w-px bg-border hidden md:block" aria-hidden="true" />
+            <span className="mx-1.5 h-4 w-px bg-border/60 hidden md:block" aria-hidden="true" />
 
+            {/* Icon buttons */}
             <ThemeToggle />
             <LanguageSwitcher />
 
@@ -174,7 +180,7 @@ export function Header({ categories }: { categories: string[] }) {
               href="https://github.com/zephyr110/bitlog"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground"
               title="GitHub"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -182,7 +188,7 @@ export function Header({ categories }: { categories: string[] }) {
 
             {/* Mobile menu toggle */}
             <button
-              className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted transition-colors md:hidden"
+              className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted/60 transition-colors md:hidden"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
             >
@@ -195,10 +201,7 @@ export function Header({ categories }: { categories: string[] }) {
       {/* Mobile Navigation */}
       {mobileOpen && (
         <>
-          <div
-            className="fixed inset-0 z-40 bg-black/15 backdrop-blur-[2px] md:hidden"
-            onClick={() => setMobileOpen(false)}
-          />
+          <div className="fixed inset-0 z-40 bg-black/15 backdrop-blur-[2px] md:hidden" onClick={() => setMobileOpen(false)} />
           <div className="fixed inset-x-0 top-16 z-50 md:hidden border-b bg-background/95 backdrop-blur-xl animate-in slide-in-from-top-1 duration-200 shadow-lg shadow-black/5">
             <nav className="container mx-auto px-4 py-3 space-y-1">
               {navLinks.map((link) => (
@@ -216,7 +219,6 @@ export function Header({ categories }: { categories: string[] }) {
                   {t(link.i18nKey) as string}
                 </Link>
               ))}
-              {/* Mobile categories */}
               {categories.length > 0 && (
                 <>
                   <div className="my-2 mx-3 border-t" />
@@ -224,45 +226,37 @@ export function Header({ categories }: { categories: string[] }) {
                     {t("site.topics") as string}
                   </div>
                   {categories.map((cat) => {
-                    const label = categoryLabels[cat] || cat
+                    const meta = categoryMeta[cat.key] || { label: cat.key, desc: "", icon: FileText }
                     return (
                       <Link
-                        key={cat}
-                        href={`/category/${encodeURIComponent(cat)}`}
+                        key={cat.key}
+                        href={`/category/${encodeURIComponent(cat.key)}`}
                         onClick={() => setMobileOpen(false)}
                         className={cn(
                           "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
-                          pathname === `/category/${encodeURIComponent(cat)}`
+                          pathname === `/category/${encodeURIComponent(cat.key)}`
                             ? "bg-primary/10 text-primary"
                             : "text-muted-foreground hover:text-foreground hover:bg-muted"
                         )}
                       >
-                        {label}
+                        {meta.label}
                       </Link>
                     )
                   })}
                 </>
               )}
               <div className="my-2 mx-3 border-t" />
-              <a
-                href="https://github.com/zephyr110/bitlog"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-150"
-              >
+              <a href="https://github.com/zephyr110/bitlog" target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-150">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
                 GitHub
               </a>
               <div className="flex items-center justify-between px-3 py-2">
-                <span className="text-sm text-muted-foreground">
-                  {t("admin.theme") as string}
-                </span>
+                <span className="text-sm text-muted-foreground">{t("admin.theme") as string}</span>
                 <ThemeToggle />
               </div>
               <div className="flex items-center justify-between px-3 py-2">
-                <span className="text-sm text-muted-foreground">
-                  {t("admin.language") as string}
-                </span>
+                <span className="text-sm text-muted-foreground">{t("admin.language") as string}</span>
                 <LanguageSwitcher />
               </div>
             </nav>
@@ -273,12 +267,29 @@ export function Header({ categories }: { categories: string[] }) {
   )
 }
 
-function SearchInput() {
-  const { t } = useT()
-  const router = useRouter()
+/** Polished nav link with hover background and active dot */
+function NavLink({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "relative hidden md:flex items-center px-2 py-1.5 text-sm font-medium rounded-md transition-all duration-200",
+        active
+          ? "text-foreground bg-muted/60"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+      )}
+    >
+      {children}
+      {active && (
+        <span className="absolute -bottom-px left-2 right-2 h-[1.5px] rounded-full bg-primary/70" />
+      )}
+    </Link>
+  )
+}
+
+function SearchInput({ t, router }: { t: ReturnType<typeof useT>["t"]; router: ReturnType<typeof useRouter> }) {
   const [value, setValue] = useState("")
 
-  // Sync initial value from URL on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     setValue(params.get("q") || "")
@@ -287,23 +298,13 @@ function SearchInput() {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const q = value.trim()
-    if (q) {
-      router.push(`/?q=${encodeURIComponent(q)}`)
-    } else {
-      router.push("/")
-    }
+    router.push(q ? `/?q=${encodeURIComponent(q)}` : "/")
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="hidden md:flex items-center"
-    >
+    <form onSubmit={handleSubmit} className="hidden md:flex items-center">
       <div className="relative">
-        <Search
-          size={14}
-          className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-        />
+        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         <input
           type="text"
           value={value}

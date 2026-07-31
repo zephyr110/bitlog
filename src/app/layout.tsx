@@ -58,12 +58,18 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const tags = await getAllTags()
-  const knownCategories = ["frontend", "backend", "automator", "components", "gear", "miniprogram", "summary"]
-  const categories = knownCategories.filter((cat) =>
-    tags.some((t) => t.startsWith(cat + "-"))
-  )
-  // Fallback: if DB is empty or unreachable, show all categories anyway
-  const displayCategories = categories.length > 0 ? categories : knownCategories
+  const catKeys = ["frontend", "backend", "automator", "components", "gear", "miniprogram", "summary"] as const
+  // Only show categories that have matching tags, with post count
+  const navCategories = catKeys
+    .map((key) => ({
+      key,
+      count: tags.filter((t) => t.startsWith(key + "-")).length,
+    }))
+    .filter((c) => c.count > 0)
+  // Fallback: if DB empty, show all categories
+  const displayCategories = navCategories.length > 0
+    ? navCategories
+    : catKeys.map((key) => ({ key, count: 0 }))
 
   return (
     <html
