@@ -125,21 +125,12 @@ export function HeroSection({ postCount }: { postCount: number }) {
         }}
       />
 
-      {/* ── Layer 4: Spotlight glow — bright concentrated beam ── */}
+      {/* ── Layer 4: Cone beam — stage spotlight from top-right ── */}
       <div
-        className="absolute inset-0 motion-safe:block hidden"
+        className="absolute inset-0 motion-safe:block hidden pointer-events-none"
         style={{
-          background: `
-            radial-gradient(
-              800px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
-              hsl(var(--primary) / 0.32) 0%,
-              hsl(var(--primary) / 0.12) 20%,
-              hsl(var(--primary) / 0.04) 50%,
-              transparent 72%
-            )
-          `,
           opacity: "var(--so, 0)",
-          transition: "opacity 0.5s ease",
+          transition: "opacity 0.4s ease",
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.setProperty("--so", "1")
@@ -147,42 +138,79 @@ export function HeroSection({ postCount }: { postCount: number }) {
         onMouseLeave={(e) => {
           e.currentTarget.style.setProperty("--so", "0")
         }}
-      />
+      >
+        {/* Main beam — cone shape from top-right */}
+        <div
+          className="absolute hero-beam-main"
+          style={{
+            top: 0,
+            right: 0,
+            width: "70%",
+            height: "80%",
+            clipPath:
+              "polygon(100% 0%, 0% 100%, 12% 100%, 100% 0%, 100% 8%, 5% 100%, 0% 100%, 100% 5%)",
+            background: `
+              linear-gradient(
+                215deg,
+                hsl(var(--primary) / 0.18) 0%,
+                hsl(var(--primary) / 0.08) 15%,
+                hsl(var(--primary) / 0.02) 40%,
+                transparent 70%
+              )
+            `,
+            filter: "blur(30px)",
+            transformOrigin: "100% 0%",
+          }}
+        />
 
-      {/* ── Layer 4b: Light beams — conic rays radiating from cursor ── */}
-      <div
-        className="absolute inset-0 motion-safe:block hidden pointer-events-none"
-        style={{
-          background: `
-            repeating-conic-gradient(
-              from 0deg at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
-              hsl(var(--primary) / 0.0) 0deg,
-              hsl(var(--primary) / 0.06) 2deg,
-              hsl(var(--primary) / 0.0) 4deg,
-              hsl(var(--primary) / 0.04) 6deg,
-              hsl(var(--primary) / 0.0) 10deg
-            )
-           `,
-           opacity: "var(--so, 0)",
-           transition: "opacity 0.5s ease",
-           maskImage: `
-             radial-gradient(
-               600px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
-               black 0%,
-               black 40%,
-               transparent 70%
-             )
-           `,
-           WebkitMaskImage: `
-             radial-gradient(
-               600px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
-               black 0%,
-               black 40%,
-               transparent 70%
-             )
-           `,
-        }}
-      />
+        {/* Secondary thinner beam — more focused */}
+        <div
+          className="absolute hero-beam-secondary"
+          style={{
+            top: 0,
+            right: 0,
+            width: "55%",
+            height: "65%",
+            clipPath:
+              "polygon(100% 0%, 0% 100%, 6% 100%, 100% 0%, 100% 4%, 2% 100%, 0% 100%, 100% 3%)",
+            background: `
+              linear-gradient(
+                215deg,
+                hsl(var(--primary) / 0.24) 0%,
+                hsl(var(--primary) / 0.12) 10%,
+                hsl(var(--primary) / 0.04) 30%,
+                transparent 55%
+              )
+            `,
+            filter: "blur(15px)",
+            transformOrigin: "100% 0%",
+          }}
+        />
+
+        {/* Core beam — sharp bright center */}
+        <div
+          className="absolute hero-beam-core"
+          style={{
+            top: 0,
+            right: 0,
+            width: "40%",
+            height: "45%",
+            clipPath:
+              "polygon(100% 0%, 0% 100%, 3% 100%, 100% 0%, 100% 2%, 1% 100%, 0% 100%, 100% 1.5%)",
+            background: `
+              linear-gradient(
+                215deg,
+                hsl(var(--primary) / 0.30) 0%,
+                hsl(var(--primary) / 0.14) 8%,
+                hsl(var(--primary) / 0.04) 22%,
+                transparent 42%
+              )
+            `,
+            filter: "blur(6px)",
+            transformOrigin: "100% 0%",
+          }}
+        />
+      </div>
 
       {/* ── Layer 5: Lit dots — revealed by spotlight ── */}
       <div
@@ -273,6 +301,27 @@ export function HeroSection({ postCount }: { postCount: number }) {
         @keyframes hero-aurora-3 {
           0% { transform: translate(-50%, -50%) scale(1); opacity: 0.06; }
           100% { transform: translate(-50%, -55%) scale(1.1); opacity: 0.10; }
+        }
+        /* Beam sway animation */
+        @keyframes hero-beam-sway {
+          0%, 100% { transform: rotate(-1deg); }
+          50% { transform: rotate(1.5deg); }
+        }
+        .hero-beam-main { animation: hero-beam-sway 8s ease-in-out infinite; }
+        .hero-beam-secondary { animation: hero-beam-sway 6s ease-in-out infinite reverse; }
+        .hero-beam-core { animation: hero-beam-sway 10s ease-in-out infinite; }
+        /* Dark theme: slightly brighter beams for contrast against dark bg */
+        :root.dark .hero-beam-main,
+        .dark .hero-beam-main {
+          background: linear-gradient(215deg, hsl(var(--primary) / 0.24) 0%, hsl(var(--primary) / 0.12) 15%, hsl(var(--primary) / 0.04) 40%, transparent 70%) !important;
+        }
+        :root.dark .hero-beam-secondary,
+        .dark .hero-beam-secondary {
+          background: linear-gradient(215deg, hsl(var(--primary) / 0.30) 0%, hsl(var(--primary) / 0.16) 10%, hsl(var(--primary) / 0.06) 30%, transparent 55%) !important;
+        }
+        :root.dark .hero-beam-core,
+        .dark .hero-beam-core {
+          background: linear-gradient(215deg, hsl(var(--primary) / 0.38) 0%, hsl(var(--primary) / 0.18) 8%, hsl(var(--primary) / 0.06) 22%, transparent 42%) !important;
         }
       `}</style>
     </section>
