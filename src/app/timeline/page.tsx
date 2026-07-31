@@ -2,7 +2,6 @@ import { type Metadata } from "next"
 import Link from "next/link"
 import { getPublishedPosts } from "@bitlog/database"
 import { Trans } from "@/components/layout/trans"
-import { FormattedDate } from "@/components/blog/formatted-date"
 
 export const metadata: Metadata = {
   title: "时间轴",
@@ -113,8 +112,8 @@ function YearSection({
             href={`/posts/${encodeURIComponent(post.slug)}`}
             className="group/link flex items-center gap-4 px-3 py-2 -mx-3 rounded-lg hover:bg-muted/50 transition-colors"
           >
-            <time className="shrink-0 w-[4.5rem] text-xs text-muted-foreground font-mono tabular-nums">
-              <FormattedDate date={post.date} month="short" />
+            <time className="shrink-0 w-[3rem] text-xs text-muted-foreground font-mono tabular-nums">
+              {post.date.slice(5)}
             </time>
             <span className="text-sm font-medium truncate group-hover/link:text-primary transition-colors">
               {post.title}
