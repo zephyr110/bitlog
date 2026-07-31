@@ -40,9 +40,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const meta = categoryMeta[name]
   if (!meta) notFound()
 
-  const [posts, allTags] = await Promise.all([
+  const { getPublishedPosts } = await import("@bitlog/database")
+  const [posts, allTags, allPosts] = await Promise.all([
     getPostsByCategory(name),
     getAllTags(),
+    getPublishedPosts(),
   ])
 
   // Sub-tags within this category (e.g. frontend-css, frontend-js)
@@ -143,9 +145,18 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               <Icon size={28} className="text-muted-foreground/50" />
             </div>
             <h2 className="text-xl font-semibold mb-2">暂无文章</h2>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              该分类下还没有文章，请稍后再来。
+            <p className="text-sm text-muted-foreground max-w-sm mb-4">
+              该分类下还没有文章。
             </p>
+            <div className="text-xs text-muted-foreground/60 bg-muted/50 rounded-lg px-4 py-3 text-left space-y-1 max-w-md">
+              <p>分类名: {name}</p>
+              <p>总标签数: {allTags.length}</p>
+              <p>匹配子标签: {subTags.length} ({subTags.slice(0, 5).join(", ") || "无"})</p>
+              <p>总文章数: {allPosts.length}</p>
+              {allPosts.length > 0 && (
+                <p className="truncate">前3篇文章标签: {allPosts.slice(0, 3).map((p) => `[${p.tags.join(", ")}]`).join("  ")}</p>
+              )}
+            </div>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
