@@ -85,7 +85,7 @@ export function Header({ categories }: { categories: Category[] }) {
           </Link>
 
           {/* Right: Search · 首页 · 分类 · 时间轴 · 关于 · | · 主题 · 语言 · GitHub */}
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-1">
 
             {/* Search */}
             <SearchInput t={t} router={router} />
@@ -101,7 +101,7 @@ export function Header({ categories }: { categories: Category[] }) {
             <DropdownMenu>
               <DropdownMenuTrigger
                 className={cn(
-                  "relative hidden md:flex items-center gap-1 px-2 py-1.5 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer outline-none",
+                  "relative hidden md:flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer outline-none",
                   atCategory
                     ? "text-foreground bg-muted/60"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
@@ -169,7 +169,7 @@ export function Header({ categories }: { categories: Category[] }) {
             </NavLink>
 
             {/* Separator */}
-            <span className="mx-1.5 h-4 w-px bg-border/60 hidden md:block" aria-hidden="true" />
+            <span className="mx-2 h-4 w-px bg-border/60 hidden md:block" aria-hidden="true" />
 
             {/* Icon buttons */}
             <ThemeToggle />
@@ -273,7 +273,7 @@ function NavLink({ href, active, children }: { href: string; active: boolean; ch
     <Link
       href={href}
       className={cn(
-        "relative hidden md:flex items-center px-2 py-1.5 text-sm font-medium rounded-md transition-all duration-200",
+        "relative hidden md:flex items-center px-2.5 py-1.5 text-sm font-medium rounded-md transition-all duration-200",
         active
           ? "text-foreground bg-muted/60"
           : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
@@ -310,7 +310,7 @@ function SearchInput({ t, router }: { t: ReturnType<typeof useT>["t"]; router: R
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={t("site.searchPosts") as string}
-          className="w-32 h-8 pl-8 pr-2 text-sm rounded-lg border border-transparent bg-muted/50 text-muted-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/30 focus:bg-background focus:text-foreground focus:w-48 transition-all duration-200"
+          className="w-36 h-8 pl-8 pr-2 text-sm rounded-lg border border-transparent bg-muted/50 text-muted-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/30 focus:bg-background focus:text-foreground focus:w-48 transition-all duration-200"
         />
       </div>
     </form>
