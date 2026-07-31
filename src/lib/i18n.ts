@@ -229,8 +229,7 @@ export const translations = {
   },
   en: {
     site: {
-      subtitle:
-        "Thoughts, stories and ideas about technology, programming, and building for the web.",
+      
       heroTitleLine1: "Thoughts, stories",
       heroTitleLine2: "and ideas.",
       heroSubtitle:

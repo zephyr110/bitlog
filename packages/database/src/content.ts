@@ -2,9 +2,7 @@ import { type Client } from "@libsql/client"
 import { getDb } from "./db"
 import { type Post, type PostSummary } from "./types"
 import { toPostSummary } from "./mdx-utils"
-import { safeSlug, slugify } from "./slug"
-
-export { slugify }
+import { safeSlug } from "./slug"
 
 // ── Schema ──────────────────────────────────────────────────────────────
 
