@@ -1,7 +1,6 @@
 import { type Metadata } from "next"
 import Link from "next/link"
 import { getPublishedPosts } from "@bitlog/database"
-import { siteConfig } from "@/lib/site-config"
 import { Trans } from "@/components/layout/trans"
 import { FormattedDate } from "@/components/blog/formatted-date"
 
