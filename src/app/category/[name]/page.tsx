@@ -60,7 +60,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       {/* Header */}
       <section className="relative border-b bg-muted/10 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] to-transparent" />
-        <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl relative">
+        <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl relative">
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
               <Link href="/" className="hover:text-foreground transition-colors">
@@ -94,7 +94,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       </section>
 
       {/* Category switcher + sub-tags */}
-      <div className="container mx-auto px-4 py-6 max-w-5xl space-y-4">
+      <div className="container mx-auto px-4 py-6 max-w-5xl 2xl:max-w-7xl space-y-4">
         {/* Category pills */}
         <div className="flex flex-wrap items-center gap-2">
           {knownCategories.map((c) => {
@@ -138,7 +138,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       </div>
 
       {/* Posts grid */}
-      <div className="container mx-auto px-4 pb-16 max-w-5xl">
+      <div className="container mx-auto px-4 pb-16 max-w-5xl 2xl:max-w-7xl">
         {posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="flex size-16 items-center justify-center rounded-full bg-muted mb-4">

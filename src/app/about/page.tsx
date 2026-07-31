@@ -42,7 +42,7 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="relative border-b bg-muted/10 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
-        <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl relative">
+        <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl relative">
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
               <Trans k="about.title" />
@@ -54,7 +54,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl space-y-16">
+      <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl space-y-16">
         {/* About Me */}
         <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <h2 className="text-2xl font-bold mb-4">

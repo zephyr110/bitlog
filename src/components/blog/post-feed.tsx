@@ -38,7 +38,7 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
   }, [posts, activeTag, searchQuery])
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-5xl">
+    <div className="container mx-auto px-4 py-12 max-w-5xl 2xl:max-w-7xl">
       {/* Search & Tags Filter */}
       {allTags.length > 0 && (
         <div className="mb-8 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">

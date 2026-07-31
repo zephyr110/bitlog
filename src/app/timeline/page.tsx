@@ -29,7 +29,7 @@ export default async function TimelinePage() {
       {/* Header */}
       <section className="relative border-b bg-muted/10 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/3 to-transparent" />
-        <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl relative">
+        <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl relative">
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
               <Link href="/" className="hover:text-foreground transition-colors">
@@ -49,7 +49,7 @@ export default async function TimelinePage() {
       </section>
 
       {/* Timeline */}
-      <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl">
+      <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl">
         <div className="relative">
           {/* Vertical line */}
           <div className="absolute left-[19px] md:left-[27px] top-0 bottom-0 w-px">
