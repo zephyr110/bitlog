@@ -135,23 +135,27 @@ export function Header({ categories }: { categories: string[] }) {
               })}
 
               {/* Topics button + dropdown */}
-              {categories.length > 0 && (
-                <div ref={topicsRef} className="relative">
-                  <button
-                    onClick={() => setTopicsOpen(!topicsOpen)}
-                    className={cn(
-                      "relative flex items-center gap-1 px-2 py-1.5 text-sm font-medium transition-colors duration-200 rounded",
-                      topicsOpen
-                        ? "text-primary"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <Hash size={14} />
-                    <span>{t("site.topics") as string}</span>
-                  </button>
+              <div ref={topicsRef} className="relative">
+                <button
+                  onClick={() => setTopicsOpen(!topicsOpen)}
+                  className={cn(
+                    "relative flex items-center gap-1 px-2 py-1.5 text-sm font-medium transition-colors duration-200 rounded",
+                    topicsOpen
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Hash size={14} />
+                  <span>{t("site.topics") as string}</span>
+                </button>
 
-                  {topicsOpen && (
-                    <div className="absolute top-full left-0 mt-2 w-56 p-3 rounded-xl border bg-card shadow-xl shadow-black/5 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
+                {topicsOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-56 p-3 rounded-xl border bg-card shadow-xl shadow-black/5 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
+                    {categories.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-2">
+                        {t("site.noTopics") as string}
+                      </p>
+                    ) : (
                       <div className="flex flex-col gap-0.5">
                         {categories.map((cat) => {
                           const label = categoryLabels[cat] || cat
@@ -175,10 +179,10 @@ export function Header({ categories }: { categories: string[] }) {
                           )
                         })}
                       </div>
-                    </div>
-                  )}
-                </div>
-              )}
+                    )}
+                  </div>
+                )}
+              </div>
             </nav>
           </div>
 
