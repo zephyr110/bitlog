@@ -14,7 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { Menu, X, Search, FileText } from "lucide-react"
+import { Menu, X, Search } from "lucide-react"
 import { categoryMeta } from "@/lib/categories"
 
 const navLinks = [

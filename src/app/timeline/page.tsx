@@ -45,7 +45,7 @@ export default async function TimelinePage() {
               <Trans k="timeline.title" />
             </h1>
             <p className="text-muted-foreground">
-              共 {posts.length} 篇文章
+              {(t(defaultLocale, "timeline.total") as (n: number) => string)(posts.length)}
             </p>
           </div>
         </div>
@@ -72,7 +72,9 @@ export default async function TimelinePage() {
 
           {grouped.length === 0 && (
             <div className="flex flex-col items-center justify-center py-24 text-center">
-              <h2 className="text-2xl font-semibold mb-2">暂无文章</h2>
+              <h2 className="text-2xl font-semibold mb-2">
+                {t(defaultLocale, "timeline.empty") as string}
+              </h2>
             </div>
           )}
         </div>

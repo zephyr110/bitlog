@@ -103,7 +103,7 @@ export const translations = {
       total: (n: number) => `共 ${n} 篇文章`,
       postsCount: (n: number) => `${n} 篇`,
       empty: "暂无文章",
-      month: (m: string) => `${parseInt(m)}月`,
+      month: (m: string) => parseInt(m) + "月",
     },
     category: {
       empty: "暂无文章",
@@ -349,7 +349,7 @@ export const translations = {
       total: (n: number) => `${n} articles in total`,
       postsCount: (n: number) => `${n} posts`,
       empty: "No articles yet",
-      month: (m: string) => `${parseInt(m)}月`,
+      month: (m: string) => ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][parseInt(m)] || m,
     },
     category: {
       empty: "No articles yet",

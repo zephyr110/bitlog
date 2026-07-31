@@ -7,6 +7,7 @@ import { I18nProvider } from "@/components/layout/i18n-provider"
 import { siteConfig } from "@/lib/site-config"
 import { defaultLocale } from "@/lib/i18n"
 import { getAllTags } from "@bitlog/database"
+import { categoryKeys } from "@/lib/categories"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -58,9 +59,8 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const tags = await getAllTags()
-  const catKeys = ["frontend", "backend", "automator", "components", "gear", "miniprogram", "summary"] as const
   // Only show categories that have matching tags, with post count
-  const navCategories = catKeys
+  const navCategories = categoryKeys
     .map((key) => ({
       key,
       count: tags.filter((t) => t.startsWith(key + "-")).length,
@@ -69,7 +69,7 @@ export default async function RootLayout({
   // Fallback: if DB empty, show all categories
   const displayCategories = navCategories.length > 0
     ? navCategories
-    : catKeys.map((key) => ({ key, count: 0 }))
+    : categoryKeys.map((key) => ({ key, count: 0 }))
 
   return (
     <html
