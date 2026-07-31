@@ -111,7 +111,7 @@ export function Header() {
             <LanguageSwitcher />
 
             <a
-              href="https://github.com/zephyr110"
+              href="https://github.com/zephyr110/bitlog"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
@@ -158,7 +158,7 @@ export function Header() {
               ))}
               <div className="my-2 mx-3 border-t" />
               <a
-                href="https://github.com/zephyr110"
+                href="https://github.com/zephyr110/bitlog"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-150"

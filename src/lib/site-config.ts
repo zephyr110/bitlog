@@ -11,7 +11,7 @@ export const siteConfig = {
   ogImage:
     process.env.NEXT_PUBLIC_OG_IMAGE || "/images/og-default.jpg",
   social: {
-    github: "https://github.com",
+    github: "https://github.com/zephyr110/bitlog",
     twitter: "https://twitter.com",
   },
 } as const
