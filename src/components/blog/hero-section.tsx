@@ -38,6 +38,7 @@ function CellsSweepLayer() {
         maskSize: "300% 100%",
         WebkitMaskSize: "300% 100%",
         maskRepeat: "no-repeat",
+        WebkitMaskRepeat: "no-repeat",
         animation: "hero-cells-sweep 8s linear infinite",
       }}
     />
@@ -121,7 +122,7 @@ export function HeroSection({ postCount }: { postCount: number }) {
             style={{ animationFillMode: "both", animationDelay: "300ms" }}
           >
             <Link
-              href="/timeline"
+              href="#post-feed"
               className="group inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:brightness-110 dark:hover:brightness-125"
             >
               {t("site.browsePosts") as string}

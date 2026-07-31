@@ -25,8 +25,15 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState(initialSearch)
 
-  // Tags use "category-topic" format — extract the major category
-  const majorTag = (tag: string) => (tag.includes("-") ? tag.split("-")[0] : tag)
+  // Known category prefixes (longest first for greedy match)
+  const catPrefixes = ["miniprogram", "frontend", "backend", "automator", "components", "gear", "summary"]
+  const majorTag = (tag: string) => {
+    const lower = tag.toLowerCase()
+    for (const prefix of catPrefixes) {
+      if (lower.startsWith(prefix + "-") || lower === prefix) return prefix
+    }
+    return lower
+  }
   const categories = useMemo(
     () => [...new Set(allTags.map(majorTag))],
     [allTags]
