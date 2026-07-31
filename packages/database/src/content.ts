@@ -96,9 +96,9 @@ async function ensureTable(db: Client): Promise<void> {
         }
       }
 
-      // One-time cleanup: delete placeholder "首页" index pages (VuePress leftovers)
+      // One-time cleanup: delete placeholder index pages (VuePress leftovers)
       const placeholders = await db.execute(
-        "SELECT slug FROM posts WHERE title = '首页' AND length(content) < 100"
+        "SELECT slug FROM posts WHERE (title = '首页' AND length(content) < 100) OR (title = '介绍' AND slug = 'about')"
       )
       for (const row of placeholders.rows) {
         await db.execute({ sql: "DELETE FROM posts WHERE slug = ?", args: [row.slug] })
