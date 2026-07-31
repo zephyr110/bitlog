@@ -56,6 +56,23 @@ async function ensureTable(db: Client): Promise<void> {
   await tableReady
 }
 
+/** Normalize dates that were stored as epoch millis by the migration script. */
+function normalizeDate(raw: string): string {
+  if (!raw) return new Date().toISOString().split("T")[0]
+  // Already a valid YYYY-MM-DD string
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw
+  // Epoch millis float (e.g. "1704067200000.0") — gray-matter parsed unquoted YAML dates
+  const ms = Number(raw)
+  if (Number.isFinite(ms) && ms > 0) {
+    return new Date(ms).toISOString().split("T")[0]
+  }
+  // Fallback: try to parse as-is
+  const d = new Date(raw)
+  if (!Number.isNaN(d.getTime())) return d.toISOString().split("T")[0]
+  // Last resort
+  return new Date().toISOString().split("T")[0]
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function rowToPost(row: any): Post {
   let tags: string[] = []
@@ -68,7 +85,7 @@ function rowToPost(row: any): Post {
   return {
     slug: row.slug,
     title: row.title,
-    date: row.date,
+    date: normalizeDate(row.date),
     updated: row.updated ?? undefined,
     tags,
     description: row.description,
