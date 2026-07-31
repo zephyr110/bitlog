@@ -55,7 +55,20 @@ function shapeStyle(
   }
 }
 
-/* Blinking particles — geometric shapes that blink and breathe, scattered across the hero */
+/* Floating particles — drift upward from the bottom, no breathing */
+const particles = (() => {
+  const rand = mulberry32(42)
+  return Array.from({ length: 24 }, () => ({
+    left: `${(rand() * 95 + 2).toFixed(1)}%`,
+    size: Math.round(rand() * 4 + 2),
+    hue: PARTICLE_HUES[Math.floor(rand() * PARTICLE_HUES.length)],
+    delay: +(rand() * 8).toFixed(1),
+    duration: +(rand() * 5 + 8).toFixed(1),
+    shape: PARTICLE_SHAPES[Math.floor(rand() * PARTICLE_SHAPES.length)],
+  })) as { left: string; size: number; hue: number; delay: number; duration: number; shape: ParticleShape }[]
+})()
+
+/* Blinking particles — geometric shapes that blink (no breathing), scattered across the hero */
 const pixels = (() => {
   const rand = mulberry32(7)
   return Array.from({ length: 40 }, () => ({
@@ -65,7 +78,6 @@ const pixels = (() => {
     hue: PARTICLE_HUES[Math.floor(rand() * PARTICLE_HUES.length)],
     delay: +(rand() * 6).toFixed(1),
     duration: +(rand() * 3 + 3).toFixed(1),
-    breathe: +(rand() * 1.8 + 1.4).toFixed(1),
     shape: PARTICLE_SHAPES[Math.floor(rand() * PARTICLE_SHAPES.length)],
   }))
 })()
@@ -129,13 +141,34 @@ export function HeroSection({ postCount }: { postCount: number }) {
                 `oklch(0.72 0.17 ${p.hue} / 0.5)`,
                 `0 0 ${p.size}px oklch(0.72 0.17 ${p.hue} / 0.3)`
               ),
-              animation: `hero-pixel-blink ${p.duration}s steps(1, end) ${p.delay}s infinite backwards, hero-breathe ${p.breathe}s ease-in-out ${p.delay}s infinite`,
+              animation: `hero-pixel-blink ${p.duration}s steps(1, end) ${p.delay}s infinite backwards`,
             }}
           />
         ))}
       </div>
 
-      {/* ── Layer 4: Bottom blend into the post feed ── */}
+      {/* ── Layer 4: Floating particles — drift upward, no breathing ── */}
+      <div className="absolute inset-0 motion-safe:block hidden" aria-hidden>
+        {particles.map((p, i) => (
+          <span
+            key={i}
+            className="hero-particle absolute"
+            style={{
+              left: p.left,
+              bottom: "-8px",
+              ...shapeStyle(
+                p.shape,
+                p.size,
+                `oklch(0.78 0.18 ${p.hue})`,
+                `0 0 ${p.size * 3}px ${p.size}px oklch(0.78 0.18 ${p.hue} / 0.45)`
+              ),
+              animation: `hero-rise ${p.duration}s linear ${p.delay}s infinite`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* ── Layer 5: Bottom blend into the post feed ── */}
       <div
         className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent"
         aria-hidden
@@ -203,9 +236,11 @@ export function HeroSection({ postCount }: { postCount: number }) {
 
       {/* ── Animation keyframes ── */}
       <style>{`
-        @keyframes hero-breathe {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.6); }
+        @keyframes hero-rise {
+          0% { transform: translateY(0); opacity: 0; }
+          8% { opacity: 0.9; }
+          80% { opacity: 0.5; }
+          100% { transform: translateY(-75vh); opacity: 0; }
         }
         @keyframes hero-pixel-blink {
           0% { opacity: 0; }
@@ -220,7 +255,7 @@ export function HeroSection({ postCount }: { postCount: number }) {
           to { mask-position: 0% 0; -webkit-mask-position: 0% 0; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .hero-pixel { animation: none !important; }
+          .hero-particle, .hero-pixel { animation: none !important; }
         }
       `}</style>
     </section>
