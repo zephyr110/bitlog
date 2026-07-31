@@ -19,11 +19,18 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState(initialSearch)
 
+  // Tags look like "frontend--css" — collapse to major categories ("frontend")
+  const majorTag = (tag: string) => tag.split("--")[0]
+  const categories = useMemo(
+    () => [...new Set(allTags.map(majorTag))],
+    [allTags]
+  )
+
   const filteredPosts = useMemo(() => {
     let result = posts
     if (activeTag) {
       result = result.filter((p) =>
-        p.tags.some((tag) => tag.toLowerCase() === activeTag.toLowerCase())
+        p.tags.some((tag) => majorTag(tag).toLowerCase() === activeTag.toLowerCase())
       )
     }
     if (searchQuery.trim()) {
@@ -38,7 +45,7 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
   }, [posts, activeTag, searchQuery])
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-5xl 2xl:max-w-7xl">
+    <div id="post-feed" className="container mx-auto px-4 py-12 max-w-5xl 2xl:max-w-7xl scroll-mt-16">
       {/* Search & Tags Filter */}
       {allTags.length > 0 && (
         <div className="mb-8 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -67,7 +74,7 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
             <span className="text-sm font-medium text-muted-foreground mr-1">
               {t("site.topics") as string}
             </span>
-            {allTags.map((tag) => (
+            {categories.map((tag) => (
               <button
                 key={tag}
                 onClick={() => setActiveTag(activeTag === tag ? null : tag)}

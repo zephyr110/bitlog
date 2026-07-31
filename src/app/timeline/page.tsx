@@ -54,21 +54,38 @@ export default async function TimelinePage() {
       {/* Timeline */}
       <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl">
         <div className="relative">
-          {/* Vertical line */}
-          <div className="absolute left-[19px] md:left-[27px] top-0 bottom-0 w-px">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/15 to-transparent" />
+          {/* Vertical line — centered on the year-dot rail (w-10 md:w-12) */}
+          <div className="absolute left-5 md:left-6 top-2 bottom-2 -translate-x-1/2 w-[2px] rounded-full">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-b from-transparent via-primary/20 to-transparent" />
           </div>
 
-          <div className="space-y-16">
+          <div className="space-y-14">
             {grouped.map(([year, yearPosts], groupIdx) => (
-              <YearSection
+              <div
                 key={year}
-                year={year}
-                posts={yearPosts}
-                defaultOpen={groupIdx < 2}
-              />
+                className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+                style={{
+                  animationDelay: `${Math.min(groupIdx, 6) * 120}ms`,
+                  animationFillMode: "both",
+                }}
+              >
+                <YearSection
+                  year={year}
+                  posts={yearPosts}
+                  defaultOpen={groupIdx < 2}
+                />
+              </div>
             ))}
           </div>
+
+          {/* Terminal cap */}
+          {grouped.length > 0 && (
+            <div className="mt-14 flex items-center gap-2 md:gap-3">
+              <span className="flex w-10 md:w-12 shrink-0 justify-center">
+                <span className="size-2 rotate-45 rounded-[2px] border border-primary/30 bg-primary/10" />
+              </span>
+            </div>
+          )}
 
           {grouped.length === 0 && (
             <div className="flex flex-col items-center justify-center py-24 text-center">

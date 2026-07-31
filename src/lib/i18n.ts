@@ -17,6 +17,7 @@ export const translations = {
       heroSubtitle:
         "一个探索技术、编程和构建 Web 的个人空间。",
       articlesPublished: (n: number) => `${n} 篇文章`,
+      browsePosts: "浏览文章",
       loading: "加载中...",
       backToPosts: "← 返回文章列表",
       notFound: "未找到",
@@ -261,6 +262,7 @@ export const translations = {
         "A personal space for exploring technology, programming, and the craft of building things on the web.",
       articlesPublished: (n: number) =>
         `${n} ${n === 1 ? "article" : "articles"}`,
+      browsePosts: "Browse articles",
       loading: "Loading...",
       backToPosts: "← Back to all posts",
       notFound: "Not Found",

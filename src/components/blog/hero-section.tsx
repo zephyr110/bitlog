@@ -1,327 +1,226 @@
 "use client"
 
-import { useRef, useEffect, useCallback } from "react"
+import Link from "next/link"
 import { useT } from "@/components/layout/trans"
-import { FileText } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t
+const ease = { animationFillMode: "both" } as const
+
+/* Seeded PRNG — deterministic across SSR and client, so hydration matches */
+function mulberry32(seed: number) {
+  return () => {
+    seed |= 0
+    seed = (seed + 0x6d2b79f5) | 0
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
 }
 
-function useSpotlight() {
-  const ref = useRef<HTMLDivElement>(null)
-  const target = useRef({ x: -0.2, y: -0.2 })
-  const current = useRef({ x: -0.2, y: -0.2 })
-  const raf = useRef(0)
+type ParticleShape = "circle" | "square" | "diamond" | "triangle" | "ring" | "cross"
 
-  const update = useCallback((e: MouseEvent) => {
-    const el = ref.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    target.current = {
-      x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
-      y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
-    }
-  }, [])
+const PARTICLE_HUES = [185, 190, 195, 200, 205, 210, 275, 280, 290, 300, 320, 330]
+const PARTICLE_SHAPES: ParticleShape[] = ["circle", "square", "diamond", "triangle", "ring", "cross"]
 
-  const leave = useCallback(() => {
-    target.current = { x: -0.2, y: -0.2 }
-  }, [])
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    if (prefersReduced) return
-
-    el.style.setProperty("--sx", "-0.2")
-    el.style.setProperty("--sy", "-0.2")
-
-    const tick = () => {
-      const { x: tx, y: ty } = target.current
-      current.current = {
-        x: lerp(current.current.x, tx, 0.06),
-        y: lerp(current.current.y, ty, 0.06),
+function shapeStyle(
+  shape: ParticleShape,
+  size: number,
+  color: string,
+  glow?: string
+): React.CSSProperties {
+  const base: React.CSSProperties = { width: size, height: size }
+  switch (shape) {
+    case "circle":
+      return {
+        ...base,
+        background: color,
+        borderRadius: "50%",
+        ...(glow ? { boxShadow: glow } : {}),
       }
-      el.style.setProperty("--sx", String(current.current.x))
-      el.style.setProperty("--sy", String(current.current.y))
-      raf.current = requestAnimationFrame(tick)
-    }
-    raf.current = requestAnimationFrame(tick)
-
-    el.addEventListener("mousemove", update)
-    el.addEventListener("mouseleave", leave)
-    return () => {
-      cancelAnimationFrame(raf.current)
-      el.removeEventListener("mousemove", update)
-      el.removeEventListener("mouseleave", leave)
-    }
-  }, [update, leave])
-
-  return ref
+    case "square":
+      return { ...base, background: color }
+    case "diamond":
+      return { ...base, background: color, clipPath: "polygon(50% 0, 100% 50%, 50% 100%, 0 50%)" }
+    case "triangle":
+      return { ...base, background: color, clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }
+    case "ring":
+      return { ...base, border: `1.5px solid ${color}`, borderRadius: "50%" }
+    case "cross":
+      return {
+        ...base,
+        background: color,
+        clipPath:
+          "polygon(35% 0, 65% 0, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0 65%, 0 35%, 35% 35%)",
+      }
+  }
 }
+
+/* Blinking particles — geometric shapes that blink and breathe, scattered across the hero */
+const pixels = (() => {
+  const rand = mulberry32(7)
+  return Array.from({ length: 40 }, () => ({
+    left: `${(rand() * 92 + 3).toFixed(1)}%`,
+    top: `${(rand() * 85 + 5).toFixed(1)}%`,
+    size: Math.round(rand() * 10 + 4),
+    hue: PARTICLE_HUES[Math.floor(rand() * PARTICLE_HUES.length)],
+    delay: +(rand() * 6).toFixed(1),
+    duration: +(rand() * 3 + 3).toFixed(1),
+    breathe: +(rand() * 1.8 + 1.4).toFixed(1),
+    shape: PARTICLE_SHAPES[Math.floor(rand() * PARTICLE_SHAPES.length)],
+  }))
+})()
 
 export function HeroSection({ postCount }: { postCount: number }) {
   const { t } = useT()
-  const spotlightRef = useSpotlight()
   const articlesLabel = t("site.articlesPublished") as (n: number) => string
 
   return (
-    <section
-      ref={spotlightRef}
-      className="relative overflow-hidden border-b bg-background"
-    >
-      {/* ── Layer 1: Animated aurora gradients ── */}
-      <div className="absolute inset-0">
-        {/* Warm amber/gold blob — slow drift */}
-        <div
-          className="absolute w-[50rem] h-[50rem] rounded-full blur-[120px] opacity-[0.12] dark:opacity-[0.10]"
-          style={{
-            background: "radial-gradient(circle, hsl(35 90% 55% / 1), transparent 70%)",
-            top: "-30%",
-            left: "-15%",
-            animation: "hero-aurora-1 18s ease-in-out infinite",
-          }}
-        />
-        {/* Cool blue/violet blob — counter-motion */}
-        <div
-          className="absolute w-[40rem] h-[40rem] rounded-full blur-[100px] opacity-[0.10] dark:opacity-[0.08]"
-          style={{
-            background: "radial-gradient(circle, hsl(250 70% 55% / 1), transparent 70%)",
-            bottom: "-25%",
-            right: "-10%",
-            animation: "hero-aurora-2 22s ease-in-out infinite",
-          }}
-        />
-        {/* Warm center glow */}
-        <div
-          className="absolute w-[35rem] h-[35rem] rounded-full blur-[80px] opacity-[0.08] dark:opacity-[0.06]"
-          style={{
-            background: "radial-gradient(circle, hsl(var(--primary)), transparent 70%)",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            animation: "hero-aurora-3 15s ease-in-out infinite alternate",
-          }}
-        />
-      </div>
-
-      {/* ── Layer 2: Geometric dot grid ── */}
+    <section className="relative overflow-hidden border-b bg-background">
+      {/* ── Layer 1: Line grid — fades out from the top center ── */}
       <div
-        className="absolute inset-0 opacity-50 dark:opacity-40"
+        className="absolute inset-0"
+        aria-hidden
         style={{
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.06) 1px, transparent 0)",
-          backgroundSize: "24px 24px",
-        }}
-      />
-
-      {/* ── Layer 3: Diagonal line pattern — subtle tech feel ── */}
-      <div
-        className="absolute inset-0 opacity-[0.025] dark:opacity-[0.03]"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(45deg, hsl(var(--foreground)) 0px, hsl(var(--foreground)) 1px, transparent 1px, transparent 32px)",
-        }}
-      />
-
-      {/* ── Layer 4: Cone beam — stage spotlight from top-right ── */}
-      <div
-        className="absolute inset-0 motion-safe:block hidden pointer-events-none"
-        style={{
-          opacity: "var(--so, 0)",
-          transition: "opacity 0.4s ease",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.setProperty("--so", "1")
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.setProperty("--so", "0")
-        }}
-      >
-        {/* Main beam — cone shape from top-right */}
-        <div
-          className="absolute hero-beam-main"
-          style={{
-            top: 0,
-            right: 0,
-            width: "70%",
-            height: "80%",
-            clipPath:
-              "polygon(100% 0%, 0% 100%, 12% 100%, 100% 0%, 100% 8%, 5% 100%, 0% 100%, 100% 5%)",
-            background: `
-              linear-gradient(
-                215deg,
-                hsl(var(--primary) / 0.18) 0%,
-                hsl(var(--primary) / 0.08) 15%,
-                hsl(var(--primary) / 0.02) 40%,
-                transparent 70%
-              )
-            `,
-            filter: "blur(30px)",
-            transformOrigin: "100% 0%",
-          }}
-        />
-
-        {/* Secondary thinner beam — more focused */}
-        <div
-          className="absolute hero-beam-secondary"
-          style={{
-            top: 0,
-            right: 0,
-            width: "55%",
-            height: "65%",
-            clipPath:
-              "polygon(100% 0%, 0% 100%, 6% 100%, 100% 0%, 100% 4%, 2% 100%, 0% 100%, 100% 3%)",
-            background: `
-              linear-gradient(
-                215deg,
-                hsl(var(--primary) / 0.24) 0%,
-                hsl(var(--primary) / 0.12) 10%,
-                hsl(var(--primary) / 0.04) 30%,
-                transparent 55%
-              )
-            `,
-            filter: "blur(15px)",
-            transformOrigin: "100% 0%",
-          }}
-        />
-
-        {/* Core beam — sharp bright center */}
-        <div
-          className="absolute hero-beam-core"
-          style={{
-            top: 0,
-            right: 0,
-            width: "40%",
-            height: "45%",
-            clipPath:
-              "polygon(100% 0%, 0% 100%, 3% 100%, 100% 0%, 100% 2%, 1% 100%, 0% 100%, 100% 1.5%)",
-            background: `
-              linear-gradient(
-                215deg,
-                hsl(var(--primary) / 0.30) 0%,
-                hsl(var(--primary) / 0.14) 8%,
-                hsl(var(--primary) / 0.04) 22%,
-                transparent 42%
-              )
-            `,
-            filter: "blur(6px)",
-            transformOrigin: "100% 0%",
-          }}
-        />
-      </div>
-
-      {/* ── Layer 5: Lit dots — revealed by spotlight ── */}
-      <div
-        className="absolute inset-0 motion-safe:block hidden"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, hsl(var(--primary) / 0.25) 1px, transparent 0)",
-          backgroundSize: "24px 24px",
-          maskImage: `
-            radial-gradient(
-              650px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
-              black 0%,
-              black 25%,
-              transparent 65%
-            )
+          backgroundImage: `
+            linear-gradient(to right, color-mix(in oklab, var(--color-foreground) 9%, transparent) 1px, transparent 1px),
+            linear-gradient(to bottom, color-mix(in oklab, var(--color-foreground) 9%, transparent) 1px, transparent 1px)
           `,
-          WebkitMaskImage: `
-            radial-gradient(
-              650px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
-              black 0%,
-              black 25%,
-              transparent 65%
-            )
-          `,
+          backgroundSize: "56px 56px",
+          maskImage:
+            "radial-gradient(ellipse 95% 90% at 50% 0%, black 35%, transparent 80%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 95% 90% at 50% 0%, black 35%, transparent 80%)",
         }}
       />
 
-      {/* ── Layer 6: Light streaks — diagonal beams ── */}
-      <div className="absolute inset-0 motion-safe:block hidden overflow-hidden pointer-events-none">
-        <div
-          className="absolute w-[600px] h-[2px] opacity-0"
-          style={{
-            background: "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.06), transparent)",
-            top: `${30 + Math.sin(1) * 10}%`,
-            left: `${20 + Math.cos(1) * 10}%`,
-            transform: "rotate(-25deg)",
-            filter: "blur(1px)",
-          }}
-        />
-        <div
-          className="absolute w-[500px] h-[1px] opacity-0"
-          style={{
-            background: "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.05), transparent)",
-            bottom: `${35 + Math.sin(2) * 15}%`,
-            right: `${15 + Math.cos(2) * 10}%`,
-            transform: "rotate(-30deg)",
-            filter: "blur(1px)",
-          }}
-        />
+      {/* ── Layer 2: Grid cells lighting up — a bright band sweeping left → right
+             over the same 56px grid, so cells fade in then out as it passes ── */}
+      <div
+        className="absolute inset-0 motion-safe:block hidden opacity-[0.10] dark:opacity-[0.16]"
+        aria-hidden
+        style={{
+          backgroundImage:
+            "conic-gradient(from 90deg at 2px 2px, transparent 90deg, oklch(0.6 0.2 290) 0)",
+          backgroundSize: "56px 56px",
+          maskImage:
+            "linear-gradient(90deg, transparent 30%, black 42%, black 58%, transparent 70%)",
+          WebkitMaskImage:
+            "linear-gradient(90deg, transparent 30%, black 42%, black 58%, transparent 70%)",
+          maskSize: "300% 100%",
+          WebkitMaskSize: "300% 100%",
+          maskRepeat: "no-repeat",
+          animation: "hero-cells-sweep 8s linear infinite",
+        }}
+      />
+
+      {/* ── Layer 3: Blinking particles — shapes that blink and breathe ── */}
+      <div className="absolute inset-0 motion-safe:block hidden" aria-hidden>
+        {pixels.map((p, i) => (
+          <span
+            key={i}
+            className="hero-pixel absolute"
+            style={{
+              left: p.left,
+              top: p.top,
+              opacity: 0,
+              ...shapeStyle(
+                p.shape,
+                p.size,
+                `oklch(0.72 0.17 ${p.hue} / 0.5)`,
+                `0 0 ${p.size}px oklch(0.72 0.17 ${p.hue} / 0.3)`
+              ),
+              animation: `hero-pixel-blink ${p.duration}s steps(1, end) ${p.delay}s infinite backwards, hero-breathe ${p.breathe}s ease-in-out ${p.delay}s infinite`,
+            }}
+          />
+        ))}
       </div>
+
+      {/* ── Layer 4: Bottom blend into the post feed ── */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent"
+        aria-hidden
+      />
 
       {/* ── Content ── */}
-      <div className="container mx-auto px-4 py-16 md:py-24 max-w-5xl 2xl:max-w-7xl relative">
-        <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="container mx-auto px-4 py-12 md:py-16 lg:py-20 max-w-5xl 2xl:max-w-7xl relative">
+        <div className="max-w-2xl">
           {/* Article count badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium mb-6 border border-primary/15 backdrop-blur-sm">
-            <FileText size={13} />
+          <div
+            className="inline-flex items-center gap-2.5 rounded-full border border-border/60 bg-background/60 px-3.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-sm mb-7 animate-in fade-in slide-in-from-bottom-4 duration-700"
+            style={ease}
+          >
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/50" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
+            </span>
             {articlesLabel(postCount)}
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-[1.1]">
+          <h1
+            className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.05] animate-in fade-in slide-in-from-bottom-4 duration-700"
+            style={{ ...ease, animationDelay: "100ms" }}
+          >
             {t("site.heroTitleLine1") as string}
             <br />
-            <span className="text-primary">{t("site.heroTitleLine2") as string}</span>
+            <span className="bg-gradient-to-r from-foreground via-foreground/75 to-foreground/40 bg-clip-text text-transparent">
+              {t("site.heroTitleLine2") as string}
+            </span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl">
+          <p
+            className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-700"
+            style={{ ...ease, animationDelay: "200ms" }}
+          >
             {t("site.heroSubtitle") as string}
           </p>
+
+          {/* Actions */}
+          <div
+            className="mt-9 flex flex-wrap items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-700"
+            style={{ ...ease, animationDelay: "300ms" }}
+          >
+            <Link
+              href="#post-feed"
+              className="group inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:brightness-110 dark:hover:brightness-125"
+            >
+              {t("site.browsePosts") as string}
+              <ArrowRight
+                size={15}
+                className="transition-transform duration-200 group-hover:translate-x-0.5"
+              />
+            </Link>
+            <Link
+              href="/about"
+              className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-5 py-2.5 text-sm font-medium text-foreground/80 backdrop-blur-sm transition-colors duration-200 hover:bg-muted/60 hover:text-foreground"
+            >
+              {t("site.about") as string}
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* ── Aurora animation keyframes ── */}
+      {/* ── Animation keyframes ── */}
       <style>{`
-        @keyframes hero-aurora-1 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          25% { transform: translate(8%, 5%) scale(1.08); }
-          50% { transform: translate(-3%, 10%) scale(0.95); }
-          75% { transform: translate(-8%, -3%) scale(1.05); }
+        @keyframes hero-breathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.6); }
         }
-        @keyframes hero-aurora-2 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(-5%, -8%) scale(1.06); }
-          66% { transform: translate(6%, -2%) scale(0.94); }
+        @keyframes hero-pixel-blink {
+          0% { opacity: 0; }
+          12% { opacity: 0.55; }
+          24% { opacity: 0.1; }
+          38% { opacity: 0.45; }
+          52% { opacity: 0; }
+          100% { opacity: 0; }
         }
-        @keyframes hero-aurora-3 {
-          0% { transform: translate(-50%, -50%) scale(1); opacity: 0.06; }
-          100% { transform: translate(-50%, -55%) scale(1.1); opacity: 0.10; }
+        @keyframes hero-cells-sweep {
+          from { mask-position: 100% 0; -webkit-mask-position: 100% 0; }
+          to { mask-position: 0% 0; -webkit-mask-position: 0% 0; }
         }
-        /* Beam sway animation */
-        @keyframes hero-beam-sway {
-          0%, 100% { transform: rotate(-1deg); }
-          50% { transform: rotate(1.5deg); }
-        }
-        .hero-beam-main { animation: hero-beam-sway 8s ease-in-out infinite; }
-        .hero-beam-secondary { animation: hero-beam-sway 6s ease-in-out infinite reverse; }
-        .hero-beam-core { animation: hero-beam-sway 10s ease-in-out infinite; }
-        /* Dark theme: slightly brighter beams for contrast against dark bg */
-        :root.dark .hero-beam-main,
-        .dark .hero-beam-main {
-          background: linear-gradient(215deg, hsl(var(--primary) / 0.24) 0%, hsl(var(--primary) / 0.12) 15%, hsl(var(--primary) / 0.04) 40%, transparent 70%) !important;
-        }
-        :root.dark .hero-beam-secondary,
-        .dark .hero-beam-secondary {
-          background: linear-gradient(215deg, hsl(var(--primary) / 0.30) 0%, hsl(var(--primary) / 0.16) 10%, hsl(var(--primary) / 0.06) 30%, transparent 55%) !important;
-        }
-        :root.dark .hero-beam-core,
-        .dark .hero-beam-core {
-          background: linear-gradient(215deg, hsl(var(--primary) / 0.38) 0%, hsl(var(--primary) / 0.18) 8%, hsl(var(--primary) / 0.06) 22%, transparent 42%) !important;
+        @media (prefers-reduced-motion: reduce) {
+          .hero-pixel { animation: none !important; }
         }
       `}</style>
     </section>
