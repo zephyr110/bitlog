@@ -44,7 +44,7 @@ export default async function TagPage({ params }: TagPageProps) {
       {/* Header */}
       <section className="relative border-b bg-muted/10 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/3 to-transparent" />
-        <div className="container mx-auto px-4 py-16 md:py-20 max-w-4xl relative">
+        <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl relative">
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
               <Link href="/" className="hover:text-foreground transition-colors">
@@ -69,7 +69,7 @@ export default async function TagPage({ params }: TagPageProps) {
       </section>
 
       {/* Tags bar */}
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <div className="container mx-auto px-4 py-6 max-w-5xl">
         <div className="flex flex-wrap items-center gap-2">
           {allTags.map((t) => {
             const isActive = t.toLowerCase() === decodedTag.toLowerCase()
@@ -91,7 +91,7 @@ export default async function TagPage({ params }: TagPageProps) {
       </div>
 
       {/* Posts */}
-      <div className="container mx-auto px-4 pb-16 max-w-4xl">
+      <div className="container mx-auto px-4 pb-16 max-w-5xl">
         {posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <h2 className="text-2xl font-semibold mb-2">
