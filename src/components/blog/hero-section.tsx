@@ -152,7 +152,7 @@ export function HeroSection({ postCount }: { postCount: number }) {
       <div className="absolute -bottom-24 -left-24 w-[20rem] h-[20rem] bg-secondary/8 rounded-full blur-[100px] opacity-40" />
 
       {/* ── Content ── */}
-      <div className="container mx-auto px-4 py-12 md:py-20 relative">
+      <div className="container mx-auto px-4 py-12 md:py-20 max-w-4xl relative">
         <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium mb-6 border border-primary/10">
             <FileText size={13} />
