@@ -103,6 +103,18 @@ function YearSection({
             </>
           )}
         </div>
+        {/* Chevron arrow */}
+        <svg
+          className="shrink-0 size-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
       </summary>
 
       <div className="ml-[22px] md:ml-[30px] space-y-1">
