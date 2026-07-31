@@ -86,7 +86,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-4">
               <span>{posts.length} 篇文章</span>
               {subTags.length > 0 && (
-                <span>{subTags.length} 个子分类</span>
+                <span>{subTags.length} 个标签</span>
               )}
             </div>
           </div>
@@ -120,7 +120,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         {/* Sub-tags within this category */}
         {subTags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] text-muted-foreground/60 mr-1">子分类:</span>
+            <span className="text-[11px] text-muted-foreground/60 mr-1">标签:</span>
             {subTags.map((st) => {
               const short = st.slice(name.length + 1) // "frontend-css" → "css"
               return (
