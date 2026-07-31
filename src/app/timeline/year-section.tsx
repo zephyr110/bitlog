@@ -83,18 +83,20 @@ export function YearSection({ year, posts, defaultOpen = false }: Props) {
       >
         <div className="overflow-hidden">
           <div className="relative ml-[27px] md:ml-[40px]">
-            {/* Connector line */}
+            {/* Connector line from dot to articles */}
             <div className="absolute -top-3 left-0 w-4 h-px bg-primary/10 hidden md:block" />
+            {/* Vertical line within year group */}
+            <div className="absolute left-0 top-0 bottom-0 w-px bg-primary/5 hidden md:block -ml-px" />
 
-            <div className="space-y-0.5 pb-2">
+            <div className="space-y-1 pb-2">
               {posts.map((post) => (
                 <Link
                   key={post.slug}
                   href={`/posts/${encodeURIComponent(post.slug)}`}
-                  className="group/link flex items-center gap-4 px-3 py-2 -mx-3 rounded-lg hover:bg-muted/40 transition-colors"
+                  className="group/link flex items-center gap-4 px-3 py-2.5 -mx-3 rounded-lg hover:bg-muted/40 transition-colors"
                 >
-                  <div className="shrink-0 size-1 rounded-full bg-primary/25 group-hover/link:bg-primary/50 transition-colors" />
-                  <time className="shrink-0 w-[3.5rem] text-xs text-muted-foreground/60 font-mono tabular-nums group-hover/link:text-muted-foreground transition-colors">
+                  <div className="shrink-0 size-1.5 rounded-full bg-primary/20 group-hover/link:bg-primary/40 group-hover/link:scale-125 transition-all" />
+                  <time className="shrink-0 w-[3.5rem] text-xs text-muted-foreground/55 font-mono tabular-nums group-hover/link:text-muted-foreground transition-colors">
                     {post.date.slice(5)}
                   </time>
                   <span className="text-sm font-medium truncate group-hover/link:text-primary transition-colors">
