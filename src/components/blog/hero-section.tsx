@@ -75,28 +75,43 @@ export function HeroSection({ postCount }: { postCount: number }) {
     >
       {/* ── Dot grid layer ── */}
       <div
-        className="absolute inset-0 opacity-50 motion-safe:opacity-60"
+        className="absolute inset-0"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.04) 1px, transparent 0)",
-          backgroundSize: "24px 24px",
+            "radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.07) 1px, transparent 0)",
+          backgroundSize: "20px 20px",
         }}
       />
 
-      {/* ── Spotlight — reveals the dot grid with a warm glow ── */}
+      {/* ── Vignette — darkens edges so the spotlight pops ── */}
       <div
-        className="absolute inset-0 transition-opacity duration-500 motion-safe:block hidden"
+        className="absolute inset-0"
         style={{
           background: `
             radial-gradient(
-              520px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
-              hsl(var(--primary) / 0.12) 0%,
-              hsl(var(--primary) / 0.04) 35%,
-              transparent 70%
+              ellipse 80% 60% at 50% 40%,
+              transparent 0%,
+              hsl(var(--background) / 0.55) 100%
+            )
+          `,
+        }}
+      />
+
+      {/* ── Spotlight glow — warm concentrated beam ── */}
+      <div
+        className="absolute inset-0 motion-safe:block hidden"
+        style={{
+          background: `
+            radial-gradient(
+              700px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
+              hsl(var(--primary) / 0.28) 0%,
+              hsl(var(--primary) / 0.10) 25%,
+              hsl(var(--primary) / 0.03) 55%,
+              transparent 75%
             )
           `,
           opacity: "var(--so, 0)",
-          transition: "opacity 0.6s ease",
+          transition: "opacity 0.4s ease",
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.setProperty("--so", "1")
@@ -106,35 +121,35 @@ export function HeroSection({ postCount }: { postCount: number }) {
         }}
       />
 
-      {/* ── Lit dot grid — brighter dots under the spotlight ── */}
+      {/* ── Lit dot grid — bright dots inside the spotlight beam ── */}
       <div
         className="absolute inset-0 motion-safe:block hidden"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 1px 1px, hsl(var(--primary) / 0.08) 1px, transparent 0)",
-          backgroundSize: "24px 24px",
+            "radial-gradient(circle at 1px 1px, hsl(var(--primary) / 0.22) 1px, transparent 0)",
+          backgroundSize: "20px 20px",
           maskImage: `
             radial-gradient(
-              480px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
+              600px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
               black 0%,
-              black 30%,
-              transparent 70%
+              black 28%,
+              transparent 68%
             )
           `,
           WebkitMaskImage: `
             radial-gradient(
-              480px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
+              600px circle at calc(var(--sx, -0.2) * 100%) calc(var(--sy, -0.2) * 100%),
               black 0%,
-              black 30%,
-              transparent 70%
+              black 28%,
+              transparent 68%
             )
           `,
         }}
       />
 
-      {/* ── Ambient glow blobs — complement the spotlight ── */}
-      <div className="absolute -top-24 -right-24 w-[32rem] h-[32rem] bg-primary/10 rounded-full blur-[100px] opacity-70" />
-      <div className="absolute -bottom-32 -left-32 w-[28rem] h-[28rem] bg-secondary/12 rounded-full blur-[100px] opacity-60" />
+      {/* ── Ambient blobs — subtle, not competing with spotlight ── */}
+      <div className="absolute -top-24 -right-24 w-[24rem] h-[24rem] bg-primary/6 rounded-full blur-[100px] opacity-50" />
+      <div className="absolute -bottom-24 -left-24 w-[20rem] h-[20rem] bg-secondary/8 rounded-full blur-[100px] opacity-40" />
 
       {/* ── Content ── */}
       <div className="container mx-auto px-4 py-12 md:py-20 relative">
