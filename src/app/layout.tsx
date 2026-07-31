@@ -58,14 +58,12 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const tags = await getAllTags()
-  // Derive categories from tag prefixes (e.g. "frontend-css" → "frontend")
-  const categories = Array.from(
-    new Set(
-      tags
-        .filter((t) => t.includes("-"))
-        .map((t) => t.split("-")[0])
-    )
-  ).sort()
+  const knownCategories = ["frontend", "backend", "automator", "components", "gear", "miniprogram", "summary"]
+  const categories = knownCategories.filter((cat) =>
+    tags.some((t) => t.startsWith(cat + "-"))
+  )
+  // Fallback: if DB is empty or unreachable, show all categories anyway
+  const displayCategories = categories.length > 0 ? categories : knownCategories
 
   return (
     <html
@@ -84,7 +82,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <I18nProvider>
-            <Header categories={categories} />
+            <Header categories={displayCategories} />
             <main className="flex-1">{children}</main>
             <Toaster />
           </I18nProvider>
