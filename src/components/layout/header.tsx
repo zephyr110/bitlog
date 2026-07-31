@@ -31,15 +31,6 @@ const categoryLabels: Record<string, string> = {
   summary: "总结",
 }
 
-function VerticalRule({ className }: { className?: string }) {
-  return (
-    <span
-      className={cn("mx-3 h-4 w-px bg-border", className)}
-      aria-hidden="true"
-    />
-  )
-}
-
 export function Header({ categories }: { categories: string[] }) {
   const { t } = useT()
   const pathname = usePathname()
@@ -94,36 +85,26 @@ export function Header({ categories }: { categories: string[] }) {
               />
               <span className="hidden sm:inline">{siteConfig.name}</span>
             </Link>
-
-            <VerticalRule />
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1">
-              {navLinks.map((link) => {
-                const isActive = pathname === link.href
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={cn(
-                      "relative px-2 py-1.5 text-sm font-medium transition-colors duration-200",
-                      isActive
-                        ? "text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {t(link.i18nKey) as string}
-                    {isActive && (
-                      <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/80" />
-                    )}
-                  </Link>
-                )
-              })}
-            </nav>
           </div>
 
-          {/* Right: 分类 · 时间轴 · 主题 · 语言 · GitHub */}
+          {/* Right: 首页 · 分类 · 时间轴 · 关于 · | · 主题 · 语言 · GitHub */}
           <div className="flex items-center gap-0.5">
+
+            {/* 首页 — text link */}
+            <Link
+              href="/"
+              className={cn(
+                "relative hidden md:flex items-center px-2 py-1.5 text-sm font-medium transition-colors duration-200",
+                pathname === "/"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t("site.home") as string}
+              {pathname === "/" && (
+                <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/80" />
+              )}
+            </Link>
 
             {/* 分类 — text button with dropdown */}
             <DropdownMenu>
@@ -161,6 +142,22 @@ export function Header({ categories }: { categories: string[] }) {
               className="relative hidden md:flex items-center px-2 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
             >
               {t("site.timeline") as string}
+            </Link>
+
+            {/* 关于 — text link */}
+            <Link
+              href="/about"
+              className={cn(
+                "relative hidden md:flex items-center px-2 py-1.5 text-sm font-medium transition-colors duration-200",
+                pathname === "/about"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t("site.about") as string}
+              {pathname === "/about" && (
+                <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/80" />
+              )}
             </Link>
 
             {/* Separator */}
