@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import { PostCard } from "@/components/blog/post-card"
 import { useT } from "@/components/layout/trans"
 import { FileText, Search, X } from "lucide-react"
-import { type PostSummary } from "@/types"
+import { type PostSummary } from "@bitlog/database"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 

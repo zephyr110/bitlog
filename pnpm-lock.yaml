@@ -11,24 +11,18 @@ importers:
       '@base-ui/react':
         specifier: ^1.6.0
         version: 1.6.0(@types/react@19.2.17)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@hookform/resolvers':
-        specifier: ^5.4.0
-        version: 5.4.0(react-hook-form@7.81.0(react@19.2.4))
-      '@libsql/client':
-        specifier: ^0.17.4
-        version: 0.17.4
-      bcryptjs:
-        specifier: ^3.0.3
-        version: 3.0.3
+      '@bitlog/auth':
+        specifier: workspace:*
+        version: link:packages/auth
+      '@bitlog/database':
+        specifier: workspace:*
+        version: link:packages/database
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      jose:
-        specifier: ^6.2.3
-        version: 6.2.3
       lucide-react:
         specifier: ^1.24.0
         version: 1.24.0(react@19.2.4)
@@ -47,9 +41,6 @@ importers:
       react-dom:
         specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
-      react-hook-form:
-        specifier: ^7.81.0
-        version: 7.81.0(react@19.2.4)
       react-markdown:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.17)(react@19.2.4)
@@ -111,6 +102,21 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.3
+
+  packages/auth:
+    dependencies:
+      bcryptjs:
+        specifier: ^3.0.3
+        version: 3.0.3
+      jose:
+        specifier: ^6.2.3
+        version: 6.2.3
+
+  packages/database:
+    dependencies:
+      '@libsql/client':
+        specifier: ^0.17.4
+        version: 0.17.4
 
 packages:
 
@@ -355,11 +361,6 @@ packages:
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
-
-  '@hookform/resolvers@5.4.0':
-    resolution: {integrity: sha512-EIsqr/t/qbinPIhGjMdtvutIN1Kk4uwbROE9/UQ93CAVGR7GkA7Y92+fX80OzXi/OB67jVFYwKGO1WzkxmkFZw==}
-    peerDependencies:
-      react-hook-form: ^7.55.0
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -3240,12 +3241,6 @@ packages:
     peerDependencies:
       react: ^19.2.4
 
-  react-hook-form@7.81.0:
-    resolution: {integrity: sha512-ocbmr2p5KBMoAfj4WCUvped33lVi1Kd5DuDUvQDnB6VEAacOjPI/jMbtDdbhco4y9ct4xUuCmMY0b/C9L0QHjw==}
-    engines: {node: '>=18.0.0'}
-    peerDependencies:
-      react: ^16.8.0 || ^17 || ^18 || ^19
-
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -4214,11 +4209,6 @@ snapshots:
   '@hono/node-server@1.19.14(hono@4.12.30)':
     dependencies:
       hono: 4.12.30
-
-  '@hookform/resolvers@5.4.0(react-hook-form@7.81.0(react@19.2.4))':
-    dependencies:
-      '@standard-schema/utils': 0.3.0
-      react-hook-form: 7.81.0(react@19.2.4)
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -7413,10 +7403,6 @@ snapshots:
     dependencies:
       react: 19.2.4
       scheduler: 0.27.0
-
-  react-hook-form@7.81.0(react@19.2.4):
-    dependencies:
-      react: 19.2.4
 
   react-is@16.13.1: {}
 

@@ -1,7 +1,7 @@
 import { MDXRemote } from "next-mdx-remote/rsc"
 import remarkGfm from "remark-gfm"
 import rehypePrettyCode, { type Options } from "rehype-pretty-code"
-import { type Post } from "@/types"
+import { type Post } from "@bitlog/database"
 import { CodeBlock } from "@/components/blog/code-block"
 import { HeadingLink } from "@/components/blog/heading-link"
 

@@ -1,8 +1,8 @@
 import { type Client } from "@libsql/client"
-import { getDb } from "@/lib/db"
-import { type Post, type PostSummary } from "@/types"
-import { toPostSummary } from "@/lib/mdx-utils"
-import { safeSlug, slugify } from "@/lib/slug"
+import { getDb } from "./db"
+import { type Post, type PostSummary } from "./types"
+import { toPostSummary } from "./mdx-utils"
+import { safeSlug, slugify } from "./slug"
 
 export { slugify }
 
@@ -45,7 +45,7 @@ function requireDb(): Client {
 
 let tableReady: Promise<void> | null = null
 
-export async function ensureTable(db: Client): Promise<void> {
+async function ensureTable(db: Client): Promise<void> {
   if (!tableReady) {
     tableReady = (async () => {
       // execute() only runs the first statement; use executeMultiple() for the full schema

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createToken, verifyLogin } from "@/lib/auth"
+import { createToken, verifyLogin } from "@bitlog/auth"
 
 export async function POST(request: NextRequest) {
   try {

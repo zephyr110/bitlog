@@ -9,9 +9,9 @@ import {
   deletePost,
   movePost,
   slugify,
-} from "@/lib/content"
-import { computeReadingStats } from "@/lib/mdx-utils"
-import { type Post } from "@/types"
+} from "@bitlog/database"
+import { computeReadingStats } from "@bitlog/database"
+import { type Post } from "@bitlog/database"
 
 const postBodySchema = z.object({
   title: z.string().min(1).max(200).optional(),

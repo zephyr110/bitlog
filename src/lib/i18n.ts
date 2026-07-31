@@ -12,8 +12,6 @@ export const localeLabels: Record<Locale, string> = {
 export const translations = {
   zh: {
     site: {
-      title: "我的博客",
-      subtitle: "关于技术、编程和构建 Web 的思考与想法。",
       heroTitleLine1: "思考、故事",
       heroTitleLine2: "和想法。",
       heroSubtitle:
@@ -21,7 +19,6 @@ export const translations = {
       articlesPublished: (n: number) => `${n} 篇文章`,
       loading: "加载中...",
       backToPosts: "← 返回文章列表",
-      backToHome: "← 返回首页",
       notFound: "未找到",
       noPosts: "暂无文章",
       noPostsDesc: "第一篇文章即将发布，敬请期待。",
@@ -35,14 +32,11 @@ export const translations = {
       postsTaggedDesc: (tag: string) => `所有标记为「${tag}」的博客文章。`,
       home: "首页",
       about: "关于",
-      admin: "管理",
-      viewBlog: "查看博客",
       searchPosts: "搜索文章...",
     },
     post: {
       minRead: (n: number) => `${n} 分钟阅读`,
       comments: "评论",
-      commentsDisabled: "评论未启用",
       commentsNotConfigured: "评论功能尚未配置",
       configureGiscus: "要启用 Giscus 评论，请配置以下环境变量：",
       getValuesAt: "在 giscus.app 获取这些值",
@@ -54,7 +48,6 @@ export const translations = {
       copyCode: "复制代码",
       codeCopied: "已复制！",
       updated: "更新于",
-      published: "发布于",
       chars: (n: number) => `${n} 字`,
       words: (n: number) => `${n} 词`,
       readTime: (n: number) => `约 ${n} 分钟阅读`,
@@ -93,7 +86,6 @@ export const translations = {
       cicd: "自动化构建和部署",
     },
     admin: {
-      login: "登录",
       adminPanel: "管理后台",
       loginTitle: "博客管理",
       loginDesc: "登录以管理你的内容",
@@ -207,7 +199,6 @@ export const translations = {
       environment: "环境",
       localDev: "本地开发",
       localDevNotice: "管理面板仅在本地运行 · 不会部署到生产环境",
-      viewBlog: "查看博客",
       theme: "主题",
       collapse: "收起菜单",
       expand: "展开菜单",
@@ -221,7 +212,6 @@ export const translations = {
       noImages: "暂无图片",
       noImagesDesc: "上传图片以在你的博客文章中使用。",
       copyURL: "复制 URL",
-      copy: "复制",
       copied: "已复制！",
       copyMD: "复制 MD",
       uploadSuccess: "图片上传成功！",
@@ -237,7 +227,6 @@ export const translations = {
   },
   en: {
     site: {
-      title: "My Blog",
       subtitle:
         "Thoughts, stories and ideas about technology, programming, and building for the web.",
       heroTitleLine1: "Thoughts, stories",
@@ -248,7 +237,6 @@ export const translations = {
         `${n} ${n === 1 ? "article" : "articles"}`,
       loading: "Loading...",
       backToPosts: "← Back to all posts",
-      backToHome: "← Back to home",
       notFound: "Not Found",
       noPosts: "No posts yet",
       noPostsDesc: "The first article is on its way. Check back soon.",
@@ -262,14 +250,11 @@ export const translations = {
       postsTaggedDesc: (tag: string) => `All blog posts tagged with "${tag}".`,
       home: "Home",
       about: "About",
-      admin: "Admin",
-      viewBlog: "View Blog",
       searchPosts: "Search posts...",
     },
     post: {
       minRead: (n: number) => `${n} min read`,
       comments: "Comments",
-      commentsDisabled: "Comments are disabled",
       commentsNotConfigured: "Comments are not configured",
       configureGiscus: "To enable Giscus comments, configure the following environment variables:",
       getValuesAt: "Get these values at giscus.app",
@@ -291,7 +276,6 @@ export const translations = {
       monthsAgo: (n: number) => `${n} months ago`,
       shortDate: (d: Date) =>
         d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
-      published: "Published",
     },
     a11y: {
       linkToHeading: "Link to heading",
@@ -322,7 +306,6 @@ export const translations = {
       cicd: "Automated build and deployment",
     },
     admin: {
-      login: "Login",
       adminPanel: "Admin",
       loginTitle: "Blog Admin",
       loginDesc: "Sign in to manage your content",
@@ -343,7 +326,6 @@ export const translations = {
       settings: "Settings",
       settingsDesc: "Manage your account and blog preferences.",
       totalPosts: "Total Posts",
-      published: "Published",
       drafts: "Drafts",
       tags: "Tags",
       newPost: "New Post",
@@ -440,7 +422,6 @@ export const translations = {
       environment: "Environment",
       localDev: "Local Development",
       localDevNotice: "Admin panel runs locally only · not deployed to production",
-      viewBlog: "View Blog",
       theme: "Theme",
       collapse: "Collapse",
       expand: "Expand",
@@ -454,7 +435,6 @@ export const translations = {
       noImages: "No images yet",
       noImagesDesc: "Upload images to use in your blog posts.",
       copyURL: "Copy URL",
-      copy: "Copy",
       copied: "Copied!",
       copyMD: "Copy MD",
       uploadSuccess: "Image uploaded!",

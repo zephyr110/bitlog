@@ -15,5 +15,3 @@ export const siteConfig = {
     twitter: "https://twitter.com",
   },
 } as const
-
-export type SiteConfig = typeof siteConfig

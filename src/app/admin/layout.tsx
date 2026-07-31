@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { getToken, apiFetch, clearToken } from "@/lib/api-client"
 import { PageLoader } from "@/components/ui/page-loader"
-import { type AuthUser } from "@/types"
+import { type AuthUser } from "@bitlog/auth"
 
 export const SidebarCollapsedContext = createContext(false)
 

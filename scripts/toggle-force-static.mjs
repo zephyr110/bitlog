@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, readdirSync, statSync } from "fs"
+import { readFileSync, writeFileSync, readdirSync } from "fs"
 import { resolve, dirname } from "path"
 import { fileURLToPath } from "url"
 

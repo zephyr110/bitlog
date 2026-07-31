@@ -1,5 +1,6 @@
-import { type Post, type PostSummary } from "@/types"
-import { READING_SPEED_WPM } from "@/lib/constants"
+import { type Post, type PostSummary } from "./types"
+
+const READING_SPEED_WPM = 200 // Chinese/English average
 
 export function computeReadingStats(content: string): {
   wordCount: number

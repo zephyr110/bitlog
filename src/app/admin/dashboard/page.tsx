@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { useT } from "@/components/layout/trans"
 import { apiFetch } from "@/lib/api-client"
 import { FileText, PenLine, Clock, Tag } from "lucide-react"
-import { type PostSummary } from "@/types"
+import { type PostSummary } from "@bitlog/database"
 
 export default function AdminDashboardPage() {
   const { t } = useT()

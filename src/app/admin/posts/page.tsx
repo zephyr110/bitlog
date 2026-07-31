@@ -41,7 +41,7 @@ import {
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
-import { type PostSummary } from "@/types"
+import { type PostSummary } from "@bitlog/database"
 
 export default function AdminPostsPage() {
   const { t } = useT()

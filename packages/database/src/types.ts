@@ -24,12 +24,3 @@ export interface PostSummary {
   wordCount: number
   readingTime: number
 }
-
-export interface LoginInput {
-  username: string
-  password: string
-}
-
-export interface AuthUser {
-  username: string
-}

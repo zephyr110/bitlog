@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { PostEditor } from "@/components/admin/post-editor"
 import { apiFetch } from "@/lib/api-client"
 import { Spinner } from "@/components/ui/spinner"
-import { type Post } from "@/types"
+import { type Post } from "@bitlog/database"
 import { Suspense } from "react"
 
 function EditPostContent() {

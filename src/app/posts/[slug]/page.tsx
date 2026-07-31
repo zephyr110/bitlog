@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { type Metadata } from "next"
 import Link from "next/link"
-import { getPostBySlug, getPublishedPosts } from "@/lib/content"
+import { getPostBySlug, getPublishedPosts } from "@bitlog/database"
 import { siteConfig } from "@/lib/site-config"
 import { defaultLocale, t } from "@/lib/i18n"
 import { MDXRenderer } from "@/components/blog/mdx-renderer"

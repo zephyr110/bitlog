@@ -24,7 +24,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { useT } from "@/components/layout/trans"
-import { type PostSummary } from "@/types"
+import { type PostSummary } from "@bitlog/database"
 
 type TimeRange = "7d" | "30d" | "90d" | "all"
 

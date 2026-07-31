@@ -1,5 +1,5 @@
 import { siteConfig } from "@/lib/site-config"
-import { getPublishedPosts } from "@/lib/content"
+import { getPublishedPosts } from "@bitlog/database"
 
 function escapeXml(str: string): string {
   return str

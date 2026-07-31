@@ -6,7 +6,7 @@ import {
   hashPassword,
   setPasswordHash,
   encodePasswordHash,
-} from "@/lib/auth"
+} from "@bitlog/auth"
 import fs from "fs"
 import path from "path"
 

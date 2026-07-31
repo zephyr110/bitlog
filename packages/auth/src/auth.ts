@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose"
 import bcrypt from "bcryptjs"
-import { type AuthUser } from "@/types"
+import { type AuthUser } from "./types"
 
 const JWT_EXPIRATION = "7d"
 
@@ -27,7 +27,7 @@ let currentPasswordHash: string | undefined = decodePasswordHash(
   process.env.ADMIN_PASSWORD_HASH
 )
 
-export function getPasswordVersion(): string {
+function getPasswordVersion(): string {
   return (currentPasswordHash || "").slice(0, 8)
 }
 
