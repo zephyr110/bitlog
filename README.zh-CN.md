@@ -1,11 +1,12 @@
 # BitLog
 
-一个简约、快速、双语的个人博客，基于 [Next.js](https://nextjs.org) App Router、[Tailwind CSS](https://tailwindcss.com)、[shadcn/ui](https://ui.shadcn.com) 和 [MDX](https://mdxjs.com) 构建。
+一个简约、快速、双语的个人博客，基于 [Next.js](https://nextjs.org) App Router、[Tailwind CSS](https://tailwindcss.com)、[shadcn/ui](https://ui.shadcn.com)、[MDX](https://mdxjs.com) 和 [Turso](https://turso.tech) 构建。
 
 BitLog 为追求简洁写作体验的开发者设计，提供本地运行的轻量级 CMS。使用 Markdown/MDX 编写文章，通过后台管理面板进行管理，最终部署为纯静态站点。
 
 ## 功能特性
 
+- **数据库驱动** — 文章存储在 Turso (libSQL) 边缘分布式 SQLite 数据库中。
 - **静态站点生成** — 预渲染页面，兼顾性能与 SEO。
 - **本地后台管理** — 在 `/admin` 中撰写、编辑、发布和删除文章。
 - **MDX 内容** — 丰富的 Markdown 支持，包括语法高亮代码块、表格和 frontmatter。
@@ -21,7 +22,8 @@ BitLog 为追求简洁写作体验的开发者设计，提供本地运行的轻�
 - **框架:** Next.js 16 (App Router)
 - **样式:** Tailwind CSS 4 + shadcn/ui 组件
 - **UI 基础:** @base-ui/react
-- **内容:** MDX，基于 `next-mdx-remote`、`gray-matter`、`rehype-pretty-code`
+- **内容:** MDX，基于 `next-mdx-remote`、`rehype-pretty-code`
+- **数据库:** Turso (libSQL) + `@libsql/client`
 - **认证:** JWT (`jose`) + bcryptjs
 - **图表:** Recharts
 - **图标:** Lucide React
@@ -52,6 +54,8 @@ cp .env.local.example .env.local
 
 | 变量 | 说明 |
 |------|------|
+| `TURSO_DATABASE_URL` | Turso/libSQL 数据库 URL（本地开发可用 `file:./bitlog.db`） |
+| `TURSO_AUTH_TOKEN` | Turso 认证 token（仅远程数据库需要） |
 | `ADMIN_USERNAME` | 后台管理面板的用户名 |
 | `ADMIN_PASSWORD_HASH` | Base64 编码的 bcrypt 密码哈希 |
 | `SESSION_SECRET` | 用于签发 JWT 令牌的随机密钥 |
@@ -72,6 +76,17 @@ Giscus 评论（可选）：
 | `NEXT_PUBLIC_GISCUS_CATEGORY` | 讨论分类名称 |
 | `NEXT_PUBLIC_GISCUS_CATEGORY_ID` | 从 giscus.app 获取 |
 
+### 数据库配置
+
+BitLog 使用 Turso (libSQL) 存储文章内容。本地开发无需 Turso Cloud 账号，只需在 `.env.local` 中设置 `TURSO_DATABASE_URL=file:./bitlog.db` 即可使用本地 SQLite 文件。
+
+如果 `content/posts/` 目录中有已有的 MDX 文件，运行迁移命令导入数据库：
+
+```bash
+pnpm migrate              # 写入数据库
+pnpm migrate --dry-run    # 预览，不写入
+```
+
 ### 启动开发服务器
 
 ```bash
@@ -90,9 +105,11 @@ pnpm dev
 
 ## 内容管理
 
-文章以 `.mdx` 文件形式存放在 `content/posts/` 目录中。草稿存放在 `content/drafts/` 目录中。
+文章存储在 Turso (libSQL) 数据库中。`content/posts/` 目录中仍保留原始 MDX 文件作为备份，但应用运行时从数据库读取数据。
 
-Frontmatter 示例：
+Frontmatter 字段作为 `posts` 表的列存储，Markdown 正文存储在 `content` 列中，通过 MDX 渲染。
+
+Frontmatter 示例（来自数据库或迁移源）：
 
 ```yaml
 ---
@@ -122,8 +139,11 @@ const greeting = "Hello, BitLog!"
 **配置步骤：**
 
 1. Fork 或推送此仓库到你的 GitHub 账号。
-2. 在目标 GitHub Pages 仓库中，进入 **Settings → Secrets and variables → Actions**，添加：
+2. 创建一个 Turso 数据库（参见 [Turso 文档](https://docs.turso.tech)），运行 `pnpm migrate` 导入数据。
+3. 在目标 GitHub Pages 仓库中，进入 **Settings → Secrets and variables → Actions**，添加：
    - `GH_PAT`：具有 `repo` 权限的[个人访问令牌](https://github.com/settings/tokens)。
+   - `TURSO_DATABASE_URL`：Turso 数据库 URL（`libsql://...`）。
+   - `TURSO_AUTH_TOKEN`：Turso 认证 token。
 3. 修改 `.github/workflows/deploy.yml`：
    - 将 `external_repository` 改为 `你的用户名/你的用户名.github.io`。
 4. 在工作流中设置 `NEXT_PUBLIC_SITE_URL` 环境变量为你的 Pages URL。
@@ -144,6 +164,7 @@ pnpm export
 2. **Build Command** 设置为 `pnpm build`（**不要**用 `pnpm export`）。
 3. **Output Directory** 使用默认的 `.next`。
 4. 在 Vercel 项目设置中添加环境变量：
+   - `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` — Turso 数据库连接。
    - `ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH` / `SESSION_SECRET` — 后台认证。
    - `NEXT_PUBLIC_SITE_URL` — 你的 Vercel 域名。
    - `NEXT_PUBLIC_GISCUS_*` — 如果使用 Giscus 评论。
@@ -155,9 +176,9 @@ pnpm export
 
 ```
 bitlog/
-├── content/              # MDX 文章和草稿
+├── content/              # MDX 文件（备份 / 迁移源）
 ├── public/               # 静态资源
-├── scripts/              # 构建辅助脚本
+├── scripts/              # 构建辅助脚本 & 数据迁移
 ├── src/
 │   ├── app/              # Next.js App Router 页面
 │   ├── components/       # React 组件
@@ -182,6 +203,7 @@ bitlog/
 | `pnpm export` | 静态导出构建 |
 | `pnpm start` | 启动生产服务器 |
 | `pnpm lint` | 运行 ESLint |
+| `pnpm migrate` | 迁移 MDX 文件到数据库 |
 
 ## 自定义
 

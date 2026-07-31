@@ -1,6 +1,6 @@
 # BitLog
 
-A minimal, fast, and bilingual personal blog built with [Next.js](https://nextjs.org) App Router, [Tailwind CSS](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com), and [MDX](https://mdxjs.com).
+A minimal, fast, and bilingual personal blog built with [Next.js](https://nextjs.org) App Router, [Tailwind CSS](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com), [MDX](https://mdxjs.com), and [Turso](https://turso.tech).
 
 BitLog is designed for developers who want a clean writing experience with a lightweight CMS that runs locally. Write posts in Markdown/MDX, manage them through the admin panel, and deploy a fully static site.
 
@@ -8,6 +8,7 @@ BitLog is designed for developers who want a clean writing experience with a lig
 
 - **Static Site Generation** — Pre-rendered pages for performance and SEO.
 - **Local Admin CMS** — Write, edit, publish, and delete posts from `/admin`.
+- **Database-Backed** — Posts stored in Turso (libSQL), an edge-distributed SQLite database.
 - **MDX Content** — Rich Markdown with syntax-highlighted code blocks, tables, and frontmatter.
 - **Bilingual** — Built-in English / 中文 support with language switching.
 - **Dark Mode** — System-aware light/dark theme toggle.
@@ -21,7 +22,8 @@ BitLog is designed for developers who want a clean writing experience with a lig
 - **Framework:** Next.js 16 (App Router)
 - **Styling:** Tailwind CSS 4 + shadcn/ui components
 - **UI Primitives:** @base-ui/react
-- **Content:** MDX via `next-mdx-remote`, `gray-matter`, `rehype-pretty-code`
+- **Content:** MDX via `next-mdx-remote`, `rehype-pretty-code`
+- **Database:** Turso (libSQL) + `@libsql/client`
 - **Auth:** JWT (`jose`) + bcryptjs
 - **Charts:** Recharts
 - **Icons:** Lucide React
@@ -52,6 +54,8 @@ Required variables:
 
 | Variable | Description |
 |----------|-------------|
+| `TURSO_DATABASE_URL` | Turso/libSQL database URL (use `file:./bitlog.db` for local dev) |
+| `TURSO_AUTH_TOKEN` | Turso auth token (only needed for remote databases) |
 | `ADMIN_USERNAME` | Username for the admin panel |
 | `ADMIN_PASSWORD_HASH` | Base64-encoded bcrypt hash of the admin password |
 | `SESSION_SECRET` | Random secret for signing JWT tokens |
@@ -72,6 +76,17 @@ Optional Giscus variables for comments:
 | `NEXT_PUBLIC_GISCUS_CATEGORY` | Discussion category name |
 | `NEXT_PUBLIC_GISCUS_CATEGORY_ID` | From giscus.app |
 
+### Database Setup
+
+BitLog uses Turso (libSQL) for content storage. For local development without a Turso Cloud account, use a local SQLite file — set `TURSO_DATABASE_URL=file:./bitlog.db` in `.env.local`.
+
+If you have existing MDX files in `content/posts/`, migrate them to the database:
+
+```bash
+pnpm migrate          # write to database
+pnpm migrate --dry-run  # preview without writing
+```
+
 ### Run Development Server
 
 ```bash
@@ -90,9 +105,11 @@ Open [http://localhost:3000](http://localhost:3000) for the blog and [http://loc
 
 ## Content
 
-Posts live in `content/posts/` as `.mdx` files. Drafts are stored in `content/drafts/`.
+Posts are stored in a Turso (libSQL) database. The `content/posts/` directory still contains the original MDX files as a backup, but the app reads from the database at runtime.
 
-Example frontmatter:
+A post's frontmatter is stored as columns in the `posts` table, while the Markdown body is stored in the `content` column and rendered via MDX.
+
+Example frontmatter (from the database or migration source):
 
 ```yaml
 ---
@@ -122,13 +139,16 @@ This project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`)
 **Setup steps:**
 
 1. Fork or push this repo to your GitHub account.
-2. In your target GitHub Pages repo, go to **Settings → Secrets and variables → Actions** and add:
+2. Create a Turso database (see [Turso docs](https://docs.turso.tech)) and run `pnpm migrate` to populate it.
+3. In your target GitHub Pages repo, go to **Settings → Secrets and variables → Actions** and add:
    - `GH_PAT`: A [personal access token](https://github.com/settings/tokens) with `repo` scope.
-3. Update `.github/workflows/deploy.yml`:
+   - `TURSO_DATABASE_URL`: Your Turso database URL (`libsql://...`).
+   - `TURSO_AUTH_TOKEN`: Your Turso auth token.
+4. Update `.github/workflows/deploy.yml`:
    - Change `external_repository` to `your-username/your-username.github.io`.
-4. Set the `NEXT_PUBLIC_SITE_URL` env var in the workflow to your Pages URL.
-5. Optionally configure `NEXT_PUBLIC_GISCUS_*` vars in the workflow for comments.
-6. Push to `main` — the workflow builds and deploys automatically.
+5. Set the `NEXT_PUBLIC_SITE_URL` env var in the workflow to your Pages URL.
+6. Optionally configure `NEXT_PUBLIC_GISCUS_*` vars in the workflow for comments.
+7. Push to `main` — the workflow builds and deploys automatically.
 
 **Manual static export:**
 
@@ -144,6 +164,7 @@ This generates a static site in `out/` that you can deploy to any static host.
 2. Set the **Build Command** to `pnpm build` (NOT `pnpm export`).
 3. Set the **Output Directory** to `.next` (Vercel default).
 4. Add environment variables in Vercel's project settings:
+   - `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` — Turso database connection.
    - `ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH` / `SESSION_SECRET` for admin auth.
    - `NEXT_PUBLIC_SITE_URL` — your Vercel domain.
    - `NEXT_PUBLIC_GISCUS_*` — if using Giscus comments.
@@ -155,9 +176,9 @@ This generates a static site in `out/` that you can deploy to any static host.
 
 ```
 bitlog/
-├── content/              # MDX posts and drafts
+├── content/              # MDX files (backup / migration source)
 ├── public/               # Static assets
-├── scripts/              # Build helpers
+├── scripts/              # Build helpers & migration
 ├── src/
 │   ├── app/              # Next.js App Router pages
 │   ├── components/       # React components
@@ -165,7 +186,7 @@ bitlog/
 │   │   ├── blog/         # Blog rendering components
 │   │   ├── layout/       # Header, theme, i18n
 │   │   └── ui/           # shadcn/ui components
-│   ├── lib/              # Utilities, auth, content API
+│   ├── lib/              # Utilities, auth, content API, DB
 │   └── types/            # TypeScript types
 ├── .env.local.example    # Environment variable template
 ├── next.config.ts
@@ -182,6 +203,7 @@ bitlog/
 | `pnpm export` | Build static export |
 | `pnpm start` | Start production server |
 | `pnpm lint` | Run ESLint |
+| `pnpm migrate` | Migrate MDX files to the database |
 
 ## Customization
 
