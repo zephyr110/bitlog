@@ -3,13 +3,19 @@
 import { useMemo, useState, useEffect } from "react"
 import { useT } from "@/components/layout/trans"
 import { useLocale } from "@/components/layout/i18n-provider"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
 interface ContributionCalendarProps {
   posts: { date: string }[]
 }
 
-const CELL_SIZE = 11
 const CELL_GAP = 3
 // GitHub-style levels: 0 = none, 4 = heaviest
 const LEVEL_CLASSES = [
@@ -42,11 +48,58 @@ interface TooltipState {
   top: number
 }
 
+/** Calendar window: either the rolling past year or a specific year. */
+function buildWeeks(
+  countsByDay: Map<string, number>,
+  selectedYear: number | null
+): { date: Date; key: string; count: number }[][] {
+  let start: Date
+  if (selectedYear) {
+    // Calendar year: Jan 1 … Dec 31
+    start = new Date(selectedYear, 0, 1)
+    start.setDate(start.getDate() - start.getDay()) // align to Sunday
+    const end = new Date(selectedYear, 11, 31)
+    const totalDays = Math.ceil((end.getTime() - start.getTime()) / 86_400_000)
+    const weeks: { date: Date; key: string; count: number }[][] = []
+    let cursor = new Date(start)
+    for (let w = 0; w < Math.ceil(totalDays / 7); w++) {
+      const column: { date: Date; key: string; count: number }[] = []
+      for (let d = 0; d < 7; d++) {
+        const key = toKey(cursor)
+        column.push({ date: new Date(cursor), key, count: countsByDay.get(key) || 0 })
+        cursor.setDate(cursor.getDate() + 1)
+      }
+      weeks.push(column)
+    }
+    return weeks
+  }
+
+  // Rolling 365-day window aligned to a Sunday start, GitHub-style.
+  const end = new Date()
+  start = new Date(end)
+  start.setDate(start.getDate() - 364)
+  start.setDate(start.getDate() - start.getDay())
+
+  const weeks: { date: Date; key: string; count: number }[][] = []
+  let cursor = new Date(start)
+  for (let w = 0; w < 53; w++) {
+    const column: { date: Date; key: string; count: number }[] = []
+    for (let d = 0; d < 7; d++) {
+      const key = toKey(cursor)
+      column.push({ date: new Date(cursor), key, count: countsByDay.get(key) || 0 })
+      cursor.setDate(cursor.getDate() + 1)
+    }
+    weeks.push(column)
+  }
+  return weeks
+}
+
 export function ContributionCalendar({ posts }: ContributionCalendarProps) {
   const { t } = useT()
   const { locale } = useLocale()
   const [mounted, setMounted] = useState(false)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
+  const [selectedYear, setSelectedYear] = useState<number | null>(null) // null = past year
 
   useEffect(() => {
     setMounted(true) // eslint-disable-line react-hooks/set-state-in-effect
@@ -62,34 +115,41 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
     return map
   }, [posts])
 
-  // Rolling 365-day window aligned to a Sunday start, GitHub-style.
-  const weeks = useMemo(() => {
-    const end = new Date()
-    const start = new Date(end)
-    start.setDate(start.getDate() - 364)
-    // Align the first column to Sunday
-    start.setDate(start.getDate() - start.getDay())
-
-    const cells: { date: Date; key: string; count: number }[][] = []
-    let cursor = new Date(start)
-    for (let w = 0; w < 53; w++) {
-      const column: { date: Date; key: string; count: number }[] = []
-      for (let d = 0; d < 7; d++) {
-        const key = toKey(cursor)
-        column.push({ date: new Date(cursor), key, count: countsByDay.get(key) || 0 })
-        cursor.setDate(cursor.getDate() + 1)
-      }
-      cells.push(column)
+  // Years available in the data, newest first
+  const availableYears = useMemo(() => {
+    const years = new Set<number>()
+    for (const post of posts) {
+      const y = Number(post.date.slice(0, 4))
+      if (Number.isFinite(y)) years.add(y)
     }
-    return cells
-  }, [countsByDay])
+    return [...years].sort((a, b) => b - a)
+  }, [posts])
+
+  const weeks = useMemo(
+    () => buildWeeks(countsByDay, selectedYear),
+    [countsByDay, selectedYear]
+  )
+
+  const fmt = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
+        month: "short",
+      }),
+    [locale]
+  )
+  const monthFmt = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+    [locale]
+  )
 
   // Month labels above the columns (shown at month boundaries)
   const monthLabels = useMemo(() => {
     const labels: { index: number; text: string }[] = []
-    const fmt = new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
-      month: "short",
-    })
     let lastMonth = -1
     weeks.forEach((column, colIdx) => {
       const first = column[0].date
@@ -99,97 +159,132 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
       }
     })
     return labels
-  }, [weeks, locale])
-
-  const monthLabel = (d: Date) =>
-    new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }).format(d)
+  }, [weeks, fmt])
 
   // SSR-safe: skip rendering the calendar until mounted to avoid
   // hydration mismatches from new Date().
   if (!mounted) {
-    return <div className="h-[118px]" />
+    return (
+      <div className="flex h-[118px] items-center justify-between gap-4">
+        <div className="flex-1" />
+        <div className="h-8 w-32 animate-pulse rounded-md bg-muted" />
+      </div>
+    )
   }
 
   return (
-    <div className="relative inline-block">
-      {/* Month labels */}
-      <div
-        className="flex mb-1.5"
-        style={{ gap: CELL_GAP }}
-      >
-        {Array.from({ length: 53 }).map((_, i) => {
-          const label = monthLabels.find((l) => l.index === i)
-          return (
-            <div
-              key={i}
-              className="text-[10px] text-muted-foreground/70 leading-none h-3.5"
-              style={{ width: CELL_SIZE }}
-            >
-              {label?.text ?? ""}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Grid */}
-      <div className="flex" style={{ gap: CELL_GAP }}>
-        {weeks.map((column, colIdx) => (
-          <div key={colIdx} className="flex flex-col" style={{ gap: CELL_GAP }}>
-            {column.map((cell) => {
-              const level = getLevel(cell.count)
-              const isFuture = cell.date.getTime() > Date.now()
-              return (
-                <div
-                  key={cell.key}
-                  onMouseEnter={(e) => {
-                    if (isFuture || cell.count === 0) return
-                    const rect = e.currentTarget.getBoundingClientRect()
-                    const container = e.currentTarget.parentElement?.parentElement
-                    const containerRect = container?.getBoundingClientRect()
-                    setTooltip({
-                      date: cell.key,
-                      count: cell.count,
-                      left: (containerRect ? rect.left - containerRect.left : rect.left) + CELL_SIZE / 2,
-                      top: rect.top - (containerRect ? containerRect.top : 0) - 34,
-                    })
-                  }}
-                  onMouseLeave={() => setTooltip(null)}
-                  title={
-                    cell.count > 0 && !isFuture
-                      ? `${monthLabel(cell.date)} · ${cell.count}`
-                      : monthLabel(cell.date)
-                  }
-                  className={cn(
-                    "rounded-[2.5px] transition-colors",
-                    isFuture ? "opacity-30" : "hover:ring-1 hover:ring-primary/40",
-                    LEVEL_CLASSES[level]
-                  )}
-                  style={{ width: CELL_SIZE, height: CELL_SIZE }}
-                />
-              )
-            })}
-          </div>
-        ))}
-      </div>
-
-      {/* Tooltip */}
-      {tooltip && (
-        <div
-          className="pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap rounded-md border bg-popover px-2.5 py-1.5 text-xs shadow-lg"
-          style={{ left: tooltip.left, top: tooltip.top }}
+    <div>
+      {/* Year filter */}
+      <div className="mb-3 flex justify-end">
+        <Select
+          value={selectedYear ? String(selectedYear) : "recent"}
+          onValueChange={(v) =>
+            setSelectedYear(v === "recent" ? null : Number(v))
+          }
         >
-          <p className="font-medium">
-            {(t("admin.postsOn") as (date: string, n: number) => string)(
-              monthLabel(new Date(`${tooltip.date}T00:00:00`)),
-              tooltip.count
-            )}
-          </p>
+          <SelectTrigger className="w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="recent">
+              {t("admin.calendarRecent") as string}
+            </SelectItem>
+            {availableYears.map((y) => (
+              <SelectItem key={y} value={String(y)}>
+                {y}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="relative">
+        {/* Month labels */}
+        <div className="mb-1.5 flex" style={{ gap: CELL_GAP }}>
+          {weeks.map((_, i) => {
+            const label = monthLabels.find((l) => l.index === i)
+            return (
+              <div
+                key={i}
+                className="flex-1 text-[10px] leading-none text-muted-foreground/70"
+              >
+                {label ? (
+                  <span className="inline-block h-3.5">{label.text}</span>
+                ) : null}
+              </div>
+            )
+          })}
         </div>
-      )}
+
+        {/* Grid — columns stretch to fill the full card width */}
+        <div className="flex" style={{ gap: CELL_GAP }}>
+          {weeks.map((column, colIdx) => (
+            <div
+              key={colIdx}
+              className="flex flex-1 flex-col"
+              style={{ gap: CELL_GAP }}
+            >
+              {column.map((cell) => {
+                const level = getLevel(cell.count)
+                const isFuture = cell.date.getTime() > Date.now()
+                return (
+                  <div
+                    key={cell.key}
+                    onMouseEnter={(e) => {
+                      if (isFuture || cell.count === 0) return
+                      const rect = e.currentTarget.getBoundingClientRect()
+                      const container =
+                        e.currentTarget.parentElement?.parentElement
+                      const containerRect = container?.getBoundingClientRect()
+                      setTooltip({
+                        date: cell.key,
+                        count: cell.count,
+                        left:
+                          (containerRect
+                            ? rect.left - containerRect.left
+                            : rect.left) +
+                          rect.width / 2,
+                        top:
+                          rect.top -
+                          (containerRect ? containerRect.top : 0) -
+                          34,
+                      })
+                    }}
+                    onMouseLeave={() => setTooltip(null)}
+                    title={
+                      cell.count > 0 && !isFuture
+                        ? `${monthFmt.format(cell.date)} · ${cell.count}`
+                        : monthFmt.format(cell.date)
+                    }
+                    className={cn(
+                      "aspect-square w-full rounded-[2px] transition-colors",
+                      isFuture
+                        ? "opacity-30"
+                        : "hover:ring-1 hover:ring-primary/40",
+                      LEVEL_CLASSES[level]
+                    )}
+                  />
+                )
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Tooltip */}
+        {tooltip && (
+          <div
+            className="pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap rounded-md border bg-popover px-2.5 py-1.5 text-xs shadow-lg"
+            style={{ left: tooltip.left, top: tooltip.top }}
+          >
+            <p className="font-medium">
+              {(t("admin.postsOn") as (date: string, n: number) => string)(
+                monthFmt.format(new Date(`${tooltip.date}T00:00:00`)),
+                tooltip.count
+              )}
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Legend */}
       <div className="mt-2.5 flex items-center justify-end gap-1.5 text-[10px] text-muted-foreground/70">
