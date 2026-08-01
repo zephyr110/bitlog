@@ -99,20 +99,50 @@ export async function setMediaSha(
   })
 }
 
-/** List media, newest first. Optional limit/offset pages the result. */
+/**
+ * Optional date filter. from/to are UTC "YYYY-MM-DD HH:MM:SS" strings
+ * (created_at is stored as UTC datetime); the API layer expands bare
+ * "YYYY-MM-DD" to day boundaries. Passed through verbatim so the client
+ * can express its local-day window exactly.
+ */
+export interface MediaDateFilter {
+  from?: string
+  to?: string
+}
+
+/** WHERE clause + args shared by listMedia and countMedia. */
+function dateFilterSql(filter?: MediaDateFilter): { sql: string; args: string[] } {
+  const clauses: string[] = []
+  const args: string[] = []
+  if (filter?.from) {
+    clauses.push("created_at >= ?")
+    args.push(filter.from)
+  }
+  if (filter?.to) {
+    clauses.push("created_at <= ?")
+    args.push(filter.to)
+  }
+  return { sql: clauses.length ? `WHERE ${clauses.join(" AND ")}` : "", args }
+}
+
+/** List media, newest first. Optional limit/offset pages the result; a
+ *  date filter narrows it to an inclusive created_at range. */
 export async function listMedia(
   limit?: number,
-  offset = 0
+  offset = 0,
+  filter?: MediaDateFilter
 ): Promise<MediaMeta[]> {
   const db = requireDb()
   await ensureTable(db)
+  const { sql: where, args } = dateFilterSql(filter)
   const result = limit
     ? await db.execute({
-        sql: "SELECT filename, content_type, size, created_at FROM media ORDER BY created_at DESC LIMIT ? OFFSET ?",
-        args: [limit, offset],
+        sql: `SELECT filename, content_type, size, created_at FROM media ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+        args: [...args, limit, offset],
       })
     : await db.execute(
-        "SELECT filename, content_type, size, created_at FROM media ORDER BY created_at DESC"
+        `SELECT filename, content_type, size, created_at FROM media ${where} ORDER BY created_at DESC`,
+        args
       )
   return result.rows.map((row) => ({
     name: row.filename as string,
@@ -122,10 +152,14 @@ export async function listMedia(
   }))
 }
 
-export async function countMedia(): Promise<number> {
+export async function countMedia(filter?: MediaDateFilter): Promise<number> {
   const db = requireDb()
   await ensureTable(db)
-  const result = await db.execute("SELECT COUNT(*) AS n FROM media")
+  const { sql: where, args } = dateFilterSql(filter)
+  const result = await db.execute(
+    `SELECT COUNT(*) AS n FROM media ${where}`,
+    args
+  )
   return Number(result.rows[0]?.n ?? 0)
 }
 

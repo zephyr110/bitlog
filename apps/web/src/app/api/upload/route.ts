@@ -67,15 +67,40 @@ export async function GET(request: NextRequest) {
   const pageSize =
     Number.isInteger(rawSize) && rawSize >= 1 && rawSize <= 100 ? rawSize : 24
 
+  // Date filter: UTC timestamps ("YYYY-MM-DD" is expanded to the full
+  // day). The client converts its local-day window to exact UTC timestamps
+  // so display and filtering agree regardless of timezone.
+  const params = request.nextUrl.searchParams
+  const fromParam = params.get("from") ?? undefined
+  const toParam = params.get("to") ?? undefined
+  const DAY = /^\d{4}-\d{2}-\d{2}$/
+  const TS = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
+  const from = fromParam
+    ? DAY.test(fromParam)
+      ? `${fromParam} 00:00:00`
+      : TS.test(fromParam)
+        ? fromParam
+        : undefined
+    : undefined
+  const to = toParam
+    ? DAY.test(toParam)
+      ? `${toParam} 23:59:59`
+      : TS.test(toParam)
+        ? toParam
+        : undefined
+    : undefined
+  const dateFilter = from || to ? { from, to } : undefined
+
   try {
     const [records, total] = await Promise.all([
-      listMedia(pageSize, (page - 1) * pageSize),
-      countMedia(),
+      listMedia(pageSize, (page - 1) * pageSize, dateFilter),
+      countMedia(dateFilter),
     ])
     return NextResponse.json({
       images: records.map((record) => ({
         name: record.name,
         url: cdnUrl(record.name),
+        createdAt: record.createdAt,
       })),
       total,
       page,

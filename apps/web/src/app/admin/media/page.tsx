@@ -23,19 +23,92 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip"
 import { toast } from "sonner"
-import { ImageIcon, Upload, Copy, FileCode, Trash2, LayoutGrid, List } from "lucide-react"
+import { ImageIcon, Upload, Copy, FileCode, Trash2, LayoutGrid, List, X, CalendarIcon } from "lucide-react"
+import { useLocale } from "@/components/layout/i18n-provider"
 import { IconButton } from "@/components/ui/icon-button"
 import { cn } from "@/lib/utils"
 
 interface MediaFile {
   name: string
   url: string
+  /** SQLite datetime("now") — UTC "YYYY-MM-DD HH:MM:SS" */
+  createdAt?: string
+}
+
+/** Local "YYYY-MM-DD" → exact UTC timestamp at the day boundary
+ *  ("YYYY-MM-DD HH:MM:SS", matching created_at's format). Converting the
+ *  local window start/end to UTC keeps the filter exact in any timezone. */
+function toUtcTimestamp(
+  localDay: string,
+  endOfDay: boolean
+): string | undefined {
+  if (!localDay) return undefined
+  const d = new Date(endOfDay ? `${localDay}T23:59:59` : `${localDay}T00:00:00`)
+  if (Number.isNaN(d.getTime())) return undefined
+  return d.toISOString().replace("T", " ").slice(0, 19)
+}
+
+/** UTC datetime → local "YYYY-MM-DD" for display. */
+function formatCreatedAt(createdAt: string): string {
+  const d = new Date(`${createdAt.replace(" ", "T")}Z`)
+  if (Number.isNaN(d.getTime())) return createdAt.slice(0, 10)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
+}
+
+/**
+ * Date input whose display is fully controlled: the native
+ * <input type="date"> renders its placeholder/format in the BROWSER's
+ * language, which ignores the page locale — so a text layer shows the
+ * fixed "YYYY-MM-DD" value (or the i18n placeholder) while the invisible
+ * native input on top provides the calendar picker. The input's `lang`
+ * attribute makes the calendar popup follow the page language.
+ */
+function LocalDateInput({
+  value,
+  onChange,
+  ariaLabel,
+  locale,
+}: {
+  value: string
+  onChange: (value: string) => void
+  ariaLabel: string
+  locale: string
+}) {
+  return (
+    <div className="relative h-8">
+      <div
+        className={cn(
+          "pointer-events-none flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-2 text-xs",
+          value ? "text-foreground" : "text-muted-foreground"
+        )}
+      >
+        <span className="truncate">{value || ariaLabel}</span>
+        <CalendarIcon
+          size={12}
+          className="shrink-0 text-muted-foreground"
+          aria-hidden="true"
+        />
+      </div>
+      <input
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={ariaLabel}
+        lang={locale === "zh" ? "zh-CN" : "en"}
+        className="absolute inset-0 size-full cursor-pointer opacity-0"
+      />
+    </div>
+  )
 }
 
 type ViewMode = "grid" | "list"
 
 export default function AdminMediaPage() {
   const { t } = useT()
+  const { locale } = useLocale()
   const [files, setFiles] = useState<MediaFile[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -47,6 +120,8 @@ export default function AdminMediaPage() {
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
   // Stale-response guard: rapid page changes only let the newest fetch win.
   const fetchSeq = useRef(0)
 
@@ -56,9 +131,15 @@ export default function AdminMediaPage() {
   const fetchMedia = useCallback(async (targetPage: number) => {
     const seq = ++fetchSeq.current
     try {
-      const res = await apiFetch(
-        `/api/upload?page=${targetPage}&pageSize=${PAGE_SIZE}`
-      )
+      const params = new URLSearchParams({
+        page: String(targetPage),
+        pageSize: String(PAGE_SIZE),
+      })
+      const from = toUtcTimestamp(dateFrom, false)
+      const to = toUtcTimestamp(dateTo, true)
+      if (from) params.set("from", from)
+      if (to) params.set("to", to)
+      const res = await apiFetch(`/api/upload?${params}`)
       if (res.ok) {
         const data = await res.json()
         if (seq === fetchSeq.current) {
@@ -72,11 +153,32 @@ export default function AdminMediaPage() {
     } finally {
       if (seq === fetchSeq.current) setLoading(false)
     }
-  }, [])
+  }, [dateFrom, dateTo])
 
   useEffect(() => {
     fetchMedia(page) // eslint-disable-line react-hooks/set-state-in-effect
   }, [page, fetchMedia])
+
+  // Date filter changes reset to page 1 and refetch (same pattern as
+  // upload/delete: explicit fetch when already on page 1, setPage otherwise).
+  function updateDateFrom(value: string) {
+    setDateFrom(value)
+    if (page === 1) fetchMedia(1)
+    else setPage(1)
+  }
+
+  function updateDateTo(value: string) {
+    setDateTo(value)
+    if (page === 1) fetchMedia(1)
+    else setPage(1)
+  }
+
+  function clearDateFilter() {
+    setDateFrom("")
+    setDateTo("")
+    if (page === 1) fetchMedia(1)
+    else setPage(1)
+  }
 
   // Restore the user's last view once mounted (localStorage is client-only;
   // SSR always renders the grid so there is no hydration mismatch).
@@ -224,6 +326,34 @@ export default function AdminMediaPage() {
           className="hidden"
           id="media-file-input"
         />
+        {/* Date range filter — local dates, converted to exact UTC
+            timestamps on the wire */}
+        <div className="flex items-center gap-1.5">
+          <LocalDateInput
+            value={dateFrom}
+            onChange={updateDateFrom}
+            ariaLabel={t("admin.fromDate") as string}
+            locale={locale}
+          />
+          <span className="text-xs text-muted-foreground" aria-hidden="true">
+            –
+          </span>
+          <LocalDateInput
+            value={dateTo}
+            onChange={updateDateTo}
+            ariaLabel={t("admin.toDate") as string}
+            locale={locale}
+          />
+          {(dateFrom || dateTo) && (
+            <IconButton
+              size="sm"
+              aria-label={t("admin.clearFilter") as string}
+              onClick={clearDateFilter}
+            >
+              <X size={14} />
+            </IconButton>
+          )}
+        </div>
         <div
           role="group"
           aria-label={t("admin.viewMode") as string}
@@ -366,6 +496,12 @@ export default function AdminMediaPage() {
                   />
                   <TooltipContent>{file.name}</TooltipContent>
                 </Tooltip>
+                <p
+                  className="text-[11px] text-muted-foreground"
+                  title={file.createdAt}
+                >
+                  {file.createdAt ? formatCreatedAt(file.createdAt) : " "}
+                </p>
                 <MediaRowActions
                   file={file}
                   onCopyUrl={copyToClipboard}
@@ -405,6 +541,12 @@ export default function AdminMediaPage() {
               >
                 {file.name}
               </button>
+              <span
+                className="hidden sm:block w-24 shrink-0 text-xs text-muted-foreground text-right"
+                title={file.createdAt}
+              >
+                {file.createdAt ? formatCreatedAt(file.createdAt) : ""}
+              </span>
               <MediaRowActions
                 file={file}
                 onCopyUrl={copyToClipboard}
