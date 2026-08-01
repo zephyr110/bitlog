@@ -7,6 +7,7 @@ import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import { clearToken } from "@/lib/api-client"
 import { SettingsDialog } from "@/components/admin/settings-dialog"
+import { IconButton } from "@/components/ui/icon-button"
 import {
   Tooltip,
   TooltipTrigger,
@@ -37,7 +38,8 @@ import {
   Moon,
   Monitor,
   ChevronRight,
-  ChevronLeft,
+  PanelLeft,
+  SquarePen,
 } from "lucide-react"
 
 const sidebarLinks = [
@@ -88,43 +90,109 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
         collapsed ? "w-[4.5rem]" : "w-64"
       )}
     >
-      {/* Logo */}
+      {/* Logo — clean header, no border/subtitle (shadcn dashboard-01 style) */}
       <div
         className={cn(
-          "h-16 flex items-center border-b border-sidebar-border transition-all shrink-0",
-          collapsed ? "px-3 justify-center" : "px-5 justify-between"
+          "h-14 flex items-center shrink-0 transition-all",
+          collapsed ? "justify-center px-3" : "px-4"
         )}
       >
-        {!collapsed && (
-          <Link href="/admin/dashboard" className="flex items-center gap-2.5 group">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/spooky.svg"
-              alt=""
-              className="size-8 rounded-lg object-contain dark:invert"
-            />
-            <div className="leading-tight min-w-0">
-              <span className="font-bold text-base tracking-tight block truncate">{siteConfig.name}</span>
-              <span className="block text-[10px] text-sidebar-foreground/60 font-medium tracking-wide uppercase">{t("admin.adminPanel") as string}</span>
-            </div>
-          </Link>
+        <Link href="/admin/dashboard" className="flex items-center gap-2.5 min-w-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/spooky.svg"
+            alt=""
+            className="size-8 rounded-lg object-contain dark:invert shrink-0"
+          />
+          {!collapsed && (
+            <span className="font-bold text-base tracking-tight truncate">{siteConfig.name}</span>
+          )}
+        </Link>
+      </div>
+
+      {/* Primary action — dashboard-01 "Quick Create" style: solid CTA
+          plus a bordered icon button for the public site. Collapsed: the
+          CTA becomes a circle (action affordance) so it can't be confused
+          with the rounded-square nav items, and a divider separates the
+          action group from navigation. */}
+      <div
+        className={cn(
+          "shrink-0",
+          collapsed
+            ? "space-y-1 px-2.5 pb-3 mb-2 border-b border-sidebar-border/60"
+            : "px-3 pb-3"
         )}
-        {collapsed && (
-          <Link href="/admin/dashboard" className="flex size-9 items-center justify-center rounded-lg shrink-0 transition-all hover:scale-[1.02]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/spooky.svg"
-              alt=""
-              className="size-8 rounded-lg object-contain dark:invert"
-            />
-          </Link>
+      >
+        {collapsed ? (
+          <>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Link
+                    href="/admin/posts/new"
+                    aria-label={t("admin.newPost") as string}
+                    className="mx-auto flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-all hover:bg-primary/85 hover:scale-105"
+                  >
+                    <SquarePen size={16} />
+                  </Link>
+                }
+              />
+              <TooltipContent side="right" sideOffset={8}>
+                {t("admin.newPost") as string}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Link
+                    href="/"
+                    target="_blank"
+                    aria-label={t("admin.viewBlog") as string}
+                    className="flex w-full items-center justify-center rounded-lg py-2.5 text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                  >
+                    <ExternalLink size={16} />
+                  </Link>
+                }
+              />
+              <TooltipContent side="right" sideOffset={8}>
+                {t("admin.viewBlog") as string}
+              </TooltipContent>
+            </Tooltip>
+          </>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin/posts/new"
+              className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85"
+            >
+              <SquarePen size={16} />
+              <span className="truncate">{t("admin.newPost") as string}</span>
+            </Link>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Link
+                    href="/"
+                    target="_blank"
+                    aria-label={t("admin.viewBlog") as string}
+                    className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-sidebar-border text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                  >
+                    <ExternalLink size={16} />
+                  </Link>
+                }
+              />
+              <TooltipContent side="bottom" sideOffset={6}>
+                {t("admin.viewBlog") as string}
+              </TooltipContent>
+            </Tooltip>
+          </div>
         )}
       </div>
 
       {/* Navigation */}
-      <div className={cn("flex-1 overflow-y-auto py-4", collapsed ? "px-2.5" : "px-3")}>
+      <div className={cn("flex-1 overflow-y-auto py-2", collapsed ? "px-2.5" : "px-3")}>
         {!collapsed && (
-          <p className="px-3 mb-2 text-[10px] font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
+          <p className="px-3 mb-1 text-xs font-medium text-sidebar-foreground/50">
             {t("admin.menu") as string}
           </p>
         )}
@@ -141,16 +209,13 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
               href={link.href}
               aria-label={collapsed ? (t(link.i18nKey) as string) : undefined}
               className={cn(
-                "group relative flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200",
+                "group flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200",
                 collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5",
                 isActive
-                  ? "bg-sidebar-primary/10 text-sidebar-primary shadow-sm"
+                  ? "bg-sidebar-primary/10 text-sidebar-primary"
                   : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
               )}
             >
-              {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-sidebar-primary" />
-              )}
               <Icon
                 size={18}
                 className={cn(
@@ -166,11 +231,14 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
             </Link>
           )
           // Collapsed sidebar: show the label as a tooltip instead of a
-          // native title attribute.
+          // native title attribute. `render` makes the trigger BE the link —
+          // a default <button> wrapper is inline-block and shrink-wraps the
+          // anchor, squeezing the icons onto one line (and nests a link
+          // inside a button, which is invalid HTML).
           return collapsed ? (
             <Tooltip key={link.href}>
-              <TooltipTrigger>{linkEl}</TooltipTrigger>
-              <TooltipContent>
+              <TooltipTrigger render={linkEl} />
+              <TooltipContent side="right" sideOffset={8}>
                 {t(link.i18nKey) as string}
               </TooltipContent>
             </Tooltip>
@@ -178,58 +246,11 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
             linkEl
           )
         })}
-
-        {/* Divider */}
-        <div className="my-2 mx-3 border-t" />
-
-        {/* View Blog - external link */}
-        <Tooltip>
-          <TooltipTrigger>
-            <Link
-              href="/"
-              target="_blank"
-              aria-label={collapsed ? (t("admin.viewBlog") as string) : undefined}
-              className={cn(
-                "group flex items-center gap-3 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-all duration-200",
-                collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
-              )}
-            >
-              <ExternalLink size={18} className="shrink-0 text-sidebar-foreground/60 group-hover:text-sidebar-foreground transition-colors" />
-              {!collapsed && <span className="truncate">{t("admin.viewBlog") as string}</span>}
-            </Link>
-          </TooltipTrigger>
-          {collapsed && (
-            <TooltipContent>{t("admin.viewBlog") as string}</TooltipContent>
-          )}
-        </Tooltip>
         </nav>
       </div>
 
-      {/* Footer */}
-      <div className={cn("border-t border-sidebar-border bg-sidebar", collapsed ? "p-2.5 space-y-1" : "p-3 space-y-1")}>
-        {/* Collapse toggle */}
-        <button
-          onClick={onToggle}
-          className={cn(
-            "flex items-center gap-3 w-full rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-all duration-200",
-            collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
-          )}
-          aria-label={
-            collapsed
-              ? (t("admin.expand") as string)
-              : (t("admin.collapse") as string)
-          }
-        >
-          <ChevronLeft
-            size={18}
-            className={cn(
-              "shrink-0 transition-transform duration-300",
-              collapsed && "rotate-180"
-            )}
-          />
-          {!collapsed && <span>{t("admin.collapse") as string}</span>}
-        </button>
-
+      {/* Footer — borderless user card (dashboard-01 style) */}
+      <div className={cn("shrink-0", collapsed ? "p-2.5" : "p-3")}>
         {/* Avatar Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -372,5 +393,44 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </aside>
+  )
+}
+
+/**
+ * Sidebar collapse trigger, shadcn dashboard-01 style — a PanelLeft icon
+ * button that lives in the admin top header, to the left of the page title.
+ */
+export function AdminSidebarTrigger({
+  collapsed,
+  onToggle,
+}: {
+  collapsed: boolean
+  onToggle: () => void
+}) {
+  const { t } = useT()
+  const label = collapsed
+    ? (t("admin.expand") as string)
+    : (t("admin.collapse") as string)
+  // Detect platform client-side only — SSR always renders "Ctrl+B", so a
+  // mount-time check avoids a hydration mismatch ("⌘B" on first paint).
+  const [isMac, setIsMac] = useState(false)
+  useEffect(() => {
+    setIsMac(/Mac/i.test(navigator.userAgent)) // eslint-disable-line react-hooks/set-state-in-effect -- one-time platform detection after hydration
+  }, [])
+  const shortcut = isMac ? "⌘B" : "Ctrl+B"
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <IconButton size="sm" onClick={onToggle} aria-label={label}>
+            <PanelLeft size={16} />
+          </IconButton>
+        }
+      />
+      <TooltipContent side="bottom" sideOffset={6}>
+        {label} · {shortcut}
+      </TooltipContent>
+    </Tooltip>
   )
 }

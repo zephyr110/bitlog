@@ -2,12 +2,23 @@
 
 import { useEffect, useState, createContext } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
+import { AdminSidebar, AdminSidebarTrigger } from "@/components/admin/admin-sidebar"
 import { getToken, apiFetch, clearToken } from "@/lib/api-client"
 import { PageLoader } from "@/components/ui/page-loader"
+import { useT } from "@/components/layout/trans"
 import { type AuthUser } from "@bitlog/auth"
 
 export const SidebarCollapsedContext = createContext(false)
+
+/** Page title/subtitle shown in the top header, keyed by exact pathname.
+ *  Editor pages (/admin/posts/new, /admin/posts/edit) render their own
+ *  in-page headers, so they are intentionally absent. */
+const pageMeta: Record<string, { titleKey: string; descKey: string }> = {
+  "/admin/dashboard": { titleKey: "admin.dashboard", descKey: "admin.dashboardWelcome" },
+  "/admin/posts": { titleKey: "admin.posts", descKey: "admin.postsDesc" },
+  "/admin/media": { titleKey: "admin.media", descKey: "admin.mediaDesc" },
+  "/admin/settings": { titleKey: "admin.settings", descKey: "admin.settingsDesc" },
+}
 
 export default function AdminLayout({
   children,
@@ -16,6 +27,7 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname()
   const router = useRouter()
+  const { t } = useT()
   const [user, setUser] = useState<AuthUser | null>(null)
   const isLoginPage = pathname === "/admin/login"
   const [loading, setLoading] = useState(!isLoginPage)
@@ -68,6 +80,8 @@ export default function AdminLayout({
     return null
   }
 
+  const meta = pathname ? pageMeta[pathname] : undefined
+
   return (
     <div className="min-h-screen bg-muted/30">
       <AdminSidebar
@@ -79,6 +93,27 @@ export default function AdminLayout({
         className="transition-all duration-300 min-h-screen"
         style={{ paddingLeft: sidebarCollapsed ? "4.5rem" : "16rem" }}
       >
+        {/* Top header — sidebar trigger followed by the current page's
+            title and description. Horizontal insets match the content
+            area below so header and content share the same edges. */}
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b bg-background/80 backdrop-blur px-4 md:px-8">
+          <AdminSidebarTrigger
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
+          {meta && (
+            <div className="min-w-0 leading-tight">
+              <h1 className="text-base font-semibold tracking-tight truncate">
+                {t(meta.titleKey) as string}
+              </h1>
+              <p className="hidden sm:block text-xs text-muted-foreground truncate mt-0.5">
+                {t(meta.descKey) as string}
+              </p>
+            </div>
+          )}
+          {/* Page primary actions portaled in via <HeaderActions /> */}
+          <div id="admin-header-actions" className="ml-auto flex items-center gap-2" />
+        </header>
         <div className="p-4 md:p-8">{children}</div>
       </div>
     </div>

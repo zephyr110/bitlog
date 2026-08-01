@@ -1,7 +1,7 @@
 import { Separator } from "@/components/ui/separator"
 import { siteConfig } from "@/lib/site-config"
 import { Trans } from "@/components/layout/trans"
-import { GitBranch, MessageCircle, Sparkles, Palette, Code2, FileCode, Cloud, Rocket, Database } from "lucide-react"
+import { GitBranch, MessageCircle, Sparkles, Palette, FileCode, Cloud, Rocket, Database } from "lucide-react"
 
 const techStack = [
   {

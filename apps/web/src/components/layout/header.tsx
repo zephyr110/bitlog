@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
@@ -68,9 +69,11 @@ export function Header({ categories }: { categories: Category[] }) {
             href="/"
             className="flex items-center gap-2.5 font-semibold text-base tracking-tight hover:opacity-85 transition-opacity shrink-0"
           >
-            <img
+            <Image
               src="/spooky.svg"
               alt=""
+              width={32}
+              height={32}
               className="size-8 rounded-lg object-contain dark:invert"
             />
             <span className="hidden sm:inline">{siteConfig.name}</span>
@@ -283,7 +286,7 @@ function SearchInput({ t, router }: { t: ReturnType<typeof useT>["t"]; router: R
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    setValue(params.get("q") || "")
+    setValue(params.get("q") || "") // eslint-disable-line react-hooks/set-state-in-effect -- one-time sync from URL on mount (window is unavailable during SSR)
   }, [])
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

@@ -72,12 +72,6 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <div className="h-8 w-32 bg-muted animate-pulse rounded-md" />
-            <div className="h-4 w-64 bg-muted animate-pulse rounded-md" />
-          </div>
-        </div>
         <CardSkeleton count={4} />
         <div className="h-64 bg-muted animate-pulse rounded-xl" />
         <ListSkeleton items={5} />
@@ -87,23 +81,6 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t("admin.dashboard") as string}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {t("admin.dashboardWelcome") as string}
-          </p>
-        </div>
-        <Link
-          href="/admin/posts/new"
-          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium px-3 hover:bg-primary/80 transition-all shadow-sm shadow-primary/20"
-        >
-          {t("admin.newPost") as string}
-        </Link>
-      </div>
-
       {/* Quick Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {

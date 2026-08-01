@@ -61,7 +61,7 @@ function buildWeeks(
     const end = new Date(selectedYear, 11, 31)
     const totalDays = Math.ceil((end.getTime() - start.getTime()) / 86_400_000)
     const weeks: { date: Date; key: string; count: number }[][] = []
-    let cursor = new Date(start)
+    const cursor = new Date(start)
     for (let w = 0; w < Math.ceil(totalDays / 7); w++) {
       const column: { date: Date; key: string; count: number }[] = []
       for (let d = 0; d < 7; d++) {
@@ -81,7 +81,7 @@ function buildWeeks(
   start.setDate(start.getDate() - start.getDay())
 
   const weeks: { date: Date; key: string; count: number }[][] = []
-  let cursor = new Date(start)
+  const cursor = new Date(start)
   for (let w = 0; w < 53; w++) {
     const column: { date: Date; key: string; count: number }[] = []
     for (let d = 0; d < 7; d++) {

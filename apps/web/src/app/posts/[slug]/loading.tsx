@@ -1,5 +1,9 @@
 import { Skeleton } from "@/components/ui/skeleton"
 
+// Deterministic widths keep the skeleton stable across re-renders
+// (Math.random in render breaks React purity rules).
+const lineWidths = [92, 78, 85, 66, 90, 74, 88, 70, 82, 95, 64, 80]
+
 export default function PostLoading() {
   return (
     <div className="min-h-screen">
@@ -24,7 +28,7 @@ export default function PostLoading() {
       <div className="container mx-auto px-4 py-12 md:py-16 max-w-5xl 2xl:max-w-7xl">
         <div className="space-y-3">
           {Array.from({ length: 12 }).map((_, i) => (
-            <Skeleton key={i} className="h-4" style={{ width: `${60 + Math.random() * 40}%` }} />
+            <Skeleton key={i} className="h-4" style={{ width: `${lineWidths[i]}%` }} />
           ))}
         </div>
         <div className="my-12 border-t" />

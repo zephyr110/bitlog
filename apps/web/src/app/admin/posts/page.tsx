@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { EllipsisVertical, Search, FileText, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TableSkeleton } from "@/components/ui/loading"
+import { HeaderActions } from "@/components/admin/header-actions"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -94,12 +95,16 @@ function AdminPostsContent() {
 
   // Sync filter when arriving via ?status= query (same-route navigation
   // does not remount the component, so the initial state would be stale).
-  useEffect(() => {
+  // Adjusting state during render is the React-recommended alternative
+  // to setState-in-effect for prop-driven state resets.
+  const [prevInitialStatus, setPrevInitialStatus] = useState(initialStatus)
+  if (prevInitialStatus !== initialStatus) {
+    setPrevInitialStatus(initialStatus)
     if (initialStatus === "published" || initialStatus === "drafts") {
       setStatusFilter(initialStatus)
       setPage(1)
     }
-  }, [initialStatus])
+  }
 
   const filteredPosts = useMemo(() => {
     let result = posts
@@ -193,12 +198,6 @@ function AdminPostsContent() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <div className="h-8 w-24 bg-muted animate-pulse rounded-md" />
-            <div className="h-4 w-64 bg-muted animate-pulse rounded-md" />
-          </div>
-        </div>
         <TableSkeleton rows={5} />
       </div>
     )
@@ -206,20 +205,14 @@ function AdminPostsContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("admin.posts") as string}</h1>
-          <p className="text-muted-foreground mt-1">
-            {t("admin.postsDesc") as string}
-          </p>
-        </div>
+      <HeaderActions>
         <Link
           href="/admin/posts/new"
           className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium px-2.5 hover:bg-primary/80 transition-all"
         >
           {t("admin.newPost") as string}
         </Link>
-      </div>
+      </HeaderActions>
 
       {posts.length === 0 ? (
         <EmptyState
@@ -514,12 +507,6 @@ export default function AdminPostsPage() {
     <Suspense
       fallback={
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="h-8 w-24 bg-muted animate-pulse rounded-md" />
-              <div className="h-4 w-64 bg-muted animate-pulse rounded-md" />
-            </div>
-          </div>
           <TableSkeleton rows={5} />
         </div>
       }

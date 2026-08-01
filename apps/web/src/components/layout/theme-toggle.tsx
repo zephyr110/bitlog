@@ -16,7 +16,7 @@ export function ThemeToggle() {
   const { t } = useT()
   const [mounted, setMounted] = useState(false)
 
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => { setMounted(true) }, []) // eslint-disable-line react-hooks/set-state-in-effect -- hydration guard: theme is only known client-side
 
   if (!mounted) {
     return <div className="size-9" />

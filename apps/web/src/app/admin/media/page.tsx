@@ -13,6 +13,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { apiFetch } from "@/lib/api-client"
+import { HeaderActions } from "@/components/admin/header-actions"
 import { useT } from "@/components/layout/trans"
 import {
   Tooltip,
@@ -166,33 +167,23 @@ export default function AdminMediaPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t("admin.media") as string}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {t("admin.mediaDesc") as string}
-          </p>
-        </div>
-        <div>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
-            onChange={handleUpload}
-            className="hidden"
-            id="media-file-input"
-          />
-          <Button
-            disabled={uploading}
-            onClick={() => document.getElementById("media-file-input")?.click()}
-          >
-            {uploading
-              ? (t("admin.uploading") as string)
-              : (t("admin.uploadImage") as string)}
-          </Button>
-        </div>
-      </div>
+      <HeaderActions>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+          onChange={handleUpload}
+          className="hidden"
+          id="media-file-input"
+        />
+        <Button
+          disabled={uploading}
+          onClick={() => document.getElementById("media-file-input")?.click()}
+        >
+          {uploading
+            ? (t("admin.uploading") as string)
+            : (t("admin.uploadImage") as string)}
+        </Button>
+      </HeaderActions>
 
       {/* Drop zone */}
       {files.length === 0 && !loading && (
