@@ -292,10 +292,11 @@ function AdminPostsContent() {
             )}
           </div>
 
-          {/* Table */}
+          {/* Table — body scrolls vertically, header stays pinned (the
+              Table container owns the scroll, so the sticky thead works). */}
           <div className="border rounded-lg bg-card">
-            <Table>
-              <TableHeader>
+            <Table containerClassName="max-h-[calc(100vh-20rem)] overflow-y-auto">
+              <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
                 <TableRow>
                   <TableHead>{t("admin.title") as string}</TableHead>
                   <TableHead>{t("admin.status") as string}</TableHead>

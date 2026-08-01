@@ -81,34 +81,11 @@ export function PaginationBar({
   // Negative margins bleed the bar edge-to-edge within the admin content
   // column (p-4 md:p-8); inner padding re-aligns the text.
   return (
-    <div className="sticky bottom-0 z-10 !mt-auto -mx-4 -mb-4 md:-mx-8 md:-mb-8 border-t bg-background/85 backdrop-blur px-4 md:px-8 py-3">
+    <div className="sticky bottom-0 z-10 !mt-auto -mx-4 -mb-4 md:-mx-8 md:-mb-8 bg-background/85 backdrop-blur px-4 md:px-8 py-3">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-2">
-          {onPageSizeChange && (
-            <Select
-              value={String(pageSize)}
-              onValueChange={(v) => onPageSizeChange(Number(v))}
-            >
-              <SelectTrigger
-                size="sm"
-                aria-label={t("admin.pageSize") as string}
-                className="h-7 px-2 text-xs"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent align="start">
-                {[20, 40, 60].map((size) => (
-                  <SelectItem key={size} value={String(size)}>
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          <p className="text-sm text-muted-foreground">
-            {total} {itemLabel} · {t("admin.page") as string} {page}/{pageCount}
-          </p>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          {total} {itemLabel} · {t("admin.page") as string} {page}/{pageCount}
+        </p>
         <div className="flex items-center gap-3">
           <Pagination>
             <PaginationContent>
@@ -152,6 +129,27 @@ export function PaginationBar({
               </PaginationItem>
             </PaginationContent>
           </Pagination>
+          {onPageSizeChange && (
+            <Select
+              value={String(pageSize)}
+              onValueChange={(v) => onPageSizeChange(Number(v))}
+            >
+              <SelectTrigger
+                size="sm"
+                aria-label={t("admin.pageSize") as string}
+                className="h-7 px-2 text-xs"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {[20, 40, 60].map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
     </div>

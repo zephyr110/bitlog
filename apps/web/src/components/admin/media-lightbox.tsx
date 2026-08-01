@@ -107,9 +107,13 @@ export function MediaLightbox({
       </button>
 
       {/* Image — sized by its long edge to ~90% of the viewport */}
-      <div className="flex flex-1 items-center justify-center overflow-hidden p-4 pt-16 pb-20">
+      <div className="relative flex flex-1 items-center justify-center overflow-hidden p-4 pt-16 pb-20">
         {!imageLoaded && (
-          <Loader2 size={32} className="animate-spin text-white/60" aria-hidden="true" />
+          // Absolute overlay so the spinner is dead-center regardless of
+          // the img's (zero) in-flow size while it loads.
+          <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+            <Loader2 size={32} className="animate-spin text-white/60" />
+          </div>
         )}
         {/* key remounts the img when switching files, so a stale image is
             never shown while the next one loads */}

@@ -81,52 +81,57 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Quick Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon
-          const inner = (
-            <>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Icon size={14} />
-                  {stat.label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
-              </CardContent>
-            </>
-          )
-          return stat.href ? (
-            <Link
-              key={stat.label}
-              href={stat.href}
-              className="block rounded-xl transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <Card className="hover:border-primary/20 transition-colors h-full">
+      {/* Statistics — stat cards + contribution calendar */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">
+          {t("admin.statistics") as string}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat) => {
+            const Icon = stat.icon
+            const inner = (
+              <>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Icon size={14} />
+                    {stat.label}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+                </CardContent>
+              </>
+            )
+            return stat.href ? (
+              <Link
+                key={stat.label}
+                href={stat.href}
+                className="block rounded-xl transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Card className="hover:border-primary/20 transition-colors h-full">
+                  {inner}
+                </Card>
+              </Link>
+            ) : (
+              <Card key={stat.label} className="hover:border-primary/10 transition-colors">
                 {inner}
               </Card>
-            </Link>
-          ) : (
-            <Card key={stat.label} className="hover:border-primary/10 transition-colors">
-              {inner}
-            </Card>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
 
-      {/* Contribution calendar — full width */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">
-            {t("admin.postsCalendar") as string}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <ContributionCalendar posts={posts} />
-        </CardContent>
-      </Card>
+        {/* Contribution calendar — full width */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">
+              {t("admin.postsCalendar") as string}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="overflow-x-auto">
+            <ContributionCalendar posts={posts} />
+          </CardContent>
+        </Card>
+      </section>
 
       {/* Charts */}
       <PostStats posts={posts} />

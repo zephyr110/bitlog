@@ -89,12 +89,14 @@ export async function GET(request: NextRequest) {
         ? toParam
         : undefined
     : undefined
-  const dateFilter = from || to ? { from, to } : undefined
+  // Filename search: case-insensitive substring, trimmed.
+  const q = params.get("q")?.trim() || undefined
+  const filter = from || to || q ? { from, to, q } : undefined
 
   try {
     const [records, total] = await Promise.all([
-      listMedia(pageSize, (page - 1) * pageSize, dateFilter),
-      countMedia(dateFilter),
+      listMedia(pageSize, (page - 1) * pageSize, filter),
+      countMedia(filter),
     ])
     return NextResponse.json({
       images: records.map((record) => ({

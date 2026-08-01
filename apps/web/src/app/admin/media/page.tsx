@@ -16,6 +16,7 @@ import { apiFetch } from "@/lib/api-client"
 import { HeaderActions } from "@/components/admin/header-actions"
 import { PaginationBar } from "@/components/admin/pagination-bar"
 import { MediaLightbox } from "@/components/admin/media-lightbox"
+import { Input } from "@/components/ui/input"
 import { useT } from "@/components/layout/trans"
 import {
   Tooltip,
@@ -23,7 +24,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip"
 import { toast } from "sonner"
-import { ImageIcon, Upload, Copy, FileCode, Trash2, LayoutGrid, List, X } from "lucide-react"
+import { ImageIcon, Upload, Copy, FileCode, Trash2, LayoutGrid, List, X, Search } from "lucide-react"
 import { useLocale } from "@/components/layout/i18n-provider"
 import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { IconButton } from "@/components/ui/icon-button"
@@ -70,11 +71,25 @@ export default function AdminMediaPage() {
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
   const [pageSize, setPageSize] = useState(20)
+  const [searchInput, setSearchInput] = useState("")
+  // Debounced query — the fetch below keys on this, so typing only hits
+  // the API after a pause.
+  const [searchQuery, setSearchQuery] = useState("")
   // Stale-response guard: rapid page changes only let the newest fetch win.
   const fetchSeq = useRef(0)
   // Refetch indicator (page/filter changes) — distinct from `loading`,
   // which only covers the initial skeleton.
   const [refreshing, setRefreshing] = useState(false)
+
+  // Debounce the search input, then reset to page 1 — the [page,
+  // fetchMedia] effect refetches automatically.
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setSearchQuery(searchInput.trim())
+      setPage(1)
+    }, 400)
+    return () => clearTimeout(id)
+  }, [searchInput])
 
   const fetchMedia = useCallback(async (targetPage: number) => {
     const seq = ++fetchSeq.current
@@ -88,6 +103,7 @@ export default function AdminMediaPage() {
       const to = toUtcTimestamp(dateTo, true)
       if (from) params.set("from", from)
       if (to) params.set("to", to)
+      if (searchQuery) params.set("q", searchQuery)
       const res = await apiFetch(`/api/upload?${params}`)
       if (res.ok) {
         const data = await res.json()
@@ -105,7 +121,7 @@ export default function AdminMediaPage() {
         setRefreshing(false)
       }
     }
-  }, [dateFrom, dateTo, pageSize])
+  }, [dateFrom, dateTo, pageSize, searchQuery])
 
   useEffect(() => {
     fetchMedia(page) // eslint-disable-line react-hooks/set-state-in-effect
@@ -277,6 +293,19 @@ export default function AdminMediaPage() {
           className="hidden"
           id="media-file-input"
         />
+        {/* Filename search — debounced, resets to page 1 on query */}
+        <div className="relative">
+          <Search
+            size={14}
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+          />
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder={t("admin.searchMedia") as string}
+            className="h-8 w-44 pl-8 text-xs"
+          />
+        </div>
         {/* Date range filter — one trigger opens a two-month range
             calendar; local dates, converted to exact UTC timestamps on
             the wire */}
@@ -367,7 +396,7 @@ export default function AdminMediaPage() {
         // Skeletons mirror the real card/row layout so the page doesn't
         // jump when the data lands.
         viewMode === "grid" ? (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-x-4 gap-y-5">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="overflow-hidden rounded-xl border bg-card">
                 <Skeleton className="aspect-[4/3] w-full rounded-none" />
@@ -412,7 +441,24 @@ export default function AdminMediaPage() {
         // auto-fill: column count adapts to any viewport width. 200px min
         // keeps tiles in the 200–230px sweet spot for scanning thumbnails
         // (≈ Google Drive tile width); 4:3 image area at 4/3 of the tile.
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
+        // gap-x-4 / gap-y-5: slightly more vertical breathing room so rows
+        // of dense thumbnails don't read as one block.
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-x-4 gap-y-5">
+          {/* Upload tile — first position, same logic as the header button */}
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => document.getElementById("media-file-input")?.click()}
+            className="group flex aspect-[4/3] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/25 bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/30 hover:text-foreground disabled:opacity-60 cursor-pointer"
+          >
+            <Upload
+              size={22}
+              className="transition-transform duration-300 group-hover:scale-110"
+            />
+            <span className="text-xs font-medium">
+              {t("admin.uploadImage") as string}
+            </span>
+          </button>
           {files.map((file) => (
             <Card
               key={file.url}
@@ -489,6 +535,18 @@ export default function AdminMediaPage() {
       ) : (
         // List view — compact rows with small thumbnails
         <div className="space-y-1.5">
+          {/* Upload row — first position, same logic as the header button */}
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => document.getElementById("media-file-input")?.click()}
+            className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-card px-3 py-2.5 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/30 hover:text-foreground disabled:opacity-60 cursor-pointer"
+          >
+            <Upload size={15} />
+            <span className="text-xs font-medium">
+              {t("admin.uploadImage") as string}
+            </span>
+          </button>
           {files.map((file) => (
             <div
               key={file.url}
