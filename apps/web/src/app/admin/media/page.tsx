@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { apiFetch } from "@/lib/api-client"
 import { HeaderActions } from "@/components/admin/header-actions"
+import { MediaLightbox } from "@/components/admin/media-lightbox"
 import { useT } from "@/components/layout/trans"
 import {
   Tooltip,
@@ -21,7 +22,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip"
 import { toast } from "sonner"
-import { ImageIcon, Upload, Copy, FileCode, Trash2, X } from "lucide-react"
+import { ImageIcon, Upload, Copy, FileCode, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface MediaFile {
@@ -238,7 +239,7 @@ export default function AdminMediaPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {files.map((file) => (
             <Card
               key={file.url}
@@ -258,7 +259,7 @@ export default function AdminMediaPage() {
                     setPreviewFile(file)
                   }
                 }}
-                className="block w-full aspect-video bg-muted relative cursor-zoom-in"
+                className="block w-full aspect-square bg-muted relative cursor-zoom-in"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -329,51 +330,15 @@ export default function AdminMediaPage() {
         </div>
       )}
 
-      {/* Full image preview */}
-      <Dialog open={!!previewFile} onOpenChange={(open) => !open && setPreviewFile(null)}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden">
-          <DialogHeader className="sr-only">
-            <DialogTitle>{previewFile?.name}</DialogTitle>
-          </DialogHeader>
-          <div className="relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={previewFile?.url}
-              alt={previewFile?.name || ""}
-              className="w-full max-h-[70vh] object-contain bg-muted"
-            />
-            <button
-              onClick={() => setPreviewFile(null)}
-              className="absolute top-3 right-3 inline-flex items-center justify-center size-8 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition-colors"
-              aria-label="Close"
-            >
-              <X size={16} />
-            </button>
-          </div>
-          <div className="px-4 py-3 flex items-center justify-between gap-3 border-t">
-            <p className="text-sm font-medium truncate">{previewFile?.name}</p>
-            <div className="flex gap-2 shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => previewFile && copyToClipboard(previewFile.url)}
-              >
-                <Copy size={12} className="mr-1" />
-                {t("admin.copyURL") as string}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => previewFile && setDeleteTarget(previewFile)}
-              >
-                <Trash2 size={12} className="mr-1" />
-                {t("admin.deleteImage") as string}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Full image preview — custom lightbox (not Dialog: no width caps,
+          single close button, long-edge sizing, download action) */}
+      <MediaLightbox
+        file={previewFile}
+        onClose={() => setPreviewFile(null)}
+        onCopyUrl={copyToClipboard}
+        onCopyMarkdown={copyMarkdown}
+        onDelete={setDeleteTarget}
+      />
 
       {/* Delete confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
