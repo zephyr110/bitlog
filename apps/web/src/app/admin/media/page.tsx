@@ -76,6 +76,10 @@ export default function AdminMediaPage() {
       const res = await apiFetch("/api/upload", {
         method: "POST",
         body: formData,
+        // Uploads include compression + a GitHub push to a CN-direct
+        // api.github.com — can take 10-60s. The default 15s would abort
+        // mid-flight (server still finishes → "failed" upload that exists).
+        timeout: 120_000,
       })
 
       if (res.ok) {

@@ -41,6 +41,9 @@ function redirectToLogin(): void {
 interface ApiFetchOptions extends RequestInit {
   /** Skip the 401 → login redirect for this request. */
   skipAuthRedirect?: boolean
+  /** Override the default 15s timeout (e.g. image uploads, which include
+   *  compression + a GitHub push and can take 10-60s). */
+  timeout?: number
 }
 
 /**
@@ -55,7 +58,7 @@ export async function apiFetch(
   url: string,
   options: ApiFetchOptions = {}
 ): Promise<Response> {
-  const { skipAuthRedirect = false, ...init } = options
+  const { skipAuthRedirect = false, timeout = REQUEST_TIMEOUT, ...init } = options
   const token = getToken()
   const headers: Record<string, string> = {
     ...(init.headers as Record<string, string>),
@@ -78,8 +81,8 @@ export async function apiFetch(
       // AbortSignal.any merges a caller-provided signal with the timeout.
       signal:
         init.signal && typeof AbortSignal.any === "function"
-          ? AbortSignal.any([init.signal, AbortSignal.timeout(REQUEST_TIMEOUT)])
-          : init.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT),
+          ? AbortSignal.any([init.signal, AbortSignal.timeout(timeout)])
+          : init.signal ?? AbortSignal.timeout(timeout),
     })
   } catch (error) {
     // Network failure or timeout — rethrow so callers can show
