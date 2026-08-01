@@ -89,7 +89,9 @@ export function YearSection({ year, posts, defaultOpen = false }: Props) {
         }`}
       >
         <div className="overflow-hidden">
-          <div className="ml-10 md:ml-12 pl-3 md:pl-4">
+          {/* pr-2 keeps hover translate-x room inside the overflow-hidden
+              collapse container; negative right margin would clip the arrow. */}
+          <div className="ml-10 md:ml-12 pl-3 md:pl-4 pr-2">
             <div className="space-y-0.5 pb-2">
               {posts.map((post, idx) => (
                 <Link
@@ -99,7 +101,7 @@ export function YearSection({ year, posts, defaultOpen = false }: Props) {
                     animationDelay: `${Math.min(idx, 8) * 40}ms`,
                     animationFillMode: "both",
                   }}
-                  className="group/link relative flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg transition-all duration-200 hover:bg-muted/50 hover:translate-x-1 animate-in fade-in slide-in-from-left-2"
+                  className="group/link relative flex items-center gap-3 px-3 py-2.5 -ml-3 rounded-lg transition-all duration-200 hover:bg-muted/50 hover:translate-x-1 animate-in fade-in slide-in-from-left-2"
                 >
                   {/* Connector tick from the timeline rail */}
                   <span className="absolute -left-3 md:-left-4 top-1/2 w-3 md:w-4 h-px bg-border/70 transition-colors duration-200 group-hover/link:bg-primary/40" />
