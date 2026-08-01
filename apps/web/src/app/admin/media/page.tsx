@@ -305,11 +305,15 @@ export default function AdminMediaPage() {
                 }}
                 className="block w-full aspect-[4/3] bg-muted relative cursor-zoom-in"
               >
+                {/* absolute positioning: a percentage-height img would
+                    defeat the container's aspect-ratio (h-full on an img
+                    whose parent height comes from aspect-ratio resolves to
+                    auto → the img's intrinsic ratio wins) */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={file.url}
                   alt={file.name || (t("admin.uploadedImageAlt") as string)}
-                  className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement
