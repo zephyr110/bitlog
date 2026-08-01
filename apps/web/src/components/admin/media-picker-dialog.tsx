@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils"
 import { Spinner } from "@/components/ui/spinner"
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
+import { toast } from "sonner"
 import { ImageIcon, Upload } from "lucide-react"
 
 interface MediaFile {
@@ -31,17 +32,44 @@ interface MediaPickerDialogProps {
   onSelect: (url: string) => void
 }
 
+const ACCEPT =
+  "image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB — mirrors /api/upload
+
+/**
+ * Insert-image dialog with two modes: browse the media library, or upload
+ * a local image directly (compressed + dual-written by /api/upload, then
+ * inserted at the cursor automatically — same flow as picking a library
+ * image).
+ */
 export function MediaPickerDialog({
   open,
   onOpenChange,
   onSelect,
 }: MediaPickerDialogProps) {
   const { t } = useT()
+  const [tab, setTab] = useState<"library" | "upload">("library")
   const [files, setFiles] = useState<MediaFile[]>([])
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [dragActive, setDragActive] = useState(false)
+  const [pendingFile, setPendingFile] = useState<{
+    name: string
+    previewUrl: string
+  } | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  // Tracks whether the dialog is still open when the upload finishes — if
+  // the user closed it mid-upload, don't force-insert, just toast success.
+  const openRef = useRef(open)
+  useEffect(() => {
+    openRef.current = open
+  }, [open])
 
   useEffect(() => {
     if (!open) return
+    // Fresh dialog → library tab, no stale preview.
+    setTab("library") // eslint-disable-line react-hooks/set-state-in-effect -- one-time reset when the dialog opens
+    setPendingFile(null)
     let cancelled = false
 
     async function load() {
@@ -65,9 +93,102 @@ export function MediaPickerDialog({
     }
   }, [open])
 
+  const uploadLocal = useCallback(
+    async (file: File) => {
+      if (!file.type.startsWith("image/")) {
+        toast.error(t("admin.uploadFailed") as string)
+        return
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(t("admin.fileTooLarge") as string)
+        return
+      }
+      setUploading(true)
+      try {
+        const formData = new FormData()
+        formData.append("file", file)
+
+        // Same pipeline as the media page: compress + dual-write to
+        // Turso/GitHub — the server does the heavy lifting.
+        const res = await apiFetch("/api/upload", {
+          method: "POST",
+          body: formData,
+          // Uploads include compression + a GitHub push to a CN-direct
+          // api.github.com — can take 10-60s. The default 15s would abort
+          // mid-flight (server still finishes → "failed" upload that exists).
+          timeout: 120_000,
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          toast.success(t("admin.uploadSuccess") as string)
+          if (openRef.current) {
+            onSelect(data.url)
+            onOpenChange(false)
+          }
+        } else {
+          const err = await res.json()
+          toast.error(err.error || (t("admin.uploadFailed") as string))
+        }
+      } catch {
+        toast.error(t("admin.networkError") as string)
+      } finally {
+        setUploading(false)
+        setPendingFile((prev) => {
+          if (prev) URL.revokeObjectURL(prev.previewUrl)
+          return null
+        })
+        const input = fileInputRef.current
+        if (input) input.value = ""
+      }
+    },
+    [t, onSelect, onOpenChange]
+  )
+
+  const handlePick = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+      // Preview before upload; revoke the object URL when done.
+      setPendingFile({
+        name: file.name,
+        previewUrl: URL.createObjectURL(file),
+      })
+      uploadLocal(file)
+    },
+    [uploadLocal]
+  )
+
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true)
+    } else if (e.type === "dragleave") {
+      setDragActive(false)
+    }
+  }, [])
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setDragActive(false)
+      const file = e.dataTransfer.files?.[0]
+      if (file) {
+        setPendingFile({
+          name: file.name,
+          previewUrl: URL.createObjectURL(file),
+        })
+        uploadLocal(file)
+      }
+    },
+    [uploadLocal]
+  )
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("admin.media") as string}</DialogTitle>
           <DialogDescription>
@@ -75,7 +196,106 @@ export function MediaPickerDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {loading ? (
+        {/* Mode switch — library / local upload */}
+        <div
+          role="tablist"
+          aria-label={t("admin.media") as string}
+          className="flex w-fit items-center rounded-lg border border-border bg-background p-0.5"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "library"}
+            onClick={() => setTab("library")}
+            className={cn(
+              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer",
+              tab === "library"
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {t("admin.mediaLibrary") as string}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "upload"}
+            onClick={() => setTab("upload")}
+            className={cn(
+              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer",
+              tab === "upload"
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {t("admin.uploadLocal") as string}
+          </button>
+        </div>
+
+        {tab === "upload" ? (
+          <div className="space-y-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPT}
+              onChange={handlePick}
+              className="hidden"
+            />
+
+            {uploading || pendingFile ? (
+              /* Pending/uploading — preview + status */
+              <div className="rounded-xl border p-6 text-center">
+                {pendingFile && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                    src={pendingFile.previewUrl}
+                    alt=""
+                    className="mx-auto mb-3 max-h-48 rounded-lg object-contain bg-muted/50"
+                  />
+                )}
+                <p className="mx-auto max-w-full truncate text-sm font-medium">
+                  {pendingFile?.name}
+                </p>
+                {uploading && (
+                  <div className="mt-1.5 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                    <Spinner className="size-4" />
+                    <span>{t("admin.uploading") as string}</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Drop zone */
+              <div
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={cn(
+                  "rounded-xl border-2 border-dashed p-12 text-center transition-colors cursor-pointer",
+                  dragActive
+                    ? "border-primary bg-primary/5"
+                    : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30"
+                )}
+              >
+                <Upload
+                  size={32}
+                  className="mx-auto mb-3 text-muted-foreground"
+                />
+                <p className="font-medium">
+                  {t("admin.dragDropToUpload") as string}
+                </p>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {t("admin.uploadHint") as string}
+                </p>
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground">
+              JPG / PNG / GIF / WebP / SVG · {t("admin.fileTooLarge") as string}
+            </p>
+          </div>
+        ) : loading ? (
           <Spinner className="py-16" />
         ) : files.length === 0 ? (
           <div className="py-16 text-center">
@@ -98,7 +318,7 @@ export function MediaPickerDialog({
             </a>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {files.map((file) => (
               <Tooltip key={file.url}>
                 <TooltipTrigger
