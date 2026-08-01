@@ -183,7 +183,7 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
           style={{ left: tooltip.left, top: tooltip.top }}
         >
           <p className="font-medium">
-            {(t("admin.contributionsOn") as (date: string, n: number) => string)(
+            {(t("admin.postsOn") as (date: string, n: number) => string)(
               monthLabel(new Date(`${tooltip.date}T00:00:00`)),
               tooltip.count
             )}

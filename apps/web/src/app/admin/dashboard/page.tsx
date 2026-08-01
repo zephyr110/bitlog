@@ -142,7 +142,7 @@ export default function AdminDashboardPage() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">
-            {t("admin.contributionCalendar") as string}
+            {t("admin.postsCalendar") as string}
           </CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
