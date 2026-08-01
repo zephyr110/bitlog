@@ -101,15 +101,16 @@ export function MediaPickerDialog({
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {files.map((file) => (
               <Tooltip key={file.url}>
-                <TooltipTrigger>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onSelect(file.url)
-                      onOpenChange(false)
-                    }}
-                    className="group relative aspect-video w-full rounded-lg border overflow-hidden bg-muted hover:border-primary/40 hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
+                <TooltipTrigger
+                  render={
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSelect(file.url)
+                        onOpenChange(false)
+                      }}
+                      className="group relative aspect-video w-full rounded-lg border overflow-hidden bg-muted hover:border-primary/40 hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={file.url}
@@ -126,7 +127,8 @@ export function MediaPickerDialog({
                   </span>
                 </span>
                   </button>
-                </TooltipTrigger>
+                  }
+                />
                 <TooltipContent>{file.name}</TooltipContent>
               </Tooltip>
             ))}

@@ -22,20 +22,22 @@ export function ShareButton({
 
   return (
     <Tooltip>
-      <TooltipTrigger>
-        <IconButton
-          size="sm"
-          bordered
-          aria-label={t("post.shareOnX") as string}
-          onClick={() => {
-            const fullUrl = window.location.origin + url
-            const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(fullUrl)}`
-            window.open(shareUrl, "_blank", "noopener,noreferrer")
-          }}
-        >
-          <Share2 size={14} />
-        </IconButton>
-      </TooltipTrigger>
+      <TooltipTrigger
+        render={
+          <IconButton
+            size="sm"
+            bordered
+            aria-label={t("post.shareOnX") as string}
+            onClick={() => {
+              const fullUrl = window.location.origin + url
+              const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(fullUrl)}`
+              window.open(shareUrl, "_blank", "noopener,noreferrer")
+            }}
+          >
+            <Share2 size={14} />
+          </IconButton>
+        }
+      />
       <TooltipContent>{t("post.shareOnX") as string}</TooltipContent>
     </Tooltip>
   )
@@ -56,16 +58,18 @@ export function CopyLinkButton({ url }: { url: string }) {
 
   return (
     <Tooltip>
-      <TooltipTrigger>
-        <IconButton
-          size="sm"
-          bordered
-          aria-label={t("post.copyLink") as string}
-          onClick={handleCopy}
-        >
-          <Link size={14} />
-        </IconButton>
-      </TooltipTrigger>
+      <TooltipTrigger
+        render={
+          <IconButton
+            size="sm"
+            bordered
+            aria-label={t("post.copyLink") as string}
+            onClick={handleCopy}
+          >
+            <Link size={14} />
+          </IconButton>
+        }
+      />
       <TooltipContent>{t("post.copyLink") as string}</TooltipContent>
     </Tooltip>
   )

@@ -433,18 +433,20 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
                   placeholder={t("admin.coverPlaceholder") as string}
                 />
                 <Tooltip>
-                  <TooltipTrigger>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="shrink-0"
-                      aria-label={t("admin.pickCoverImage") as string}
-                      onClick={() => setCoverPickerOpen(true)}
-                    >
-                      <ImagePlus size={16} />
-                    </Button>
-                  </TooltipTrigger>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0"
+                        aria-label={t("admin.pickCoverImage") as string}
+                        onClick={() => setCoverPickerOpen(true)}
+                      >
+                        <ImagePlus size={16} />
+                      </Button>
+                    }
+                  />
                   <TooltipContent>
                     {t("admin.pickCoverImage") as string}
                   </TooltipContent>
@@ -520,15 +522,17 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
               const Icon = item.icon
               return (
                 <Tooltip key={item.key}>
-                  <TooltipTrigger>
-                    <IconButton
-                      size="sm"
-                      aria-label={t(item.i18nKey) as string}
-                      onClick={() => applyToolbar(item)}
-                    >
-                      <Icon size={15} />
-                    </IconButton>
-                  </TooltipTrigger>
+                  <TooltipTrigger
+                    render={
+                      <IconButton
+                        size="sm"
+                        aria-label={t(item.i18nKey) as string}
+                        onClick={() => applyToolbar(item)}
+                      >
+                        <Icon size={15} />
+                      </IconButton>
+                    }
+                  />
                   <TooltipContent>
                     {t(item.i18nKey) as string}
                   </TooltipContent>
@@ -537,15 +541,17 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
             })}
             <span className="w-px h-5 bg-border mx-1" />
             <Tooltip>
-              <TooltipTrigger>
-                <IconButton
-                  size="sm"
-                  aria-label={t("admin.insertImage") as string}
-                  onClick={() => setImagePickerOpen(true)}
-                >
-                  <ImageIcon size={15} />
-                </IconButton>
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <IconButton
+                    size="sm"
+                    aria-label={t("admin.insertImage") as string}
+                    onClick={() => setImagePickerOpen(true)}
+                  >
+                    <ImageIcon size={15} />
+                  </IconButton>
+                }
+              />
               <TooltipContent>
                 {t("admin.insertImage") as string}
               </TooltipContent>
@@ -553,28 +559,30 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
             <span className="w-px h-5 bg-border mx-1" />
             {/* Collapse/expand preview (desktop split view) */}
             <Tooltip>
-              <TooltipTrigger>
-                <IconButton
-                  size="sm"
-                  aria-label={
-                    previewCollapsed
-                      ? (t("admin.expandPreview") as string)
-                      : (t("admin.collapsePreview") as string)
-                  }
-                  onClick={() => setPreviewCollapsed(!previewCollapsed)}
-                  className={
-                    previewCollapsed
-                      ? "text-primary bg-primary/10 hover:bg-primary/15"
-                      : undefined
-                  }
-                >
-                  {previewCollapsed ? (
-                    <Eye size={15} />
-                  ) : (
-                    <EyeOff size={15} />
-                  )}
-                </IconButton>
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <IconButton
+                    size="sm"
+                    aria-label={
+                      previewCollapsed
+                        ? (t("admin.expandPreview") as string)
+                        : (t("admin.collapsePreview") as string)
+                    }
+                    onClick={() => setPreviewCollapsed(!previewCollapsed)}
+                    className={
+                      previewCollapsed
+                        ? "text-primary bg-primary/10 hover:bg-primary/15"
+                        : undefined
+                    }
+                  >
+                    {previewCollapsed ? (
+                      <Eye size={15} />
+                    ) : (
+                      <EyeOff size={15} />
+                    )}
+                  </IconButton>
+                }
+              />
               <TooltipContent>
                 {previewCollapsed
                   ? (t("admin.expandPreview") as string)

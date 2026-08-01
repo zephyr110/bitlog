@@ -281,9 +281,10 @@ export default function AdminMediaPage() {
           </CardContent>
         </Card>
       ) : viewMode === "grid" ? (
-        // auto-fill: column count adapts to any viewport width; 4:3 tiles
-        // keep the card height of the old 1:1 tiles (187 = 140 × 4/3)
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(187px,1fr))] gap-2.5">
+        // auto-fill: column count adapts to any viewport width. 200px min
+        // keeps tiles in the 200–230px sweet spot for scanning thumbnails
+        // (≈ Google Drive tile width); 4:3 image area at 4/3 of the tile.
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
           {files.map((file) => (
             <Card
               key={file.url}
@@ -336,9 +337,9 @@ export default function AdminMediaPage() {
               </div>
               <CardContent className="p-2 space-y-1.5">
                 <Tooltip>
-                  <TooltipTrigger>
-                    <p className="text-xs font-medium truncate">{file.name}</p>
-                  </TooltipTrigger>
+                  <TooltipTrigger
+                    render={<p className="text-xs font-medium truncate">{file.name}</p>}
+                  />
                   <TooltipContent>{file.name}</TooltipContent>
                 </Tooltip>
                 <MediaRowActions

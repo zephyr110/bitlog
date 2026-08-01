@@ -22,15 +22,17 @@ export function LanguageSwitcher() {
 
   return (
     <Tooltip>
-      <TooltipTrigger>
-        <IconButton
-          onClick={toggle}
-          aria-label={localeLabels[nextLocale]}
-          className="text-xs font-medium"
-        >
-          {locale === "zh" ? "中文" : "EN"}
-        </IconButton>
-      </TooltipTrigger>
+      <TooltipTrigger
+        render={
+          <IconButton
+            onClick={toggle}
+            aria-label={localeLabels[nextLocale]}
+            className="text-xs font-medium"
+          >
+            {locale === "zh" ? "中文" : "EN"}
+          </IconButton>
+        }
+      />
       <TooltipContent>{localeLabels[nextLocale]}</TooltipContent>
     </Tooltip>
   )
