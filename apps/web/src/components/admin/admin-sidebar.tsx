@@ -139,6 +139,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
             <Link
               key={link.href}
               href={link.href}
+              aria-label={collapsed ? (t(link.i18nKey) as string) : undefined}
               className={cn(
                 "group relative flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200",
                 collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5",
@@ -182,17 +183,25 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
         <div className="my-2 mx-3 border-t" />
 
         {/* View Blog - external link */}
-        <Link
-          href="/"
-          target="_blank"
-          className={cn(
-            "group flex items-center gap-3 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-all duration-200",
-            collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
+        <Tooltip>
+          <TooltipTrigger>
+            <Link
+              href="/"
+              target="_blank"
+              aria-label={collapsed ? (t("admin.viewBlog") as string) : undefined}
+              className={cn(
+                "group flex items-center gap-3 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-all duration-200",
+                collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
+              )}
+            >
+              <ExternalLink size={18} className="shrink-0 text-sidebar-foreground/60 group-hover:text-sidebar-foreground transition-colors" />
+              {!collapsed && <span className="truncate">{t("admin.viewBlog") as string}</span>}
+            </Link>
+          </TooltipTrigger>
+          {collapsed && (
+            <TooltipContent>{t("admin.viewBlog") as string}</TooltipContent>
           )}
-        >
-          <ExternalLink size={18} className="shrink-0 text-sidebar-foreground/60 group-hover:text-sidebar-foreground transition-colors" />
-          {!collapsed && <span className="truncate">{t("admin.viewBlog") as string}</span>}
-        </Link>
+        </Tooltip>
         </nav>
       </div>
 

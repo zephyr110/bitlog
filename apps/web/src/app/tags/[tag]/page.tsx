@@ -47,6 +47,7 @@ export default async function TagPage({ params }: TagPageProps) {
         breadcrumb={[
           { href: "/", label: <Trans k="site.home" /> },
           { href: "/", label: <Trans k="site.topics" /> },
+          { href: `/tags/${encodeURIComponent(decodedTag.toLowerCase())}`, label: `#${decodedTag}` },
         ]}
         title={
           <>

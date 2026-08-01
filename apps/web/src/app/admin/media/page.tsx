@@ -246,6 +246,7 @@ export default function AdminMediaPage() {
               <div
                 role="button"
                 tabIndex={0}
+                aria-label={t("admin.viewFullImage") as string}
                 onClick={() => setPreviewFile(file)}
                 onKeyDown={(e) => {
                   // Ignore keydowns from nested interactive elements

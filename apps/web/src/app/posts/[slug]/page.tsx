@@ -211,7 +211,7 @@ export default async function PostPage({ params }: PostPageProps) {
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
           <section className="border-t bg-muted/10">
-            <Container size="md" className="py-12">
+            <Container className="py-12">
               <h2 className="text-2xl font-bold mb-8">
                 <Trans k="post.relatedPosts" />
               </h2>

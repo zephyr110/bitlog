@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 /**
  * Clipboard copy with a transient "copied" state.
@@ -10,6 +10,13 @@ import { useCallback, useRef, useState } from "react"
 export function useCopyToClipboard(resetAfter = 2000) {
   const [copied, setCopied] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  // Clear any pending reset timer on unmount.
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
   const copy = useCallback(
     async (text: string): Promise<boolean> => {

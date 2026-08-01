@@ -36,7 +36,7 @@ export function PageHeader({
               className="flex items-center gap-2 text-sm text-muted-foreground mb-6"
             >
               {breadcrumb.map((item, i) => (
-                <span key={item.href} className="flex items-center gap-2">
+                <span key={`${item.href}-${i}`} className="flex items-center gap-2">
                   {i > 0 && <span className="opacity-40">/</span>}
                   {i === breadcrumb.length - 1 ? (
                     <span className="text-foreground font-medium">
