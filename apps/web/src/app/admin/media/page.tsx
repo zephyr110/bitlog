@@ -22,7 +22,8 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip"
 import { toast } from "sonner"
-import { ImageIcon, Upload, Copy, FileCode, Trash2 } from "lucide-react"
+import { ImageIcon, Upload, Copy, FileCode, Trash2, LayoutGrid, List } from "lucide-react"
+import { IconButton } from "@/components/ui/icon-button"
 import { cn } from "@/lib/utils"
 
 interface MediaFile {
@@ -30,13 +31,15 @@ interface MediaFile {
   url: string
 }
 
+type ViewMode = "grid" | "list"
+
 export default function AdminMediaPage() {
   const { t } = useT()
   const [files, setFiles] = useState<MediaFile[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
-  const [copied, setCopied] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [previewFile, setPreviewFile] = useState<MediaFile | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<MediaFile | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -58,6 +61,19 @@ export default function AdminMediaPage() {
   useEffect(() => {
     fetchMedia() // eslint-disable-line react-hooks/set-state-in-effect
   }, [])
+
+  // Restore the user's last view once mounted (localStorage is client-only;
+  // SSR always renders the grid so there is no hydration mismatch).
+  useEffect(() => {
+    const saved = localStorage.getItem("media-view")
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restore of the saved view on mount
+    if (saved === "grid" || saved === "list") setViewMode(saved)
+  }, [])
+
+  function switchView(mode: ViewMode) {
+    setViewMode(mode)
+    localStorage.setItem("media-view", mode)
+  }
 
   const uploadFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -138,9 +154,7 @@ export default function AdminMediaPage() {
 
   function copyToClipboard(url: string) {
     navigator.clipboard.writeText(fullUrl(url)).then(() => {
-      setCopied(url)
       toast.success(t("admin.urlCopied") as string)
-      setTimeout(() => setCopied(null), 2000)
     })
   }
 
@@ -186,6 +200,30 @@ export default function AdminMediaPage() {
           className="hidden"
           id="media-file-input"
         />
+        <div
+          role="group"
+          aria-label={t("admin.viewMode") as string}
+          className="flex items-center rounded-lg border border-border bg-background p-0.5"
+        >
+          <IconButton
+            size="sm"
+            aria-label={t("admin.gridView") as string}
+            aria-pressed={viewMode === "grid"}
+            className={viewMode === "grid" ? "bg-muted text-foreground" : undefined}
+            onClick={() => switchView("grid")}
+          >
+            <LayoutGrid size={14} />
+          </IconButton>
+          <IconButton
+            size="sm"
+            aria-label={t("admin.listView") as string}
+            aria-pressed={viewMode === "list"}
+            className={viewMode === "list" ? "bg-muted text-foreground" : undefined}
+            onClick={() => switchView("list")}
+          >
+            <List size={14} />
+          </IconButton>
+        </div>
         <Button
           disabled={uploading}
           onClick={() => document.getElementById("media-file-input")?.click()}
@@ -223,7 +261,11 @@ export default function AdminMediaPage() {
       )}
 
       {loading ? (
-        <Spinner className="py-20" />
+        // Vertically centered within the media area (min-h keeps the
+        // layout stable while the library loads).
+        <div className="flex min-h-72 items-center justify-center">
+          <Spinner />
+        </div>
       ) : files.length === 0 ? (
         <Card>
           <CardContent className="py-20 text-center">
@@ -238,8 +280,10 @@ export default function AdminMediaPage() {
             </p>
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      ) : viewMode === "grid" ? (
+        // auto-fill: column count adapts to any viewport width; 4:3 tiles
+        // keep the card height of the old 1:1 tiles (187 = 140 × 4/3)
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(187px,1fr))] gap-2.5">
           {files.map((file) => (
             <Card
               key={file.url}
@@ -259,7 +303,7 @@ export default function AdminMediaPage() {
                     setPreviewFile(file)
                   }
                 }}
-                className="block w-full aspect-square bg-muted relative cursor-zoom-in"
+                className="block w-full aspect-[4/3] bg-muted relative cursor-zoom-in"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -286,46 +330,59 @@ export default function AdminMediaPage() {
                   <Trash2 size={14} />
                 </button>
               </div>
-              <CardContent className="p-3 space-y-2">
+              <CardContent className="p-2 space-y-1.5">
                 <Tooltip>
                   <TooltipTrigger>
-                    <p className="text-sm font-medium truncate">{file.name}</p>
+                    <p className="text-xs font-medium truncate">{file.name}</p>
                   </TooltipTrigger>
                   <TooltipContent>{file.name}</TooltipContent>
                 </Tooltip>
-                <div className="flex gap-1.5">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-7 gap-1"
-                    onClick={() => copyToClipboard(file.url)}
-                  >
-                    <Copy size={12} />
-                    {copied === file.url
-                      ? (t("admin.copied") as string)
-                      : (t("admin.copyURL") as string)}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-7 gap-1"
-                    onClick={() => copyMarkdown(file.url)}
-                  >
-                    <FileCode size={12} />
-                    {t("admin.copyMD") as string}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-7 gap-1 ml-auto text-destructive hover:text-destructive"
-                    onClick={() => setDeleteTarget(file)}
-                  >
-                    <Trash2 size={12} />
-                    {t("admin.deleteImage") as string}
-                  </Button>
-                </div>
+                <MediaRowActions
+                  file={file}
+                  onCopyUrl={copyToClipboard}
+                  onCopyMarkdown={copyMarkdown}
+                  onDelete={setDeleteTarget}
+                />
               </CardContent>
             </Card>
+          ))}
+        </div>
+      ) : (
+        // List view — compact rows with small thumbnails
+        <div className="space-y-1.5">
+          {files.map((file) => (
+            <div
+              key={file.url}
+              className="group flex items-center gap-3 rounded-lg border bg-card px-3 py-2 transition-colors hover:border-primary/20"
+            >
+              <button
+                type="button"
+                aria-label={t("admin.viewFullImage") as string}
+                onClick={() => setPreviewFile(file)}
+                className="shrink-0 cursor-zoom-in"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={file.url}
+                  alt={file.name || (t("admin.uploadedImageAlt") as string)}
+                  className="size-10 rounded-md object-cover bg-muted"
+                  loading="lazy"
+                />
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewFile(file)}
+                className="min-w-0 flex-1 truncate text-left text-sm font-medium cursor-pointer hover:underline"
+              >
+                {file.name}
+              </button>
+              <MediaRowActions
+                file={file}
+                onCopyUrl={copyToClipboard}
+                onCopyMarkdown={copyMarkdown}
+                onDelete={setDeleteTarget}
+              />
+            </div>
           ))}
         </div>
       )}
@@ -369,6 +426,69 @@ export default function AdminMediaPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  )
+}
+
+/** Compact icon action row (copy URL / copy MD / delete), shared by the
+ *  grid cards and the list rows. */
+function MediaRowActions({
+  file,
+  onCopyUrl,
+  onCopyMarkdown,
+  onDelete,
+}: {
+  file: MediaFile
+  onCopyUrl: (url: string) => void
+  onCopyMarkdown: (url: string) => void
+  onDelete: (file: MediaFile) => void
+}) {
+  const { t } = useT()
+  return (
+    <div className="flex items-center gap-0.5 shrink-0">
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <IconButton
+              size="sm"
+              aria-label={t("admin.copyURL") as string}
+              onClick={() => onCopyUrl(file.url)}
+            >
+              <Copy size={14} />
+            </IconButton>
+          }
+        />
+        <TooltipContent>{t("admin.copyURL") as string}</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <IconButton
+              size="sm"
+              aria-label={t("admin.copyMD") as string}
+              onClick={() => onCopyMarkdown(file.url)}
+            >
+              <FileCode size={14} />
+            </IconButton>
+          }
+        />
+        <TooltipContent>{t("admin.copyMD") as string}</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <IconButton
+              size="sm"
+              aria-label={t("admin.deleteImage") as string}
+              className="ml-auto hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => onDelete(file)}
+            >
+              <Trash2 size={14} />
+            </IconButton>
+          }
+        />
+        <TooltipContent>{t("admin.deleteImage") as string}</TooltipContent>
+      </Tooltip>
     </div>
   )
 }
