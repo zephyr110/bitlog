@@ -21,6 +21,12 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
+  // Resolves relative OG/Twitter image URLs against the real domain —
+  // without this Next falls back to localhost, so social embeds would
+  // point at an unreachable URL in production.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://bitlog-ten.vercel.app"
+  ),
   title: {
     default: siteConfig.title,
     template: `%s | ${siteConfig.title}`,
