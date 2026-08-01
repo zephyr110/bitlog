@@ -47,7 +47,7 @@ pnpm install
 Copy the example file and update the values:
 
 ```bash
-cp .env.local.example .env.local
+cd apps/web && cp .env.local.example .env.local
 ```
 
 Required variables:

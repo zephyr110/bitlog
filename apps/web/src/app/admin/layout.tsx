@@ -35,7 +35,9 @@ export default function AdminLayout({
       }
 
       try {
-        const res = await apiFetch("/api/auth/me")
+        // skipAuthRedirect: the layout owns the redirect here, so the
+        // apiFetch 401 interceptor doesn't race it with a hard reload.
+        const res = await apiFetch("/api/auth/me", { skipAuthRedirect: true })
         if (res.ok) {
           const data = await res.json()
           setUser(data.user)

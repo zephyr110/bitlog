@@ -60,6 +60,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           clearToken()
           router.push("/admin/login")
         }
+      } else if (res.status === 401 && data.error === "Unauthorized") {
+        // Session expired (as opposed to a wrong current password) —
+        // send the user back to login instead of showing an error.
+        onOpenChange(false)
+        clearToken()
+        router.push("/admin/login")
       } else {
         toast.error(data.error || (t("admin.currentPasswordWrong") as string))
       }

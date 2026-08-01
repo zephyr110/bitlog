@@ -47,7 +47,7 @@ pnpm install
 复制示例文件并更新配置：
 
 ```bash
-cp .env.local.example .env.local
+cd apps/web && cp .env.local.example .env.local
 ```
 
 必需变量：
@@ -167,21 +167,26 @@ pnpm export
 ## 项目结构
 
 ```
-bitlog/
-├── public/               # 静态资源
-├── scripts/              # 构建辅助脚本
-├── src/
-│   ├── app/              # Next.js App Router 页面
-│   ├── components/       # React 组件
-│   │   ├── admin/        # 后台 UI 组件
-│   │   ├── blog/         # 博客渲染组件
-│   │   ├── layout/       # 页头、主题、国际化
-│   │   └── ui/           # shadcn/ui 组件
-│   ├── lib/              # 工具函数、认证、内容 API
-│   └── types/            # TypeScript 类型定义
-├── .env.local.example    # 环境变量模板
-├── next.config.ts
-├── package.json
+bitlog/                   # pnpm workspace monorepo
+├── apps/
+│   └── web/              # Next.js 应用（博客 + 后台）
+│       ├── src/
+│       │   ├── app/      # App Router 页面 + API 路由
+│       │   ├── components/  # React 组件
+│       │   │   ├── admin/   # 后台 UI 组件
+│       │   │   ├── blog/    # 博客渲染组件
+│       │   │   ├── layout/  # 页头、主题、国际化
+│       │   │   └── ui/      # shadcn/ui 组件
+│       │   └── lib/         # 应用工具（api client、i18n）
+│       ├── content/      # MDX 文章和草稿
+│       ├── public/       # 静态资源
+│       └── .env.local.example
+├── packages/
+│   ├── core/             # 领域模型 + 纯逻辑（类型、slugify、阅读统计）
+│   ├── auth/             # JWT 认证、凭据验证
+│   └── database/         # Turso/libSQL 内容 + 用户层
+├── scripts/              # 仓库级脚本（create-admin）
+├── pnpm-workspace.yaml
 └── README.md
 ```
 

@@ -23,9 +23,12 @@ const requireAuth = createRequire(resolve(root, "packages/auth/package.json"))
 const { createClient } = requireDb("@libsql/client")
 const bcrypt = requireAuth("bcryptjs")
 
-// Load .env.local (simple parser — no dotenv dependency)
-const envPath = resolve(root, ".env.local")
-if (existsSync(envPath)) {
+// Load .env.local from the web app (moved into apps/web by the monorepo
+// migration), falling back to a repo-root copy. Simple parser — no dotenv.
+const envPath = [resolve(root, "apps/web/.env.local"), resolve(root, ".env.local")].find(
+  (p) => existsSync(p)
+)
+if (envPath) {
   for (const line of readFileSync(envPath, "utf-8").split("\n")) {
     const match = line.match(/^([A-Z0-9_]+)=(.*)$/)
     if (match && !(match[1] in process.env)) {

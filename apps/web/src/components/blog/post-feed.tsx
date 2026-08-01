@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
+import { useSearchParams } from "next/navigation"
 import { PostCard } from "@/components/blog/post-card"
 import { useT } from "@/components/layout/trans"
 import { FileText, Search, X } from "lucide-react"
@@ -12,21 +13,31 @@ import { resolveCategory, getCategoryLabel } from "@/lib/categories"
 interface PostFeedProps {
   posts: PostSummary[]
   allTags: string[]
-  initialSearch?: string
 }
 
-export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) {
-  const { t } = useT()
-  const [activeTag, setActiveTag] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState(initialSearch)
+/** Update the ?q= URL param (replaceState — no navigation, no server round-trip). */
+function syncSearchUrl(q: string): void {
+  const url = new URL(window.location.href)
+  const trimmed = q.trim()
+  if (trimmed) url.searchParams.set("q", trimmed)
+  else url.searchParams.delete("q")
+  window.history.replaceState(null, "", url)
+}
 
-  // Read ?q= from the URL on the client — static export cannot use
-  // server-side searchParams, and a mount-effect avoids hydration
-  // mismatches between SSR and client initial state.
-  useEffect(() => {
-    const q = new URLSearchParams(window.location.search).get("q")
-    if (q) setSearchQuery(q)
-  }, [])
+export function PostFeed({ posts, allTags }: PostFeedProps) {
+  const { t } = useT()
+  const searchParams = useSearchParams()
+  const [activeTag, setActiveTag] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+
+  // Keep the search box in sync with ?q= — fires on mount and on any
+  // URL change (e.g. header search submits via router.push).
+  const urlQuery = searchParams?.get("q") ?? ""
+  const [lastUrlQuery, setLastUrlQuery] = useState(urlQuery)
+  if (urlQuery !== lastUrlQuery) {
+    setLastUrlQuery(urlQuery)
+    setSearchQuery(urlQuery)
+  }
 
   const categories = useMemo(
     () => [...new Set(allTags.map(resolveCategory))],
@@ -40,12 +51,13 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
         p.tags.some((tag) => resolveCategory(tag).toLowerCase() === activeTag.toLowerCase())
       )
     }
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
+    const query = searchQuery.trim()
+    if (query) {
+      const q = query.toLowerCase()
       result = result.filter(
         (p) =>
-          p.title.toLowerCase().includes(query) ||
-          p.description.toLowerCase().includes(query)
+          p.title.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q)
       )
     }
     return result
@@ -66,18 +78,17 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
               onChange={(e) => {
                 setSearchQuery(e.target.value)
                 // Keep the URL shareable without a server round-trip.
-                const q = e.target.value.trim()
-                const url = new URL(window.location.href)
-                if (q) url.searchParams.set("q", q)
-                else url.searchParams.delete("q")
-                window.history.replaceState(null, "", url)
+                syncSearchUrl(e.target.value)
               }}
               placeholder={t("site.searchPosts") as string}
               className="pl-9"
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery("")}
+                onClick={() => {
+                  setSearchQuery("")
+                  syncSearchUrl("")
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X size={14} />
@@ -113,6 +124,7 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
             onClick={() => {
               setActiveTag(null)
               setSearchQuery("")
+              syncSearchUrl("")
             }}
             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-xs font-medium text-primary hover:bg-primary/15 transition-all"
           >
