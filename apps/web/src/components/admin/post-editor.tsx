@@ -527,8 +527,9 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
             </button>
           </div>
 
-          {/* Split view (lg+) */}
+          {/* Split view (lg+) — preview on the left, editor on the right */}
           <div className="hidden lg:grid grid-cols-2 gap-4">
+            {previewPanel}
             <Textarea
               ref={desktopContentRef}
               value={content}
@@ -536,7 +537,6 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
               placeholder={t("admin.contentPlaceholder") as string}
               className="font-mono min-h-[400px] lg:min-h-[calc(100vh-24rem)] resize-y"
             />
-            {previewPanel}
           </div>
 
           {/* Tabs (mobile) */}
