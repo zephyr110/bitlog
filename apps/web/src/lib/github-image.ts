@@ -98,17 +98,24 @@ export async function deleteFromGithub(
     fileSha = ((await lookup.json()) as { sha: string }).sha
   }
 
-  const res = await fetch(
-    `${GITHUB_API}/repos/${owner}/${repo}/contents/${path}?branch=${branch()}`,
-    {
-      method: "DELETE",
-      headers: { ...apiHeaders(), "Content-Type": "application/json" },
-      body: JSON.stringify({ message: `delete ${filename}`, sha: fileSha }),
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS)
+  try {
+    const res = await fetch(
+      `${GITHUB_API}/repos/${owner}/${repo}/contents/${path}?branch=${branch()}`,
+      {
+        method: "DELETE",
+        headers: { ...apiHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ message: `delete ${filename}`, sha: fileSha }),
+        signal: controller.signal,
+      }
+    )
+    if (res.status === 404) return // idempotent
+    if (!res.ok) {
+      const body = await res.text().catch(() => "")
+      throw new Error(`GitHub delete failed (${res.status}): ${body.slice(0, 200)}`)
     }
-  )
-  if (res.status === 404) return // idempotent
-  if (!res.ok) {
-    const body = await res.text().catch(() => "")
-    throw new Error(`GitHub delete failed (${res.status}): ${body.slice(0, 200)}`)
+  } finally {
+    clearTimeout(timer)
   }
 }

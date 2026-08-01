@@ -145,10 +145,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // ② GitHub is the delivery layer — roll the DB row back if this fails.
+    // ② GitHub is the delivery layer — roll the DB row back ONLY if the
+    //    push itself fails (otherwise the repo ends up with an orphan file).
     try {
       const { sha } = await uploadToGithub(filename, optimized)
-      await setMediaSha(filename, sha)
+      // Best-effort sha backfill: if this fails, deletes still work via the
+      // Contents API lookup fallback in deleteFromGithub.
+      await setMediaSha(filename, sha).catch((error) => {
+        console.error("Failed to backfill github_sha:", error)
+      })
     } catch (error) {
       console.error("GitHub upload failed:", error)
       await deleteMedia(filename).catch(() => {})
