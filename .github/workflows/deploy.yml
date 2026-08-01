@@ -29,6 +29,7 @@ jobs:
         run: pnpm install
 
       - name: Build static site
+        working-directory: apps/web
         run: pnpm run export
         env:
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
@@ -45,7 +46,7 @@ jobs:
           personal_token: ${{ secrets.GH_PAT }}
           external_repository: zephyr110/zephyr110.github.io
           publish_branch: main
-          publish_dir: ./out
+          publish_dir: apps/web/out
           force_orphan: true
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"

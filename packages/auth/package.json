@@ -8,6 +8,7 @@
   "dependencies": {
     "jose": "^6.2.3",
     "bcryptjs": "^3.0.3",
-    "@bitlog/database": "workspace:*"
+    "@bitlog/database": "workspace:*",
+    "@bitlog/core": "workspace:*"
   }
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { PostCard } from "@/components/blog/post-card"
 import { useT } from "@/components/layout/trans"
 import { FileText, Search, X } from "lucide-react"
@@ -19,6 +19,14 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
   const { t } = useT()
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState(initialSearch)
+
+  // Read ?q= from the URL on the client — static export cannot use
+  // server-side searchParams, and a mount-effect avoids hydration
+  // mismatches between SSR and client initial state.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q")
+    if (q) setSearchQuery(q)
+  }, [])
 
   const categories = useMemo(
     () => [...new Set(allTags.map(resolveCategory))],
@@ -55,7 +63,15 @@ export function PostFeed({ posts, allTags, initialSearch = "" }: PostFeedProps) 
             />
             <Input
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                // Keep the URL shareable without a server round-trip.
+                const q = e.target.value.trim()
+                const url = new URL(window.location.href)
+                if (q) url.searchParams.set("q", q)
+                else url.searchParams.delete("q")
+                window.history.replaceState(null, "", url)
+              }}
               placeholder={t("site.searchPosts") as string}
               className="pl-9"
             />

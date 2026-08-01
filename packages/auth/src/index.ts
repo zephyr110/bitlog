@@ -1,2 +1,2 @@
 export { verifyToken, createToken, verifyLogin, hashPassword } from "./auth"
-export type { AuthUser } from "./types"
+export type { AuthUser } from "@bitlog/core"

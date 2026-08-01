@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose"
 import bcrypt from "bcryptjs"
 import { getUserByUsername } from "@bitlog/database"
-import { type AuthUser } from "./types"
+import { type AuthUser } from "@bitlog/core"
 
 const JWT_EXPIRATION = "7d"
 

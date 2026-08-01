@@ -11,7 +11,7 @@ export {
   getPostsByTag,
 } from "./content"
 export { getUserByUsername, setUserPassword } from "./users"
-export { slugify } from "./slug"
-export { computeReadingStats, toPostSummary } from "./mdx-utils"
-export type { Post, PostSummary } from "./types"
+// Re-export domain logic from core for backwards compatibility.
+export { safeSlug, slugify, computeReadingStats, toPostSummary } from "@bitlog/core"
+export type { Post, PostSummary, AuthUser } from "@bitlog/core"
 export type { UserRecord } from "./users"

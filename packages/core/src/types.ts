@@ -24,3 +24,7 @@ export interface PostSummary {
   wordCount: number
   readingTime: number
 }
+
+export interface AuthUser {
+  username: string
+}

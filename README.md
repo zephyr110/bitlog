@@ -177,21 +177,26 @@ This generates a static site in `out/` that you can deploy to any static host.
 ## Project Structure
 
 ```
-bitlog/
-├── public/               # Static assets
-├── scripts/              # Build helpers
-├── src/
-│   ├── app/              # Next.js App Router pages
-│   ├── components/       # React components
-│   │   ├── admin/        # Admin UI components
-│   │   ├── blog/         # Blog rendering components
-│   │   ├── layout/       # Header, theme, i18n
-│   │   └── ui/           # shadcn/ui components
-│   ├── lib/              # Utilities, auth, content API, DB
-│   └── types/            # TypeScript types
-├── .env.local.example    # Environment variable template
-├── next.config.ts
-├── package.json
+bitlog/                   # pnpm workspace monorepo
+├── apps/
+│   └── web/              # Next.js application (blog + admin)
+│       ├── src/
+│       │   ├── app/      # App Router pages + API routes
+│       │   ├── components/  # React components
+│       │   │   ├── admin/   # Admin UI components
+│       │   │   ├── blog/    # Blog rendering components
+│       │   │   ├── layout/  # Header, theme, i18n
+│       │   │   └── ui/      # shadcn/ui components
+│       │   └── lib/         # App utilities (api client, i18n)
+│       ├── content/      # MDX posts and drafts
+│       ├── public/       # Static assets
+│       └── .env.local.example
+├── packages/
+│   ├── core/             # Domain models + pure logic (types, slugify)
+│   ├── auth/             # JWT auth, credential verification
+│   └── database/         # Turso/libSQL content + users layer
+├── scripts/              # Monorepo-level scripts (create-admin)
+├── pnpm-workspace.yaml
 └── README.md
 ```
 
