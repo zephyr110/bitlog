@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { LanguageSwitcher } from "@/components/layout/language-switcher"
+import { IconButton } from "@/components/ui/icon-button"
 import { siteConfig } from "@/lib/site-config"
 import { useT } from "@/components/layout/trans"
 import {
@@ -176,13 +177,13 @@ export function Header({ categories }: { categories: Category[] }) {
             </a>
 
             {/* Mobile menu toggle */}
-            <button
-              className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted/60 transition-colors md:hidden"
+            <IconButton
+              className="md:hidden"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
+            </IconButton>
           </div>
         </div>
       </header>

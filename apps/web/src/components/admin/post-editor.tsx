@@ -21,6 +21,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip"
+import { IconButton } from "@/components/ui/icon-button"
 import {
   Bold,
   Italic,
@@ -520,14 +521,13 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
               return (
                 <Tooltip key={item.key}>
                   <TooltipTrigger>
-                    <button
-                      type="button"
+                    <IconButton
+                      size="sm"
                       aria-label={t(item.i18nKey) as string}
                       onClick={() => applyToolbar(item)}
-                      className="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                     >
                       <Icon size={15} />
-                    </button>
+                    </IconButton>
                   </TooltipTrigger>
                   <TooltipContent>
                     {t(item.i18nKey) as string}
@@ -538,14 +538,13 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
             <span className="w-px h-5 bg-border mx-1" />
             <Tooltip>
               <TooltipTrigger>
-                <button
-                  type="button"
+                <IconButton
+                  size="sm"
                   aria-label={t("admin.insertImage") as string}
                   onClick={() => setImagePickerOpen(true)}
-                  className="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 >
                   <ImageIcon size={15} />
-                </button>
+                </IconButton>
               </TooltipTrigger>
               <TooltipContent>
                 {t("admin.insertImage") as string}
@@ -555,27 +554,26 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
             {/* Collapse/expand preview (desktop split view) */}
             <Tooltip>
               <TooltipTrigger>
-                <button
-                  type="button"
+                <IconButton
+                  size="sm"
                   aria-label={
                     previewCollapsed
                       ? (t("admin.expandPreview") as string)
                       : (t("admin.collapsePreview") as string)
                   }
                   onClick={() => setPreviewCollapsed(!previewCollapsed)}
-                  className={cn(
-                    "inline-flex items-center justify-center size-8 rounded-md transition-colors",
+                  className={
                     previewCollapsed
                       ? "text-primary bg-primary/10 hover:bg-primary/15"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
+                      : undefined
+                  }
                 >
                   {previewCollapsed ? (
                     <Eye size={15} />
                   ) : (
                     <EyeOff size={15} />
                   )}
-                </button>
+                </IconButton>
               </TooltipTrigger>
               <TooltipContent>
                 {previewCollapsed

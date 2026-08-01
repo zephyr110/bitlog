@@ -7,6 +7,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip"
+import { IconButton } from "@/components/ui/icon-button"
 
 export function LanguageSwitcher() {
   const { locale, setLocale } = useLocale()
@@ -22,13 +23,13 @@ export function LanguageSwitcher() {
   return (
     <Tooltip>
       <TooltipTrigger>
-        <button
+        <IconButton
           onClick={toggle}
           aria-label={localeLabels[nextLocale]}
-          className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted transition-colors text-xs font-medium"
+          className="text-xs font-medium"
         >
           {locale === "zh" ? "中文" : "EN"}
-        </button>
+        </IconButton>
       </TooltipTrigger>
       <TooltipContent>{localeLabels[nextLocale]}</TooltipContent>
     </Tooltip>

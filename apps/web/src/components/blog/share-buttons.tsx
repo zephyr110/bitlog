@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip"
+import { IconButton } from "@/components/ui/icon-button"
 
 export function ShareButton({
   url,
@@ -21,17 +22,18 @@ export function ShareButton({
   return (
     <Tooltip>
       <TooltipTrigger>
-        <button
+        <IconButton
+          size="sm"
+          bordered
           aria-label={t("post.shareOnX") as string}
           onClick={() => {
             const fullUrl = window.location.origin + url
             const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(fullUrl)}`
             window.open(shareUrl, "_blank", "noopener,noreferrer")
           }}
-          className="inline-flex items-center justify-center size-8 rounded-md border hover:bg-muted transition-colors"
         >
           <Share2 size={14} />
-        </button>
+        </IconButton>
       </TooltipTrigger>
       <TooltipContent>{t("post.shareOnX") as string}</TooltipContent>
     </Tooltip>
@@ -53,13 +55,14 @@ export function CopyLinkButton({ url }: { url: string }) {
   return (
     <Tooltip>
       <TooltipTrigger>
-        <button
+        <IconButton
+          size="sm"
+          bordered
           aria-label={t("post.copyLink") as string}
           onClick={handleCopy}
-          className="inline-flex items-center justify-center size-8 rounded-md border hover:bg-muted transition-colors"
         >
           <Link size={14} />
-        </button>
+        </IconButton>
       </TooltipTrigger>
       <TooltipContent>{t("post.copyLink") as string}</TooltipContent>
     </Tooltip>
