@@ -209,8 +209,12 @@ export function PostStats({ posts }: PostStatsProps) {
                     dataKey="tag"
                     tickLine={false}
                     axisLine={false}
-                    width={80}
+                    width={150}
                     tickMargin={8}
+                    tickFormatter={(value: string) =>
+                      value.length > 18 ? `${value.slice(0, 17)}…` : value
+                    }
+                    interval={0}
                   />
                   <ChartTooltip
                     cursor={false}
