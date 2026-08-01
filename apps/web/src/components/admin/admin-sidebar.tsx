@@ -210,13 +210,12 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
               collapsed ? "justify-center px-0 py-2" : "px-2 py-2"
             )}
           >
-            <div className="relative shrink-0">
+            <div className="shrink-0">
               <Avatar className="size-9 ring-2 ring-sidebar-border transition-shadow group-hover:ring-primary/20">
                 <AvatarFallback className="bg-gradient-to-br from-primary/25 via-primary/15 to-primary/5 text-primary font-semibold text-xs">
                   A
                 </AvatarFallback>
               </Avatar>
-              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 ring-[2.5px] ring-sidebar" />
             </div>
             {!collapsed && (
               <>
