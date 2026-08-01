@@ -28,6 +28,8 @@ import {
   Quote,
   ExternalLink,
   ImagePlus,
+  Eye,
+  EyeOff,
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -75,6 +77,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
   const [saving, setSaving] = useState(false)
   const [coverPickerOpen, setCoverPickerOpen] = useState(false)
   const [imagePickerOpen, setImagePickerOpen] = useState(false)
+  const [previewCollapsed, setPreviewCollapsed] = useState(false)
   const desktopContentRef = useRef<HTMLTextAreaElement>(null)
   const mobileContentRef = useRef<HTMLTextAreaElement>(null)
 
@@ -525,11 +528,45 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
             >
               <ImageIcon size={15} />
             </button>
+            <span className="w-px h-5 bg-border mx-1" />
+            {/* Collapse/expand preview (desktop split view) */}
+            <button
+              type="button"
+              title={
+                previewCollapsed
+                  ? (t("admin.expandPreview") as string)
+                  : (t("admin.collapsePreview") as string)
+              }
+              aria-label={
+                previewCollapsed
+                  ? (t("admin.expandPreview") as string)
+                  : (t("admin.collapsePreview") as string)
+              }
+              onClick={() => setPreviewCollapsed(!previewCollapsed)}
+              className={cn(
+                "inline-flex items-center justify-center size-8 rounded-md transition-colors",
+                previewCollapsed
+                  ? "text-primary bg-primary/10 hover:bg-primary/15"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+            >
+              {previewCollapsed ? (
+                <Eye size={15} />
+              ) : (
+                <EyeOff size={15} />
+              )}
+            </button>
           </div>
 
-          {/* Split view (lg+) — preview on the left, editor on the right */}
-          <div className="hidden lg:grid grid-cols-2 gap-4">
-            {previewPanel}
+          {/* Split view (lg+) — preview on the left, editor on the right.
+              The preview pane can be collapsed to give the editor full width. */}
+          <div
+            className={cn(
+              "hidden lg:grid gap-4",
+              previewCollapsed ? "grid-cols-1" : "grid-cols-2"
+            )}
+          >
+            {!previewCollapsed && previewPanel}
             <Textarea
               ref={desktopContentRef}
               value={content}
