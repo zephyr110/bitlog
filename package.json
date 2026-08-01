@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter @bitlog/web dev",
+    "dev:watch": "pnpm --filter @bitlog/web dev:watch",
     "build": "pnpm --filter @bitlog/web build",
     "export": "pnpm --filter @bitlog/web export",
     "start": "pnpm --filter @bitlog/web start",
