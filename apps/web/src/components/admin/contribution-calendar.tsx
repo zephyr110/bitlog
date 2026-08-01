@@ -251,11 +251,6 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
                       })
                     }}
                     onMouseLeave={() => setTooltip(null)}
-                    title={
-                      cell.count > 0 && !isFuture
-                        ? `${monthFmt.format(cell.date)} · ${cell.count}`
-                        : monthFmt.format(cell.date)
-                    }
                     className={cn(
                       "aspect-square w-full rounded-[2px] transition-colors",
                       isFuture
