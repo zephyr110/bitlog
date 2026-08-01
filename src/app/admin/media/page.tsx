@@ -238,9 +238,16 @@ export default function AdminMediaPage() {
               key={file.url}
               className="overflow-hidden group hover:border-primary/20 transition-colors"
             >
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => setPreviewFile(file)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    setPreviewFile(file)
+                  }
+                }}
                 className="block w-full aspect-video bg-muted relative cursor-zoom-in"
                 title={t("admin.viewFullImage") as string}
               >
@@ -257,26 +264,18 @@ export default function AdminMediaPage() {
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                 {/* Delete button on hover */}
-                <span
-                  role="button"
-                  tabIndex={0}
+                <button
+                  type="button"
                   aria-label={t("admin.deleteImage") as string}
                   onClick={(e) => {
                     e.stopPropagation()
                     setDeleteTarget(file)
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setDeleteTarget(file)
-                    }
-                  }}
                   className="absolute top-2 right-2 inline-flex items-center justify-center size-8 rounded-full bg-black/50 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80 cursor-pointer"
                 >
                   <Trash2 size={14} />
-                </span>
-              </button>
+                </button>
+              </div>
               <CardContent className="p-3 space-y-2">
                 <p
                   className="text-sm font-medium truncate"

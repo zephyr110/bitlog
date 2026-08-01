@@ -113,21 +113,6 @@ export async function getUserByUsername(
   }
 }
 
-/** Returns all users (used to detect whether the table is seeded). */
-export async function getAllUsers(): Promise<UserRecord[]> {
-  const db = requireDb()
-  await ensureUsersTable(db)
-
-  const result = await db.execute(
-    "SELECT username, password_hash, updated_at FROM users ORDER BY id"
-  )
-  return result.rows.map((row) => ({
-    username: row.username as string,
-    passwordHash: row.password_hash as string,
-    passwordVersion: row.updated_at as string,
-  }))
-}
-
 /** Updates the password hash for a user; bumps updated_at to invalidate old JWTs. */
 export async function setUserPassword(
   username: string,

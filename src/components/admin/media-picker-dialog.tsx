@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ export function MediaPickerDialog({
   onSelect,
 }: MediaPickerDialogProps) {
   const { t } = useT()
+  const router = useRouter()
   const [files, setFiles] = useState<MediaFile[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -81,9 +83,16 @@ export function MediaPickerDialog({
             <p className="text-muted-foreground text-sm mb-2">
               {t("admin.noImages") as string}
             </p>
-            <a href="/admin/media" className="text-primary text-sm hover:underline">
+            <button
+              type="button"
+              onClick={() => {
+                onOpenChange(false)
+                router.push("/admin/media")
+              }}
+              className="text-primary text-sm hover:underline"
+            >
               {t("admin.goToMedia") as string}
-            </a>
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -128,7 +137,7 @@ export function MediaPickerDialog({
             className="gap-1.5"
             onClick={() => {
               onOpenChange(false)
-              window.location.href = "/admin/media"
+              router.push("/admin/media")
             }}
           >
             <Upload size={14} />

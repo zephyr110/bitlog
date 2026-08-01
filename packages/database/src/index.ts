@@ -10,7 +10,7 @@ export {
   getPostsByCategory,
   getPostsByTag,
 } from "./content"
-export { getUserByUsername, setUserPassword, getAllUsers } from "./users"
+export { getUserByUsername, setUserPassword } from "./users"
 export { slugify } from "./slug"
 export { computeReadingStats, toPostSummary } from "./mdx-utils"
 export type { Post, PostSummary } from "./types"

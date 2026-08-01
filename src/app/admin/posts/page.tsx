@@ -92,6 +92,15 @@ function AdminPostsContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Sync filter when arriving via ?status= query (same-route navigation
+  // does not remount the component, so the initial state would be stale).
+  useEffect(() => {
+    if (initialStatus === "published" || initialStatus === "drafts") {
+      setStatusFilter(initialStatus)
+      setPage(1)
+    }
+  }, [initialStatus])
+
   const filteredPosts = useMemo(() => {
     let result = posts
     if (statusFilter === "published") result = result.filter((p) => !p.draft)

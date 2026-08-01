@@ -50,10 +50,6 @@ async function resolveCredential(
   return null
 }
 
-export function encodePasswordHash(hash: string): string {
-  return Buffer.from(hash).toString("base64")
-}
-
 export async function createToken(user: AuthUser): Promise<string> {
   const credential = await resolveCredential(user.username)
   const version = credential?.version ?? "none"

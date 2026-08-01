@@ -45,21 +45,19 @@ interface ToolbarItem {
   prefix: string
   /** Suffix inserted after selection */
   suffix?: string
-  /** Fallback text when nothing is selected */
-  placeholder?: string
-  /** Treat selection as URL and wrap inline (for link/image) */
+  /** Wrap selection inline (for links) */
   inline?: boolean
 }
 
 const TOOLBAR: ToolbarItem[] = [
-  { key: "bold", i18nKey: "admin.bold", icon: Bold, prefix: "**", suffix: "**", placeholder: "加粗文本" },
-  { key: "italic", i18nKey: "admin.italic", icon: Italic, prefix: "*", suffix: "*", placeholder: "斜体文本" },
-  { key: "heading", i18nKey: "admin.heading", icon: Heading2, prefix: "## ", placeholder: "标题" },
-  { key: "quote", i18nKey: "admin.quote", icon: Quote, prefix: "> ", placeholder: "引用内容" },
-  { key: "ul", i18nKey: "admin.unorderedList", icon: List, prefix: "- ", placeholder: "列表项" },
-  { key: "ol", i18nKey: "admin.orderedList", icon: ListOrdered, prefix: "1. ", placeholder: "列表项" },
-  { key: "code", i18nKey: "admin.codeBlock", icon: Code, prefix: "```\n", suffix: "\n```", placeholder: "代码" },
-  { key: "link", i18nKey: "admin.link", icon: LinkIcon, prefix: "[", suffix: "](https://)", placeholder: "链接文字", inline: true },
+  { key: "bold", i18nKey: "admin.bold", icon: Bold, prefix: "**", suffix: "**" },
+  { key: "italic", i18nKey: "admin.italic", icon: Italic, prefix: "*", suffix: "*" },
+  { key: "heading", i18nKey: "admin.heading", icon: Heading2, prefix: "## " },
+  { key: "quote", i18nKey: "admin.quote", icon: Quote, prefix: "> " },
+  { key: "ul", i18nKey: "admin.unorderedList", icon: List, prefix: "- " },
+  { key: "ol", i18nKey: "admin.orderedList", icon: ListOrdered, prefix: "1. " },
+  { key: "code", i18nKey: "admin.codeBlock", icon: Code, prefix: "```\n", suffix: "\n```" },
+  { key: "link", i18nKey: "admin.link", icon: LinkIcon, prefix: "[", suffix: "](https://)", inline: true },
 ]
 
 export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
@@ -135,17 +133,20 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [])
 
-  // Auto-save draft every 30s when there are unsaved changes
+  // Auto-save draft every 30s when there are unsaved changes.
+  // New posts are excluded — auto-saving would create the post early
+  // and navigate away from the editor mid-typing.
   const autoSavedRef = useRef(false)
   useEffect(() => {
+    if (isNew) return
     const interval = setInterval(() => {
       if (hasUnsavedChanges() && !saving) {
         autoSavedRef.current = true
-        savePostRef.current(false)
+        savePostRef.current(false, true)
       }
     }, 30_000)
     return () => clearInterval(interval)
-  }, [hasUnsavedChanges, saving])
+  }, [hasUnsavedChanges, saving, isNew])
 
   // Word / char count — CJK characters count as words too
   const cjkRegex = /[一-龥぀-ゟ゠-ヿ가-힯]/g
@@ -221,13 +222,12 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     const selected = content.slice(start, end)
 
     if (item.inline) {
-      const inner = selected || item.placeholder || "text"
-      insertAtCursor(item.prefix + inner + item.suffix)
+      const inner = selected || "link text"
+      insertAtCursor(item.prefix + inner + (item.suffix ?? ""))
       return
     }
 
-    const body = selected || item.placeholder || ""
-    insertAtCursor(item.prefix + body + (item.suffix ?? ""))
+    insertAtCursor(item.prefix + selected + (item.suffix ?? ""))
   }
 
   function insertImage(url: string) {
