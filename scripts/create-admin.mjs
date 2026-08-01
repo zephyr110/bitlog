@@ -47,8 +47,13 @@ function parseArgs() {
 }
 
 async function main() {
-  const { username: argUsername, password } = parseArgs()
+  const args = parseArgs()
+  const { username: argUsername, password } = args
 
+  if ("username" in args && !argUsername) {
+    console.error("--username requires a value.")
+    process.exit(1)
+  }
   if (!password) {
     console.error("Usage: node scripts/create-admin.mjs --username <name> --password <password>")
     process.exit(1)
@@ -104,10 +109,15 @@ async function main() {
     }
   } catch (error) {
     console.error("Failed to create/update user:", error.message)
-    process.exit(1)
+    // process.exitCode + normal return lets the finally block run
+    // (process.exit() would skip it, leaking the db connection).
+    process.exitCode = 1
   } finally {
     db.close()
   }
 }
 
-main()
+main().catch((error) => {
+  console.error("Unexpected error:", error.message)
+  process.exit(1)
+})

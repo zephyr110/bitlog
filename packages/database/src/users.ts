@@ -75,6 +75,11 @@ function ensureSeeded(db: Client): Promise<void> {
             "INSERT INTO users (username, password_hash) VALUES (?, ?)",
             [username, hash]
           )
+        } else {
+          console.warn(
+            "[auth] users table is empty and ADMIN_USERNAME/ADMIN_PASSWORD_HASH " +
+              "are not set. Run `pnpm create-admin` to create the first user."
+          )
         }
       }
     })().catch((err) => {
@@ -87,7 +92,11 @@ function ensureSeeded(db: Client): Promise<void> {
 
 // ── Public API ──────────────────────────────────────────────────────────
 
-/** Returns the user record, or null if the database is unavailable. */
+/**
+ * Returns the user record, or null if the user does not exist.
+ * Database errors are logged and also return null so callers surface
+ * a generic "invalid credentials" response.
+ */
 export async function getUserByUsername(
   username: string
 ): Promise<UserRecord | null> {
@@ -107,8 +116,8 @@ export async function getUserByUsername(
       passwordHash: row.password_hash as string,
       passwordVersion: row.updated_at as string,
     }
-  } catch {
-    // Database unavailable — caller falls back to env-based auth.
+  } catch (error) {
+    console.error("[auth] user lookup failed:", error)
     return null
   }
 }

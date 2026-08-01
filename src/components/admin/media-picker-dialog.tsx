@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
@@ -9,7 +8,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { Spinner } from "@/components/ui/spinner"
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
@@ -32,7 +32,6 @@ export function MediaPickerDialog({
   onSelect,
 }: MediaPickerDialogProps) {
   const { t } = useT()
-  const router = useRouter()
   const [files, setFiles] = useState<MediaFile[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -83,16 +82,15 @@ export function MediaPickerDialog({
             <p className="text-muted-foreground text-sm mb-2">
               {t("admin.noImages") as string}
             </p>
-            <button
-              type="button"
-              onClick={() => {
-                onOpenChange(false)
-                router.push("/admin/media")
-              }}
+            {/* Hard navigation on purpose: fires the editor's beforeunload
+                unsaved-changes guard when navigating away with edits. */}
+            <a
+              href="/admin/media"
+              onClick={() => onOpenChange(false)}
               className="text-primary text-sm hover:underline"
             >
               {t("admin.goToMedia") as string}
-            </button>
+            </a>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -131,18 +129,19 @@ export function MediaPickerDialog({
           <p className="text-xs text-muted-foreground">
             {t("admin.mediaPickHint") as string}
           </p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-            onClick={() => {
-              onOpenChange(false)
-              router.push("/admin/media")
-            }}
+          {/* Hard navigation on purpose: fires the editor's beforeunload
+              unsaved-changes guard when navigating away with edits. */}
+          <a
+            href="/admin/media"
+            onClick={() => onOpenChange(false)}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "gap-1.5"
+            )}
           >
             <Upload size={14} />
             {t("admin.uploadImage") as string}
-          </Button>
+          </a>
         </div>
       </DialogContent>
     </Dialog>

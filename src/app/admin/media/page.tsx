@@ -243,6 +243,9 @@ export default function AdminMediaPage() {
                 tabIndex={0}
                 onClick={() => setPreviewFile(file)}
                 onKeyDown={(e) => {
+                  // Ignore keydowns from nested interactive elements
+                  // (e.g. the delete button) so they don't also open preview.
+                  if (e.target !== e.currentTarget) return
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault()
                     setPreviewFile(file)

@@ -244,7 +244,17 @@ function AdminPostsContent() {
               {(["all", "published", "drafts"] as const).map((s) => (
                 <button
                   key={s}
-                  onClick={() => { setStatusFilter(s); setPage(1) }}
+                  onClick={() => {
+                    setStatusFilter(s)
+                    setPage(1)
+                    // Keep the URL in sync so back/forward doesn't
+                    // silently override the user's filter choice.
+                    router.replace(
+                      s === "all"
+                        ? "/admin/posts"
+                        : `/admin/posts?status=${s}`
+                    )
+                  }}
                   className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                     statusFilter === s
                       ? "bg-background text-foreground shadow-sm"

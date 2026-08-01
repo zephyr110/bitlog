@@ -75,7 +75,8 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
   const [saving, setSaving] = useState(false)
   const [coverPickerOpen, setCoverPickerOpen] = useState(false)
   const [imagePickerOpen, setImagePickerOpen] = useState(false)
-  const contentRef = useRef<HTMLTextAreaElement>(null)
+  const desktopContentRef = useRef<HTMLTextAreaElement>(null)
+  const mobileContentRef = useRef<HTMLTextAreaElement>(null)
 
   // Track unsaved changes
   const hasUnsavedChanges = useCallback(() => {
@@ -136,17 +137,29 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
   // Auto-save draft every 30s when there are unsaved changes.
   // New posts are excluded — auto-saving would create the post early
   // and navigate away from the editor mid-typing.
+  // Latest state is read via refs so the interval stays stable
+  // (hasUnsavedChanges changes on every keystroke — a dependency here
+  // would reset the timer continuously and auto-save would never fire
+  // while the user is typing).
+  const hasUnsavedChangesRef = useRef(hasUnsavedChanges)
+  useEffect(() => {
+    hasUnsavedChangesRef.current = hasUnsavedChanges
+  }, [hasUnsavedChanges])
+  const savingRef = useRef(saving)
+  useEffect(() => {
+    savingRef.current = saving
+  }, [saving])
   const autoSavedRef = useRef(false)
   useEffect(() => {
     if (isNew) return
     const interval = setInterval(() => {
-      if (hasUnsavedChanges() && !saving) {
+      if (hasUnsavedChangesRef.current() && !savingRef.current) {
         autoSavedRef.current = true
         savePostRef.current(false, true)
       }
     }, 30_000)
     return () => clearInterval(interval)
-  }, [hasUnsavedChanges, saving, isNew])
+  }, [isNew])
 
   // Word / char count — CJK characters count as words too
   const cjkRegex = /[一-龥぀-ゟ゠-ヿ가-힯]/g
@@ -200,9 +213,17 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     }
   }
 
+  /** The currently visible content textarea (split view vs mobile tabs). */
+  function getActiveTextarea(): HTMLTextAreaElement | null {
+    const isDesktop =
+      typeof window !== "undefined" &&
+      window.matchMedia("(min-width: 1024px)").matches
+    return isDesktop ? desktopContentRef.current : mobileContentRef.current
+  }
+
   /** Insert markdown at the current textarea cursor position. */
   function insertAtCursor(text: string) {
-    const textarea = contentRef.current
+    const textarea = getActiveTextarea()
     const start = textarea?.selectionStart ?? content.length
     const end = textarea?.selectionEnd ?? content.length
     const next = content.slice(0, start) + text + content.slice(end)
@@ -216,13 +237,13 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
   }
 
   function applyToolbar(item: ToolbarItem) {
-    const textarea = contentRef.current
+    const textarea = getActiveTextarea()
     const start = textarea?.selectionStart ?? content.length
     const end = textarea?.selectionEnd ?? content.length
     const selected = content.slice(start, end)
 
     if (item.inline) {
-      const inner = selected || "link text"
+      const inner = selected || (t("admin.linkText") as string)
       insertAtCursor(item.prefix + inner + (item.suffix ?? ""))
       return
     }
@@ -293,6 +314,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
       }
     } finally {
       setSaving(false)
+      autoSavedRef.current = false
     }
   }
 
@@ -508,7 +530,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
           {/* Split view (lg+) */}
           <div className="hidden lg:grid grid-cols-2 gap-4">
             <Textarea
-              ref={contentRef}
+              ref={desktopContentRef}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder={t("admin.contentPlaceholder") as string}
@@ -525,6 +547,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
             </TabsList>
             <TabsContent value="edit">
               <Textarea
+                ref={mobileContentRef}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={t("admin.contentPlaceholder") as string}
