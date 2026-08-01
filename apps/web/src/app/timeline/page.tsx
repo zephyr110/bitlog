@@ -1,8 +1,9 @@
 import { type Metadata } from "next"
-import Link from "next/link"
 import { getPublishedPosts } from "@bitlog/database"
 import { Trans } from "@/components/layout/trans"
 import { defaultLocale, t } from "@/lib/i18n"
+import { PageHeader } from "@/components/layout/page-header"
+import { Container } from "@/components/ui/container"
 import { YearSection } from "./year-section"
 
 export const metadata: Metadata = {
@@ -27,32 +28,16 @@ export default async function TimelinePage() {
 
   return (
     <div className="min-h-[calc(100vh-4rem)]">
-      {/* Header */}
-      <section className="relative border-b bg-muted/10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/3 to-transparent" />
-        <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl relative">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-              <Link href="/" className="hover:text-foreground transition-colors">
-                <Trans k="site.home" />
-              </Link>
-              <span className="opacity-40">/</span>
-              <span className="text-foreground font-medium">
-                <Trans k="timeline.title" />
-              </span>
-            </nav>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
-              <Trans k="timeline.title" />
-            </h1>
-            <p className="text-muted-foreground">
-              {(t(defaultLocale, "timeline.total") as (n: number) => string)(posts.length)}
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHeader
+        breadcrumb={[{ href: "/", label: <Trans k="site.home" /> }]}
+        title={<Trans k="timeline.title" />}
+        description={
+          (t(defaultLocale, "timeline.total") as (n: number) => string)(posts.length)
+        }
+      />
 
       {/* Timeline */}
-      <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl">
+      <Container size="lg">
         <div className="relative">
           {/* Vertical line — centered on the year-dot rail (w-10 md:w-12) */}
           <div className="absolute left-5 md:left-6 top-2 bottom-2 -translate-x-1/2 w-[2px] rounded-full">
@@ -95,7 +80,7 @@ export default async function TimelinePage() {
             </div>
           )}
         </div>
-      </div>
+      </Container>
     </div>
   )
 }

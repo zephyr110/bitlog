@@ -4,6 +4,8 @@ import Link from "next/link"
 import { getPostsByTag, getAllTags } from "@bitlog/database"
 import { PostCard } from "@/components/blog/post-card"
 import { Trans } from "@/components/layout/trans"
+import { PageHeader } from "@/components/layout/page-header"
+import { Container } from "@/components/ui/container"
 import { defaultLocale, t } from "@/lib/i18n"
 
 interface TagPageProps {
@@ -41,35 +43,22 @@ export default async function TagPage({ params }: TagPageProps) {
 
   return (
     <div className="min-h-[calc(100vh-4rem)]">
-      {/* Header */}
-      <section className="relative border-b bg-muted/10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/3 to-transparent" />
-        <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl relative">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-              <Link href="/" className="hover:text-foreground transition-colors">
-                <Trans k="site.home" />
-              </Link>
-              <span className="opacity-40">/</span>
-              <span className="text-foreground/70">
-                <Trans k="site.topics" />
-              </span>
-              <span className="opacity-40">/</span>
-              <span className="text-foreground font-medium">{decodedTag}</span>
-            </nav>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
-              <span className="text-primary">#</span>
-              {decodedTag}
-            </h1>
-            <p className="text-muted-foreground">
-              <Trans k="site.postsCount" args={[posts.length]} />
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHeader
+        breadcrumb={[
+          { href: "/", label: <Trans k="site.home" /> },
+          { href: "/", label: <Trans k="site.topics" /> },
+        ]}
+        title={
+          <>
+            <span className="text-primary">#</span>
+            {decodedTag}
+          </>
+        }
+        description={<Trans k="site.postsCount" args={[posts.length]} />}
+      />
 
       {/* Tags bar */}
-      <div className="container mx-auto px-4 py-6 max-w-5xl 2xl:max-w-7xl">
+      <Container size="sm">
         <div className="flex flex-wrap items-center gap-2">
           {allTags.map((t) => {
             const isActive = t.toLowerCase() === decodedTag.toLowerCase()
@@ -88,10 +77,10 @@ export default async function TagPage({ params }: TagPageProps) {
             )
           })}
         </div>
-      </div>
+      </Container>
 
       {/* Posts */}
-      <div className="container mx-auto px-4 pb-16 max-w-5xl 2xl:max-w-7xl">
+      <Container className="pb-16">
         {posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <h2 className="text-2xl font-semibold mb-2">
@@ -118,7 +107,7 @@ export default async function TagPage({ params }: TagPageProps) {
             ))}
           </div>
         )}
-      </div>
+      </Container>
     </div>
   )
 }

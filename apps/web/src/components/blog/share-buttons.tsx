@@ -9,6 +9,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip"
 import { IconButton } from "@/components/ui/icon-button"
+import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
 
 export function ShareButton({
   url,
@@ -42,12 +43,13 @@ export function ShareButton({
 
 export function CopyLinkButton({ url }: { url: string }) {
   const { t } = useT()
+  const { copy } = useCopyToClipboard()
 
   async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(window.location.origin + url)
+    const ok = await copy(window.location.origin + url)
+    if (ok) {
       toast.success(t("post.linkCopied") as string)
-    } catch {
+    } else {
       toast.error(t("post.copyFailed") as string)
     }
   }

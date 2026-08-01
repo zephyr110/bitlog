@@ -32,9 +32,20 @@ interface PostStatsProps {
   posts: PostSummary[]
 }
 
+/** Shared chart config for both charts (posts count). */
+function buildChartConfig(label: string) {
+  return {
+    count: {
+      label,
+      color: "hsl(var(--primary))",
+    },
+  }
+}
+
 export function PostStats({ posts }: PostStatsProps) {
   const { t } = useT()
   const [timeRange, setTimeRange] = useState<TimeRange>("all")
+  const chartConfig = buildChartConfig(t("admin.posts") as string)
 
   const publishedPosts = useMemo(() => posts.filter((p) => !p.draft), [posts])
 
@@ -120,12 +131,7 @@ export function PostStats({ posts }: PostStatsProps) {
               </div>
             ) : (
               <ChartContainer
-                config={{
-                  count: {
-                    label: t("admin.posts") as string,
-                    color: "hsl(var(--primary))",
-                  },
-                }}
+                config={chartConfig}
                 className="aspect-auto h-[240px] w-full"
               >
                 <AreaChart data={timelineData}>
@@ -187,12 +193,7 @@ export function PostStats({ posts }: PostStatsProps) {
               </div>
             ) : (
               <ChartContainer
-                config={{
-                  count: {
-                    label: t("admin.posts") as string,
-                    color: "hsl(var(--primary))",
-                  },
-                }}
+                config={chartConfig}
                 className="aspect-auto h-[240px] w-full"
               >
                 <BarChart data={tagData} layout="vertical">

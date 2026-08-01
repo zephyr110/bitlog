@@ -3,6 +3,7 @@ import { type Metadata } from "next"
 import Link from "next/link"
 import { getPostsByCategory, getAllTags } from "@bitlog/database"
 import { PostCard } from "@/components/blog/post-card"
+import { Container } from "@/components/ui/container"
 import { Trans } from "@/components/layout/trans"
 import { defaultLocale, t } from "@/lib/i18n"
 import { categoryMeta, categoryKeys, type CategoryKey } from "@/lib/categories"
@@ -74,7 +75,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-6 max-w-5xl 2xl:max-w-7xl space-y-4">
+      <Container size="sm" className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           {knownCategories.map((c) => {
             const cm = categoryMeta[c as CategoryKey]
@@ -115,9 +116,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             })}
           </div>
         )}
-      </div>
+      </Container>
 
-      <div className="container mx-auto px-4 pb-16 max-w-5xl 2xl:max-w-7xl">
+      <Container className="pb-16">
         {posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="flex size-16 items-center justify-center rounded-full bg-muted mb-4">
@@ -147,7 +148,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             ))}
           </div>
         )}
-      </div>
+      </Container>
     </div>
   )
 }

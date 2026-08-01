@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect, type ComponentProps } from "react"
+import { useCallback, useRef, type ComponentProps } from "react"
 import { Check, Copy } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useT } from "@/components/layout/trans"
+import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
 
 interface CodeBlockProps extends ComponentProps<"pre"> {
   "data-language"?: string
@@ -18,15 +19,7 @@ export function CodeBlock({
 }: CodeBlockProps) {
   const { t } = useT()
   const preRef = useRef<HTMLPreElement>(null)
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
-  const [copied, setCopied] = useState(false)
-
-  // Clean up timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
-    }
-  }, [])
+  const { copied, copy } = useCopyToClipboard()
 
   const raw = (props as Record<string, unknown>)
   const title = typeof raw["data-title"] === "string" ? raw["data-title"] as string : undefined
@@ -35,25 +28,8 @@ export function CodeBlock({
   const handleCopy = useCallback(async () => {
     const code = preRef.current?.querySelector("code")
     if (!code) return
-    const text = code.textContent || ""
-
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch {
-      const textarea = document.createElement("textarea")
-      textarea.value = text
-      textarea.style.position = "fixed"
-      textarea.style.opacity = "0"
-      document.body.appendChild(textarea)
-      textarea.select()
-      try { document.execCommand("copy") } catch { /* silent */ }
-      document.body.removeChild(textarea)
-    }
-
-    setCopied(true)
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => setCopied(false), 2000)
-  }, [])
+    await copy(code.textContent || "")
+  }, [copy])
 
   return (
     <div className="group/code relative my-8 rounded-xl border border-zinc-800 overflow-hidden shadow-sm">

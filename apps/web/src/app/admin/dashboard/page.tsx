@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { PostStats } from "@/components/admin/post-stats"
 import { ContributionCalendar } from "@/components/admin/contribution-calendar"
+import { FormattedDate } from "@/components/blog/formatted-date"
 import { CardSkeleton, ListSkeleton } from "@/components/ui/loading"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useT } from "@/components/layout/trans"
@@ -199,8 +200,7 @@ export default function AdminDashboardPage() {
                       {post.title}
                     </Link>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(post.date).toLocaleDateString()} ·{" "}
-                      {post.readingTime}{" "}
+                      <FormattedDate date={post.date} month="short" /> ·{" "}
                       {(t("post.minRead") as (n: number) => string)(post.readingTime)}
                       {post.draft && (
                         <span className="ml-2 text-amber-600 font-medium">
