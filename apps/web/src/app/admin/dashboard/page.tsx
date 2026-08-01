@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { PostStats } from "@/components/admin/post-stats"
+import { ContributionCalendar } from "@/components/admin/contribution-calendar"
 import { CardSkeleton, ListSkeleton } from "@/components/ui/loading"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useT } from "@/components/layout/trans"
@@ -136,6 +137,18 @@ export default function AdminDashboardPage() {
           )
         })}
       </div>
+
+      {/* Contribution calendar — full width */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">
+            {t("admin.contributionCalendar") as string}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <ContributionCalendar posts={posts} />
+        </CardContent>
+      </Card>
 
       {/* Charts */}
       <PostStats posts={posts} />
