@@ -56,8 +56,8 @@ Required variables:
 |----------|-------------|
 | `TURSO_DATABASE_URL` | Turso/libSQL database URL (use `file:./bitlog.db` for local dev) |
 | `TURSO_AUTH_TOKEN` | Turso auth token (only needed for remote databases) |
-| `ADMIN_USERNAME` | Username for the admin panel |
-| `ADMIN_PASSWORD_HASH` | Base64-encoded bcrypt hash of the admin password |
+| `ADMIN_USERNAME` | Username for the admin panel (seeds the `users` table on first login) |
+| `ADMIN_PASSWORD_HASH` | Base64-encoded bcrypt hash of the admin password (seeds the `users` table on first login) |
 | `SESSION_SECRET` | Random secret for signing JWT tokens |
 | `NEXT_PUBLIC_SITE_URL` | Public URL of the site |
 
@@ -78,7 +78,9 @@ Optional Giscus variables for comments:
 
 ### Database Setup
 
-BitLog uses Turso (libSQL) for content storage. For local development without a Turso Cloud account, use a local SQLite file — set `TURSO_DATABASE_URL=file:./bitlog.db` in `.env.local`. The table schema is created automatically on first request.
+BitLog uses Turso (libSQL) for content storage and admin credentials. For local development without a Turso Cloud account, use a local SQLite file — set `TURSO_DATABASE_URL=file:./bitlog.db` in `.env.local`. The table schema is created automatically on first request.
+
+The `users` table stores the admin account (bcrypt hash). On the first login, the table is seeded from `ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH` — changing the password later updates the database (not the env file), so password changes work on Vercel and any serverless deployment. If the database is unreachable, auth falls back to the env credentials.
 
 ### Run Development Server
 

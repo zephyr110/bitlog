@@ -2,7 +2,6 @@ export {
   verifyToken,
   createToken,
   verifyLogin,
-  setPasswordHash,
   encodePasswordHash,
   hashPassword,
 } from "./auth"

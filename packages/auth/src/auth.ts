@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose"
 import bcrypt from "bcryptjs"
+import { getUserByUsername } from "@bitlog/database"
 import { type AuthUser } from "./types"
 
 const JWT_EXPIRATION = "7d"
@@ -23,24 +24,40 @@ function decodePasswordHash(hash: string | undefined): string | undefined {
   }
 }
 
-let currentPasswordHash: string | undefined = decodePasswordHash(
-  process.env.ADMIN_PASSWORD_HASH
-)
+/** Env-based fallback credentials (used when the database is unavailable). */
+function getEnvCredential(): { username: string; hash: string; version: string } | null {
+  const username = process.env.ADMIN_USERNAME
+  const hash = decodePasswordHash(process.env.ADMIN_PASSWORD_HASH)
+  if (!username || !hash) return null
+  return { username, hash, version: hash.slice(0, 8) }
+}
 
-function getPasswordVersion(): string {
-  return (currentPasswordHash || "").slice(0, 8)
+/**
+ * Resolve the password hash + version for a username.
+ * Prefers the database; falls back to env credentials (local dev / DB down).
+ */
+async function resolveCredential(
+  username: string
+): Promise<{ hash: string; version: string } | null> {
+  const dbUser = await getUserByUsername(username)
+  if (dbUser) {
+    return { hash: dbUser.passwordHash, version: dbUser.passwordVersion }
+  }
+  const env = getEnvCredential()
+  if (env && env.username === username) {
+    return { hash: env.hash, version: env.version }
+  }
+  return null
 }
 
 export function encodePasswordHash(hash: string): string {
   return Buffer.from(hash).toString("base64")
 }
 
-export function setPasswordHash(hash: string): void {
-  currentPasswordHash = hash
-}
-
 export async function createToken(user: AuthUser): Promise<string> {
-  return new SignJWT({ username: user.username, pv: getPasswordVersion() })
+  const credential = await resolveCredential(user.username)
+  const version = credential?.version ?? "none"
+  return new SignJWT({ username: user.username, pv: version })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(JWT_EXPIRATION)
@@ -53,8 +70,11 @@ export async function verifyToken(token: string): Promise<AuthUser | null> {
     const username = payload.username
     if (typeof username !== "string" || !username) return null
 
+    const credential = await resolveCredential(username)
+    if (!credential) return null
+
     const pv = payload.pv
-    if (pv !== getPasswordVersion()) return null
+    if (pv !== credential.version) return null
 
     return { username }
   } catch {
@@ -66,19 +86,11 @@ export async function verifyLogin(
   username: string,
   password: string
 ): Promise<AuthUser | null> {
-  const adminUsername = process.env.ADMIN_USERNAME
-  const adminPasswordHash =
-    currentPasswordHash || decodePasswordHash(process.env.ADMIN_PASSWORD_HASH)
+  const credential = await resolveCredential(username)
+  if (!credential) return null
 
-  if (!adminUsername || !adminPasswordHash) return null
-  if (username !== adminUsername) return null
-
-  const isValid = await bcrypt.compare(password, adminPasswordHash)
+  const isValid = await bcrypt.compare(password, credential.hash)
   if (!isValid) return null
-
-  if (!currentPasswordHash) {
-    currentPasswordHash = adminPasswordHash
-  }
 
   return { username }
 }

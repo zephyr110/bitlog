@@ -105,6 +105,9 @@ importers:
 
   packages/auth:
     dependencies:
+      '@bitlog/database':
+        specifier: workspace:*
+        version: link:../database
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
