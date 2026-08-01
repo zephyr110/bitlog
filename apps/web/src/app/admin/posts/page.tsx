@@ -123,6 +123,17 @@ function AdminPostsContent() {
 
   const totalPages = Math.ceil(filteredPosts.length / pageSize)
 
+  // Keep the page in bounds when the list shrinks — deleting a post,
+  // toggling its draft (moves it out of the filtered view), or narrowing
+  // a filter can leave page > totalPages, which renders an empty table
+  // with a bogus "Page N/M" summary. Adjusting state during render is the
+  // React-recommended alternative to setState-in-effect for derived resets.
+  const [prevTotalPages, setPrevTotalPages] = useState(totalPages)
+  if (prevTotalPages !== totalPages) {
+    setPrevTotalPages(totalPages)
+    if (page > totalPages) setPage(Math.max(1, totalPages))
+  }
+
   async function handleDelete() {
     if (!deleteTarget) return
     setDeleting(true)
@@ -396,6 +407,10 @@ function AdminPostsContent() {
               </TableBody>
             </Table>
           </div>
+
+          {/* Clearance so the sticky bar never covers the last row when
+              the page is scrolled to the bottom. */}
+          <div aria-hidden="true" className="h-10" />
 
           {/* Pagination — shared with the media library */}
           <PaginationBar

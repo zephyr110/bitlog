@@ -1,6 +1,5 @@
 "use client"
 
-import { useMemo } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import {
   Pagination,
@@ -18,15 +17,33 @@ import {
 } from "@/components/ui/select"
 import { useT } from "@/components/layout/trans"
 
+/** Compact window: 1 2 3 4 … 12 (start), 1 … 9 10 11 12 (end), else
+ *  1 … page-1 page page+1 … 12 — never more than 7 chips. Module-level
+ *  so the windowing math is unit-testable. */
+function buildPaginationItems(
+  page: number,
+  pageCount: number
+): (number | "ellipsis")[] {
+  if (pageCount <= 5) {
+    return Array.from({ length: pageCount }, (_, i) => i + 1)
+  }
+  if (page <= 3) {
+    return [1, 2, 3, 4, "ellipsis", pageCount]
+  }
+  if (page >= pageCount - 2) {
+    return [1, "ellipsis", pageCount - 3, pageCount - 2, pageCount - 1, pageCount]
+  }
+  return [1, "ellipsis", page - 1, page, page + 1, "ellipsis", pageCount]
+}
+
 /**
  * Shared admin pagination bar — extracted from the posts list page so the
  * media library (and any future admin list) can reuse it.
  *
  * Renders a page-size selector + "{total} {itemLabel} · Page {page}/{totalPages}"
- * on the left and prev / page-number / next controls on the right. Like
- * shadcn's data-table footer it stays visible even with a single page —
- * the count summary is useful info and the layout doesn't jump when the
- * list grows past one page (prev/next are disabled in that state).
+ * on the left and prev / page-number / next controls on the right. Hidden
+ * for single-page (or empty) lists — the count summary belongs in the
+ * page's empty state.
  */
 export function PaginationBar({
   page,
@@ -51,20 +68,9 @@ export function PaginationBar({
   // page chips always have a sane value.
   const pageCount = Math.max(1, totalPages)
 
-  // Compact window: 1 2 3 4 … 12 (start), 1 … 9 10 11 12 (end), else
-  // 1 … page-1 page page+1 … 12 — never more than 7 chips.
-  const paginationItems = useMemo<(number | "ellipsis")[]>(() => {
-    if (pageCount <= 5) {
-      return Array.from({ length: pageCount }, (_, i) => i + 1)
-    }
-    if (page <= 3) {
-      return [1, 2, 3, 4, "ellipsis", pageCount]
-    }
-    if (page >= pageCount - 2) {
-      return [1, "ellipsis", pageCount - 3, pageCount - 2, pageCount - 1, pageCount]
-    }
-    return [1, "ellipsis", page - 1, page, page + 1, "ellipsis", pageCount]
-  }, [page, pageCount])
+  if (pageCount <= 1) return null
+
+  const paginationItems = buildPaginationItems(page, pageCount)
 
   // Sticky footer bar, two regimes:
   // - Long pages (taller than the viewport): sticky bottom-0 pins the bar

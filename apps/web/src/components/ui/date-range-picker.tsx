@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { zhCN, enUS } from "date-fns/locale"
 import { CalendarIcon } from "lucide-react"
 import { type DateRange } from "react-day-picker"
@@ -8,13 +8,7 @@ import { type DateRange } from "react-day-picker"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
-
-function formatDate(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, "0")
-  const day = String(d.getDate()).padStart(2, "0")
-  return `${y}-${m}-${day}`
-}
+import { formatLocalDate } from "@/lib/date"
 
 /**
  * shadcn-style range picker: one trigger showing "from – to" opens a
@@ -41,13 +35,19 @@ export function DateRangePicker({
   locale: "zh" | "en"
 }) {
   const [open, setOpen] = useState(false)
-  const selected: DateRange | undefined =
-    from || to
-      ? {
-          from: from ? new Date(`${from}T00:00:00`) : undefined,
-          to: to ? new Date(`${to}T00:00:00`) : undefined,
-        }
-      : undefined
+  // Stable identity across re-renders — rebuilding the DateRange per
+  // render forces react-day-picker to recompute every day cell whenever
+  // the parent re-renders (drag state, upload progress, view toggles).
+  const selected: DateRange | undefined = useMemo(
+    () =>
+      from || to
+        ? {
+            from: from ? new Date(`${from}T00:00:00`) : undefined,
+            to: to ? new Date(`${to}T00:00:00`) : undefined,
+          }
+        : undefined,
+    [from, to]
+  )
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -84,8 +84,8 @@ export function DateRangePicker({
           selected={selected}
           onSelect={(range) => {
             onChange({
-              from: range?.from ? formatDate(range.from) : "",
-              to: range?.to ? formatDate(range.to) : "",
+              from: range?.from ? formatLocalDate(range.from) : "",
+              to: range?.to ? formatLocalDate(range.to) : "",
             })
           }}
           defaultMonth={selected?.from}

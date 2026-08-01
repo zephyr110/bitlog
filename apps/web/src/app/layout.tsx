@@ -20,13 +20,19 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 })
 
+// Resolves relative OG/Twitter image URLs against the real domain —
+// without this Next falls back to localhost. Derived from siteConfig.siteUrl
+// (single source of truth); guarded so a malformed env value can't crash
+// the build — Next then falls back to the request origin.
+let metadataBase: URL | undefined
+try {
+  metadataBase = new URL(siteConfig.siteUrl)
+} catch {
+  metadataBase = undefined
+}
+
 export const metadata: Metadata = {
-  // Resolves relative OG/Twitter image URLs against the real domain —
-  // without this Next falls back to localhost, so social embeds would
-  // point at an unreachable URL in production.
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://bitlog-ten.vercel.app"
-  ),
+  metadataBase,
   title: {
     default: siteConfig.title,
     template: `%s | ${siteConfig.title}`,

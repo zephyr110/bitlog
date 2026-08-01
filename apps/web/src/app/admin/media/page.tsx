@@ -27,7 +27,9 @@ import { ImageIcon, Upload, Copy, FileCode, Trash2, LayoutGrid, List, X } from "
 import { useLocale } from "@/components/layout/i18n-provider"
 import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { IconButton } from "@/components/ui/icon-button"
+import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
+import { formatUtcDateTime } from "@/lib/date"
 
 interface MediaFile {
   name: string
@@ -47,16 +49,6 @@ function toUtcTimestamp(
   const d = new Date(endOfDay ? `${localDay}T23:59:59` : `${localDay}T00:00:00`)
   if (Number.isNaN(d.getTime())) return undefined
   return d.toISOString().replace("T", " ").slice(0, 19)
-}
-
-/** UTC datetime → local "YYYY-MM-DD" for display. */
-function formatCreatedAt(createdAt: string): string {
-  const d = new Date(`${createdAt.replace(" ", "T")}Z`)
-  if (Number.isNaN(d.getTime())) return createdAt.slice(0, 10)
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, "0")
-  const day = String(d.getDate()).padStart(2, "0")
-  return `${y}-${m}-${day}`
 }
 
 type ViewMode = "grid" | "list"
@@ -80,9 +72,13 @@ export default function AdminMediaPage() {
   const [pageSize, setPageSize] = useState(20)
   // Stale-response guard: rapid page changes only let the newest fetch win.
   const fetchSeq = useRef(0)
+  // Refetch indicator (page/filter changes) — distinct from `loading`,
+  // which only covers the initial skeleton.
+  const [refreshing, setRefreshing] = useState(false)
 
   const fetchMedia = useCallback(async (targetPage: number) => {
     const seq = ++fetchSeq.current
+    setRefreshing(true)
     try {
       const params = new URLSearchParams({
         page: String(targetPage),
@@ -104,7 +100,10 @@ export default function AdminMediaPage() {
     } catch {
       // silent
     } finally {
-      if (seq === fetchSeq.current) setLoading(false)
+      if (seq === fetchSeq.current) {
+        setLoading(false)
+        setRefreshing(false)
+      }
     }
   }, [dateFrom, dateTo, pageSize])
 
@@ -112,26 +111,24 @@ export default function AdminMediaPage() {
     fetchMedia(page) // eslint-disable-line react-hooks/set-state-in-effect
   }, [page, fetchMedia])
 
-  // Date filter changes reset to page 1 and refetch (same pattern as
-  // upload/delete: explicit fetch when already on page 1, setPage otherwise).
+  // Filter/page-size changes reset to page 1 — the [page, fetchMedia]
+  // effect above refetches on its own (fetchMedia's identity changes with
+  // the filter values), so no manual fetch is needed here.
   function updateDateRange(range: { from: string; to: string }) {
     setDateFrom(range.from)
     setDateTo(range.to)
-    if (page === 1) fetchMedia(1)
-    else setPage(1)
+    setPage(1)
   }
 
   function clearDateFilter() {
     setDateFrom("")
     setDateTo("")
-    if (page === 1) fetchMedia(1)
-    else setPage(1)
+    setPage(1)
   }
 
   function changePageSize(next: number) {
     setPageSize(next)
-    if (page === 1) fetchMedia(1)
-    else setPage(1)
+    setPage(1)
   }
 
   // Restore the user's last view once mounted (localStorage is client-only;
@@ -365,6 +362,7 @@ export default function AdminMediaPage() {
         </div>
       )}
 
+      <div className="relative">
       {loading ? (
         // Skeletons mirror the real card/row layout so the page doesn't
         // jump when the data lands.
@@ -476,7 +474,7 @@ export default function AdminMediaPage() {
                   className="text-[11px] text-muted-foreground"
                   title={file.createdAt}
                 >
-                  {file.createdAt ? formatCreatedAt(file.createdAt) : " "}
+                  {file.createdAt ? formatUtcDateTime(file.createdAt) : " "}
                 </p>
                 <MediaRowActions
                   file={file}
@@ -521,7 +519,7 @@ export default function AdminMediaPage() {
                 className="hidden sm:block w-24 shrink-0 text-xs text-muted-foreground text-right"
                 title={file.createdAt}
               >
-                {file.createdAt ? formatCreatedAt(file.createdAt) : ""}
+                {file.createdAt ? formatUtcDateTime(file.createdAt) : ""}
               </span>
               <MediaRowActions
                 file={file}
@@ -533,6 +531,20 @@ export default function AdminMediaPage() {
           ))}
         </div>
       )}
+
+      {/* Refetch indicator — page/filter changes keep the list mounted,
+          just dim it while the new page loads (initial load uses the
+          skeletons above). */}
+      {refreshing && !loading && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/40">
+          <Spinner />
+        </div>
+      )}
+      </div>
+
+      {/* Clearance so the sticky bar never covers the last row when the
+          page is scrolled to the bottom. */}
+      <div aria-hidden="true" className="h-10" />
 
       {/* Pagination — PaginationBar carries its own sticky bottom styling,
           shared with the posts list. */}

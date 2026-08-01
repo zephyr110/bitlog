@@ -25,8 +25,9 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
-        // No padding here — the root already gets p-3 via className above
-        // (declaring it twice doubled the calendar's outer padding).
+        // No padding on root — react-day-picker merges classNames.root and
+        // the className prop onto the SAME element, so declaring p-3 here
+        // too would be redundant (duplicate utilities never stack).
         root: "relative gap-2",
         months: "relative flex flex-col sm:flex-row gap-4",
         month: "flex flex-col gap-4",

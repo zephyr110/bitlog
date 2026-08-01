@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { formatLocalDate } from "@/lib/date"
 
 interface ContributionCalendarProps {
   posts: { date: string }[]
@@ -32,13 +33,6 @@ function getLevel(count: number): number {
   if (count <= 3) return 2
   if (count <= 6) return 3
   return 4
-}
-
-function toKey(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, "0")
-  const day = String(d.getDate()).padStart(2, "0")
-  return `${y}-${m}-${day}`
 }
 
 interface TooltipState {
@@ -65,7 +59,7 @@ function buildWeeks(
     for (let w = 0; w < Math.ceil(totalDays / 7); w++) {
       const column: { date: Date; key: string; count: number }[] = []
       for (let d = 0; d < 7; d++) {
-        const key = toKey(cursor)
+        const key = formatLocalDate(cursor)
         column.push({ date: new Date(cursor), key, count: countsByDay.get(key) || 0 })
         cursor.setDate(cursor.getDate() + 1)
       }
@@ -85,7 +79,7 @@ function buildWeeks(
   for (let w = 0; w < 53; w++) {
     const column: { date: Date; key: string; count: number }[] = []
     for (let d = 0; d < 7; d++) {
-      const key = toKey(cursor)
+      const key = formatLocalDate(cursor)
       column.push({ date: new Date(cursor), key, count: countsByDay.get(key) || 0 })
       cursor.setDate(cursor.getDate() + 1)
     }
