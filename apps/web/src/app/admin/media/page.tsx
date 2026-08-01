@@ -125,8 +125,14 @@ export default function AdminMediaPage() {
     [uploadFile]
   )
 
+  // Backend now returns absolute jsdelivr URLs — only prepend the site
+  // origin for legacy relative paths.
+  function fullUrl(url: string) {
+    return url.startsWith("http") ? url : `${window.location.origin}${url}`
+  }
+
   function copyToClipboard(url: string) {
-    navigator.clipboard.writeText(`${window.location.origin}${url}`).then(() => {
+    navigator.clipboard.writeText(fullUrl(url)).then(() => {
       setCopied(url)
       toast.success(t("admin.urlCopied") as string)
       setTimeout(() => setCopied(null), 2000)
@@ -135,7 +141,7 @@ export default function AdminMediaPage() {
 
   function copyMarkdown(url: string) {
     navigator.clipboard
-      .writeText(`![alt text](${window.location.origin}${url})`)
+      .writeText(`![alt text](${fullUrl(url)})`)
       .then(() => {
         toast.success(t("admin.markdownCopied") as string)
       })

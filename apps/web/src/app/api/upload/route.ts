@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/api-auth"
-import { writeFile, mkdir, readdir, unlink } from "fs/promises"
+import {
+  insertMedia,
+  setMediaSha,
+  listMedia,
+  deleteMedia,
+} from "@bitlog/database"
+import { compressImage } from "@/lib/image-compress"
+import {
+  uploadToGithub,
+  deleteFromGithub,
+  cdnUrl,
+} from "@/lib/github-image"
 import path from "path"
 
 const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"]
@@ -47,25 +58,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const imagesDir = path.join(process.cwd(), "public", "images")
-
   try {
-    const files = await readdir(imagesDir)
-
-    const images = files
-      .filter((file) => {
-        const ext = path.extname(file).toLowerCase()
-        return ALLOWED_EXTENSIONS.includes(ext)
-      })
-      .map((file) => ({
-        name: file,
-        url: `/images/${file}`,
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name))
-
-    return NextResponse.json({ images })
-  } catch {
-    // Directory doesn't exist yet — return empty list
+    const records = await listMedia()
+    return NextResponse.json({
+      images: records.map((record) => ({
+        name: record.name,
+        url: cdnUrl(record.name),
+      })),
+    })
+  } catch (error) {
+    console.error("List media error:", error)
     return NextResponse.json({ images: [] })
   }
 }
@@ -119,17 +121,48 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Compress in memory (jpeg/png → webp; animated gif / svg untouched).
+    const { buffer: optimized, mime, ext } = await compressImage(buffer, file.type)
+
     const timestamp = Date.now()
     const safeName = sanitizeFilename(file.name)
-    const filename = `${timestamp}-${safeName}`
+    const stem = safeName.slice(0, safeName.lastIndexOf("."))
+    const filename = `${timestamp}-${stem}${ext}`
 
-    const uploadDir = path.join(process.cwd(), "public", "images")
-    await mkdir(uploadDir, { recursive: true })
-    const filePath = path.join(uploadDir, filename)
-    await writeFile(filePath, buffer)
+    // ① Turso is the authoritative store — write it first.
+    try {
+      await insertMedia({
+        filename,
+        contentType: mime,
+        size: optimized.length,
+        data: new Uint8Array(optimized),
+      })
+    } catch (error) {
+      console.error("Database write failed:", error)
+      return NextResponse.json(
+        { error: "Database write failed" },
+        { status: 500 }
+      )
+    }
 
-    const url = `/images/${filename}`
-    return NextResponse.json({ url, filename }, { status: 201 })
+    // ② GitHub is the delivery layer — roll the DB row back if this fails.
+    try {
+      const { sha } = await uploadToGithub(filename, optimized)
+      await setMediaSha(filename, sha)
+    } catch (error) {
+      console.error("GitHub upload failed:", error)
+      await deleteMedia(filename).catch(() => {})
+      return NextResponse.json(
+        { error: "GitHub upload failed" },
+        { status: 502 }
+      )
+    }
+
+    // ③ Warm the jsdelivr cache (best-effort, non-blocking). New files are
+    //    usually reachable within a couple of minutes either way.
+    void fetch(cdnUrl(filename), { method: "HEAD" }).catch(() => {})
+
+    return NextResponse.json({ url: cdnUrl(filename), filename }, { status: 201 })
   } catch (error) {
     console.error("Upload error:", error)
     return NextResponse.json(
@@ -154,23 +187,39 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // Path traversal protection — only allow files inside public/images
-    const imagesDir = path.join(process.cwd(), "public", "images")
-    const filePath = path.resolve(imagesDir, filename)
-    if (!filePath.startsWith(imagesDir + path.sep)) {
+    // Plain filename only — white-listed extension, no path segments.
+    const ext = path.extname(filename).toLowerCase()
+    if (
+      !ALLOWED_EXTENSIONS.includes(ext) ||
+      filename.includes("/") ||
+      filename.includes("\\") ||
+      filename.startsWith(".")
+    ) {
       return NextResponse.json({ error: "Invalid filename" }, { status: 400 })
     }
 
-    // Only allow deleting files with image extensions
-    const ext = path.extname(filePath).toLowerCase()
-    if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      return NextResponse.json({ error: "Invalid file type" }, { status: 400 })
+    // Remove from Turso first (returns the row so we can roll back).
+    const record = await deleteMedia(filename)
+    if (!record) {
+      return NextResponse.json({ error: "File not found" }, { status: 404 })
     }
 
+    // Then remove from GitHub; a 404 there is already-gone (idempotent).
     try {
-      await unlink(filePath)
-    } catch {
-      return NextResponse.json({ error: "File not found" }, { status: 404 })
+      await deleteFromGithub(filename, record.githubSha)
+    } catch (error) {
+      console.error("GitHub delete failed:", error)
+      await insertMedia({
+        filename: record.filename,
+        contentType: record.contentType,
+        size: record.size,
+        data: record.data,
+        githubSha: record.githubSha,
+      }).catch(() => {})
+      return NextResponse.json(
+        { error: "GitHub delete failed" },
+        { status: 502 }
+      )
     }
 
     return NextResponse.json({ success: true })

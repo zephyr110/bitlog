@@ -11,6 +11,14 @@ export {
   getPostsByTag,
 } from "./content"
 export { getUserByUsername, setUserPassword } from "./users"
+export {
+  insertMedia,
+  setMediaSha,
+  listMedia,
+  getMediaData,
+  deleteMedia,
+} from "./media"
+export type { MediaRecord, MediaMeta } from "./media"
 // Re-export domain logic from core for backwards compatibility.
 export { safeSlug, slugify, computeReadingStats, toPostSummary } from "@bitlog/core"
 export type { Post, PostSummary, AuthUser } from "@bitlog/core"

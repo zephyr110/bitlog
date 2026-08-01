@@ -60,6 +60,11 @@ Required variables:
 | `ADMIN_PASSWORD_HASH` | Base64-encoded bcrypt hash of the initial admin password — used only to seed the `users` table; can be removed afterwards |
 | `SESSION_SECRET` | Random secret for signing JWT tokens |
 | `NEXT_PUBLIC_SITE_URL` | Public URL of the site |
+| `BLOG_IMG_GITHUB_TOKEN` | Fine-grained GitHub token for the media delivery repo (Contents: Read & write) |
+| `BLOG_IMG_REPO` | Media delivery repo, `owner/repo` (default `zephyr110/blog-img`) |
+| `BLOG_IMG_BRANCH` | Repo branch to push to (default `main`) |
+| `BLOG_IMG_CDN_BASE` | jsdelivr CDN base URL (default `https://cdn.jsdelivr.net/gh/zephyr110/blog-img`) |
+| `BLOG_IMG_QUALITY` | WebP compression quality, 1–100 (default `80`) |
 
 Generate a password hash:
 
@@ -131,6 +136,25 @@ Code blocks support syntax highlighting and a copy button:
 const greeting = "Hello, BitLog!"
 ```
 ````
+
+### Media Upload
+
+Images uploaded in the admin media library (`/admin/media`) use a **dual-write architecture**:
+
+1. **Authoritative store — Turso**: the compressed image is stored as a BLOB in the `media` table.
+2. **Delivery layer — GitHub + jsdelivr**: the same bytes are pushed to the delivery repo (`zephyr110/blog-img` by default) via the Contents API, and the returned link points at jsdelivr's CDN:
+
+```markdown
+![alt text](https://cdn.jsdelivr.net/gh/zephyr110/blog-img/<filename>)
+```
+
+Uploads are compressed in memory with sharp before storage:
+
+- JPEG/PNG → WebP (`BLOG_IMG_QUALITY`, PNG uses lossless)
+- Animated GIF, WebP and SVG pass through untouched
+- Longest edge capped at 4096px
+
+If the delivery repo push fails, the DB row is rolled back and the upload reports an error — the two stores never diverge. A read-only copy is also served at `/api/media/<filename>` from the database as a fallback/export path.
 
 ## Deployment
 
