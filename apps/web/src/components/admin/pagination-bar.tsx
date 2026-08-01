@@ -9,28 +9,40 @@ import {
   PaginationItem,
   PaginationLink,
 } from "@/components/ui/pagination"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useT } from "@/components/layout/trans"
 
 /**
  * Shared admin pagination bar — extracted from the posts list page so the
  * media library (and any future admin list) can reuse it.
  *
- * Renders "{total} {itemLabel} · Page {page}/{totalPages}" on the left and
- * prev / page-number / next controls on the right. Returns null when there
- * is only one page (nothing to paginate).
+ * Renders a page-size selector + "{total} {itemLabel} · Page {page}/{totalPages}"
+ * on the left and prev / page-number / next controls on the right. Returns
+ * null when there is only one page (nothing to paginate).
  */
 export function PaginationBar({
   page,
   totalPages,
   total,
   itemLabel,
+  pageSize,
   onPageChange,
+  onPageSizeChange,
 }: {
   page: number
   totalPages: number
   total: number
   itemLabel: string
+  /** Current page size — shown in the size selector. */
+  pageSize: number
   onPageChange: (page: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }) {
   const { t } = useT()
 
@@ -53,9 +65,32 @@ export function PaginationBar({
 
   return (
     <div className="flex items-center justify-between flex-wrap gap-3">
-      <p className="text-sm text-muted-foreground">
-        {total} {itemLabel} · {t("admin.page") as string} {page}/{totalPages}
-      </p>
+      <div className="flex items-center gap-2">
+        {onPageSizeChange && (
+          <Select
+            value={String(pageSize)}
+            onValueChange={(v) => onPageSizeChange(Number(v))}
+          >
+            <SelectTrigger
+              size="sm"
+              aria-label={t("admin.pageSize") as string}
+              className="h-7 px-2 text-xs"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="start">
+              {[20, 40, 60].map((size) => (
+                <SelectItem key={size} value={String(size)}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <p className="text-sm text-muted-foreground">
+          {total} {itemLabel} · {t("admin.page") as string} {page}/{totalPages}
+        </p>
+      </div>
       <div className="flex items-center gap-3">
         <Pagination>
           <PaginationContent>

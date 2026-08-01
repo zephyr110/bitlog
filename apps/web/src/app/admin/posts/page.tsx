@@ -58,9 +58,9 @@ function AdminPostsContent() {
   )
   const [tagFilter, setTagFilter] = useState<string>("all")
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
   const [deleteTarget, setDeleteTarget] = useState<PostSummary | null>(null)
   const [deleting, setDeleting] = useState(false)
-  const PAGE_SIZE = 20
 
   const allTags = useMemo(
     () => [...new Set(posts.flatMap((p) => p.tags))].sort(),
@@ -117,11 +117,11 @@ function AdminPostsContent() {
   }, [posts, searchQuery, statusFilter, tagFilter])
 
   const paginatedPosts = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE
-    return filteredPosts.slice(start, start + PAGE_SIZE)
-  }, [filteredPosts, page])
+    const start = (page - 1) * pageSize
+    return filteredPosts.slice(start, start + pageSize)
+  }, [filteredPosts, page, pageSize])
 
-  const totalPages = Math.ceil(filteredPosts.length / PAGE_SIZE)
+  const totalPages = Math.ceil(filteredPosts.length / pageSize)
 
   async function handleDelete() {
     if (!deleteTarget) return
@@ -403,7 +403,12 @@ function AdminPostsContent() {
             totalPages={totalPages}
             total={filteredPosts.length}
             itemLabel={t("admin.posts") as string}
+            pageSize={pageSize}
             onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size)
+              setPage(1)
+            }}
           />
         </>
       )}
