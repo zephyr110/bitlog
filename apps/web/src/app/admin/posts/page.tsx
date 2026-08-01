@@ -185,7 +185,7 @@ function AdminPostsContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-1 flex-col space-y-6">
       <HeaderActions>
         <Link
           href="/admin/posts/new"

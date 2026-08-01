@@ -25,17 +25,19 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
-        root: "gap-2 p-3",
-        months: "flex flex-col gap-2",
+        // No padding here — the root already gets p-3 via className above
+        // (declaring it twice doubled the calendar's outer padding).
+        root: "relative gap-2",
+        months: "relative flex flex-col sm:flex-row gap-4",
         month: "flex flex-col gap-4",
         nav: "flex items-center gap-1",
         button_previous: cn(
           buttonVariants({ variant: "outline", size: "sm" }),
-          "absolute left-1 size-7 bg-transparent p-0"
+          "absolute left-1 top-0 size-7 bg-transparent p-0 z-10"
         ),
         button_next: cn(
           buttonVariants({ variant: "outline", size: "sm" }),
-          "absolute right-1 size-7 bg-transparent p-0"
+          "absolute right-1 top-0 size-7 bg-transparent p-0 z-10"
         ),
         month_caption:
           "relative flex items-center justify-center pt-1 text-sm",
@@ -51,8 +53,15 @@ function Calendar({
           "size-8 p-0 font-normal"
         ),
         selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-        today: "bg-accent text-accent-foreground",
+          "rounded-md bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+        // Range mode: middle days form a continuous accent band (the
+        // aria-selected variant out-specifies the plain `selected` styles);
+        // start/end keep the primary fill with a rounded outer corner.
+        range_start: "aria-selected:rounded-l-md",
+        range_middle:
+          "aria-selected:rounded-none aria-selected:bg-accent aria-selected:text-accent-foreground",
+        range_end: "aria-selected:rounded-r-md",
+        today: "bg-accent text-accent-foreground rounded-md",
         outside: "text-muted-foreground opacity-50",
         disabled: "text-muted-foreground opacity-50",
         hidden: "invisible",

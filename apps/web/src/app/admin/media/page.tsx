@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Spinner } from "@/components/ui/spinner"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Dialog,
   DialogContent,
@@ -25,7 +25,7 @@ import {
 import { toast } from "sonner"
 import { ImageIcon, Upload, Copy, FileCode, Trash2, LayoutGrid, List, X } from "lucide-react"
 import { useLocale } from "@/components/layout/i18n-provider"
-import { DatePicker } from "@/components/ui/date-picker"
+import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { IconButton } from "@/components/ui/icon-button"
 import { cn } from "@/lib/utils"
 
@@ -114,14 +114,9 @@ export default function AdminMediaPage() {
 
   // Date filter changes reset to page 1 and refetch (same pattern as
   // upload/delete: explicit fetch when already on page 1, setPage otherwise).
-  function updateDateFrom(value: string) {
-    setDateFrom(value)
-    if (page === 1) fetchMedia(1)
-    else setPage(1)
-  }
-
-  function updateDateTo(value: string) {
-    setDateTo(value)
+  function updateDateRange(range: { from: string; to: string }) {
+    setDateFrom(range.from)
+    setDateTo(range.to)
     if (page === 1) fetchMedia(1)
     else setPage(1)
   }
@@ -276,7 +271,7 @@ export default function AdminMediaPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-1 flex-col space-y-6">
       <HeaderActions>
         <input
           type="file"
@@ -285,24 +280,16 @@ export default function AdminMediaPage() {
           className="hidden"
           id="media-file-input"
         />
-        {/* Date range filter — local dates, converted to exact UTC
-            timestamps on the wire */}
+        {/* Date range filter — one trigger opens a two-month range
+            calendar; local dates, converted to exact UTC timestamps on
+            the wire */}
         <div className="flex items-center gap-1.5">
-          <DatePicker
-            value={dateFrom}
-            onChange={updateDateFrom}
-            ariaLabel={t("admin.fromDate") as string}
-            placeholder={t("admin.fromDate") as string}
-            locale={locale === "zh" ? "zh" : "en"}
-          />
-          <span className="text-xs text-muted-foreground" aria-hidden="true">
-            –
-          </span>
-          <DatePicker
-            value={dateTo}
-            onChange={updateDateTo}
-            ariaLabel={t("admin.toDate") as string}
-            placeholder={t("admin.toDate") as string}
+          <DateRangePicker
+            from={dateFrom}
+            to={dateTo}
+            onChange={updateDateRange}
+            ariaLabel={t("admin.dateRange") as string}
+            placeholder={t("admin.dateRange") as string}
             locale={locale === "zh" ? "zh" : "en"}
           />
           {(dateFrom || dateTo) && (
@@ -315,16 +302,19 @@ export default function AdminMediaPage() {
             </IconButton>
           )}
         </div>
+        {/* Segmented view toggle — fixed h-8 to match the date picker and
+            upload button; inner buttons fill the container's inner height
+            (32px − border − p-0.5 ≈ 26px). */}
         <div
           role="group"
           aria-label={t("admin.viewMode") as string}
-          className="flex items-center rounded-lg border border-border bg-background p-0.5"
+          className="flex h-8 items-center rounded-lg border border-border bg-background p-0.5"
         >
           <IconButton
             size="sm"
             aria-label={t("admin.gridView") as string}
             aria-pressed={viewMode === "grid"}
-            className={viewMode === "grid" ? "bg-muted text-foreground" : undefined}
+            className={cn("h-full w-7", viewMode === "grid" && "bg-muted text-foreground")}
             onClick={() => switchView("grid")}
           >
             <LayoutGrid size={14} />
@@ -333,7 +323,7 @@ export default function AdminMediaPage() {
             size="sm"
             aria-label={t("admin.listView") as string}
             aria-pressed={viewMode === "list"}
-            className={viewMode === "list" ? "bg-muted text-foreground" : undefined}
+            className={cn("h-full w-7", viewMode === "list" && "bg-muted text-foreground")}
             onClick={() => switchView("list")}
           >
             <List size={14} />
@@ -376,11 +366,36 @@ export default function AdminMediaPage() {
       )}
 
       {loading ? (
-        // Vertically centered within the media area (min-h keeps the
-        // layout stable while the library loads).
-        <div className="flex min-h-72 items-center justify-center">
-          <Spinner />
-        </div>
+        // Skeletons mirror the real card/row layout so the page doesn't
+        // jump when the data lands.
+        viewMode === "grid" ? (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-xl border bg-card">
+                <Skeleton className="aspect-[4/3] w-full rounded-none" />
+                <div className="p-2 space-y-1.5">
+                  <Skeleton className="h-3.5 w-3/4" />
+                  <Skeleton className="h-3 w-1/3" />
+                  <Skeleton className="h-7 w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2"
+              >
+                <Skeleton className="size-10 shrink-0 rounded-md" />
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="hidden sm:block h-3.5 w-24" />
+                <Skeleton className="h-7 w-20" />
+              </div>
+            ))}
+          </div>
+        )
       ) : files.length === 0 ? (
         <Card>
           <CardContent className="py-20 text-center">
@@ -399,7 +414,7 @@ export default function AdminMediaPage() {
         // auto-fill: column count adapts to any viewport width. 200px min
         // keeps tiles in the 200–230px sweet spot for scanning thumbnails
         // (≈ Google Drive tile width); 4:3 image area at 4/3 of the tile.
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
           {files.map((file) => (
             <Card
               key={file.url}
@@ -519,23 +534,17 @@ export default function AdminMediaPage() {
         </div>
       )}
 
-      {/* Pagination — fixed to the bottom of the viewport while scrolling
-          (sticky + backdrop, mirroring the admin header). Negative margins
-          cancel the content area's p-4 md:p-8 so the border runs edge to
-          edge. */}
-      {totalPages > 1 && (
-        <div className="sticky bottom-0 z-10 -mx-4 md:-mx-8 border-t bg-background/80 px-4 py-3 backdrop-blur md:px-8">
-          <PaginationBar
-            page={page}
-            totalPages={totalPages}
-            total={total}
-            itemLabel={t("admin.media") as string}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            onPageSizeChange={changePageSize}
-          />
-        </div>
-      )}
+      {/* Pagination — PaginationBar carries its own sticky bottom styling,
+          shared with the posts list. */}
+      <PaginationBar
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        itemLabel={t("admin.images") as string}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={changePageSize}
+      />
 
       {/* Full image preview — custom lightbox (not Dialog: no width caps,
           single close button, long-edge sizing, download action) */}

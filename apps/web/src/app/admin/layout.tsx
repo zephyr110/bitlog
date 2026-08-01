@@ -114,7 +114,11 @@ export default function AdminLayout({
           {/* Page primary actions portaled in via <HeaderActions /> */}
           <div id="admin-header-actions" className="ml-auto flex items-center gap-2" />
         </header>
-        <div className="p-4 md:p-8">{children}</div>
+        {/* Flex column with viewport-minus-header min height: pages that
+            render a PaginationBar stretch (flex-1) so the bar's mt-auto
+            pins it to the viewport bottom even on short pages; on long
+            pages the bar's own sticky bottom-0 takes over. */}
+        <div className="flex min-h-[calc(100vh-3.5rem)] flex-col p-4 md:p-8">{children}</div>
       </div>
     </div>
   )
