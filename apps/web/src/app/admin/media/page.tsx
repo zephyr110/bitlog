@@ -23,8 +23,9 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip"
 import { toast } from "sonner"
-import { ImageIcon, Upload, Copy, FileCode, Trash2, LayoutGrid, List, X, CalendarIcon } from "lucide-react"
+import { ImageIcon, Upload, Copy, FileCode, Trash2, LayoutGrid, List, X } from "lucide-react"
 import { useLocale } from "@/components/layout/i18n-provider"
+import { DatePicker } from "@/components/ui/date-picker"
 import { IconButton } from "@/components/ui/icon-button"
 import { cn } from "@/lib/utils"
 
@@ -58,52 +59,6 @@ function formatCreatedAt(createdAt: string): string {
   return `${y}-${m}-${day}`
 }
 
-/**
- * Date input whose display is fully controlled: the native
- * <input type="date"> renders its placeholder/format in the BROWSER's
- * language, which ignores the page locale — so a text layer shows the
- * fixed "YYYY-MM-DD" value (or the i18n placeholder) while the invisible
- * native input on top provides the calendar picker. The input's `lang`
- * attribute makes the calendar popup follow the page language.
- */
-function LocalDateInput({
-  value,
-  onChange,
-  ariaLabel,
-  locale,
-}: {
-  value: string
-  onChange: (value: string) => void
-  ariaLabel: string
-  locale: string
-}) {
-  return (
-    <div className="relative h-8">
-      <div
-        className={cn(
-          "pointer-events-none flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-2 text-xs",
-          value ? "text-foreground" : "text-muted-foreground"
-        )}
-      >
-        <span className="truncate">{value || ariaLabel}</span>
-        <CalendarIcon
-          size={12}
-          className="shrink-0 text-muted-foreground"
-          aria-hidden="true"
-        />
-      </div>
-      <input
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-label={ariaLabel}
-        lang={locale === "zh" ? "zh-CN" : "en"}
-        className="absolute inset-0 size-full cursor-pointer opacity-0"
-      />
-    </div>
-  )
-}
-
 type ViewMode = "grid" | "list"
 
 export default function AdminMediaPage() {
@@ -122,18 +77,16 @@ export default function AdminMediaPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
+  const [pageSize, setPageSize] = useState(20)
   // Stale-response guard: rapid page changes only let the newest fetch win.
   const fetchSeq = useRef(0)
-
-  // ~4 rows of the ~200px grid tiles on a 1440px screen.
-  const PAGE_SIZE = 24
 
   const fetchMedia = useCallback(async (targetPage: number) => {
     const seq = ++fetchSeq.current
     try {
       const params = new URLSearchParams({
         page: String(targetPage),
-        pageSize: String(PAGE_SIZE),
+        pageSize: String(pageSize),
       })
       const from = toUtcTimestamp(dateFrom, false)
       const to = toUtcTimestamp(dateTo, true)
@@ -153,7 +106,7 @@ export default function AdminMediaPage() {
     } finally {
       if (seq === fetchSeq.current) setLoading(false)
     }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, pageSize])
 
   useEffect(() => {
     fetchMedia(page) // eslint-disable-line react-hooks/set-state-in-effect
@@ -176,6 +129,12 @@ export default function AdminMediaPage() {
   function clearDateFilter() {
     setDateFrom("")
     setDateTo("")
+    if (page === 1) fetchMedia(1)
+    else setPage(1)
+  }
+
+  function changePageSize(next: number) {
+    setPageSize(next)
     if (page === 1) fetchMedia(1)
     else setPage(1)
   }
@@ -329,20 +288,22 @@ export default function AdminMediaPage() {
         {/* Date range filter — local dates, converted to exact UTC
             timestamps on the wire */}
         <div className="flex items-center gap-1.5">
-          <LocalDateInput
+          <DatePicker
             value={dateFrom}
             onChange={updateDateFrom}
             ariaLabel={t("admin.fromDate") as string}
-            locale={locale}
+            placeholder={t("admin.fromDate") as string}
+            locale={locale === "zh" ? "zh" : "en"}
           />
           <span className="text-xs text-muted-foreground" aria-hidden="true">
             –
           </span>
-          <LocalDateInput
+          <DatePicker
             value={dateTo}
             onChange={updateDateTo}
             ariaLabel={t("admin.toDate") as string}
-            locale={locale}
+            placeholder={t("admin.toDate") as string}
+            locale={locale === "zh" ? "zh" : "en"}
           />
           {(dateFrom || dateTo) && (
             <IconButton
@@ -569,7 +530,9 @@ export default function AdminMediaPage() {
             totalPages={totalPages}
             total={total}
             itemLabel={t("admin.media") as string}
+            pageSize={pageSize}
             onPageChange={setPage}
+            onPageSizeChange={changePageSize}
           />
         </div>
       )}
