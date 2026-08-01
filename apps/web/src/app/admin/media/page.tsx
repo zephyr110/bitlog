@@ -14,6 +14,11 @@ import {
 } from "@/components/ui/dialog"
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip"
 import { toast } from "sonner"
 import { ImageIcon, Upload, Copy, FileCode, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -252,7 +257,6 @@ export default function AdminMediaPage() {
                   }
                 }}
                 className="block w-full aspect-video bg-muted relative cursor-zoom-in"
-                title={t("admin.viewFullImage") as string}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -280,12 +284,12 @@ export default function AdminMediaPage() {
                 </button>
               </div>
               <CardContent className="p-3 space-y-2">
-                <p
-                  className="text-sm font-medium truncate"
-                  title={file.name}
-                >
-                  {file.name}
-                </p>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <p className="text-sm font-medium truncate">{file.name}</p>
+                  </TooltipTrigger>
+                  <TooltipContent>{file.name}</TooltipContent>
+                </Tooltip>
                 <div className="flex gap-1.5">
                   <Button
                     variant="outline"

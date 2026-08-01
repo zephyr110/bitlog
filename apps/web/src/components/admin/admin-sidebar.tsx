@@ -7,6 +7,11 @@ import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import { clearToken } from "@/lib/api-client"
 import { SettingsDialog } from "@/components/admin/settings-dialog"
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip"
 import { siteConfig } from "@/lib/site-config"
 import { useLocale } from "@/components/layout/i18n-provider"
 import { useT } from "@/components/layout/trans"
@@ -130,11 +135,10 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
             pathname === link.href ||
             (link.href !== "/admin/dashboard" && pathname?.startsWith(link.href))
 
-          return (
+          const linkEl = (
             <Link
               key={link.href}
               href={link.href}
-              title={collapsed ? (t(link.i18nKey) as string) : undefined}
               className={cn(
                 "group relative flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200",
                 collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5",
@@ -160,6 +164,18 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
               )}
             </Link>
           )
+          // Collapsed sidebar: show the label as a tooltip instead of a
+          // native title attribute.
+          return collapsed ? (
+            <Tooltip key={link.href}>
+              <TooltipTrigger>{linkEl}</TooltipTrigger>
+              <TooltipContent>
+                {t(link.i18nKey) as string}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            linkEl
+          )
         })}
 
         {/* Divider */}
@@ -169,7 +185,6 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
         <Link
           href="/"
           target="_blank"
-          title={collapsed ? (t("admin.viewBlog") as string) : undefined}
           className={cn(
             "group flex items-center gap-3 rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-all duration-200",
             collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
@@ -190,7 +205,11 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
             "flex items-center gap-3 w-full rounded-lg text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-all duration-200",
             collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5"
           )}
-          title={collapsed ? (t("admin.expand") as string) : (t("admin.collapse") as string)}
+          aria-label={
+            collapsed
+              ? (t("admin.expand") as string)
+              : (t("admin.collapse") as string)
+          }
         >
           <ChevronLeft
             size={18}
@@ -275,13 +294,19 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                   <button
                     key={mode}
                     onClick={() => setTheme(mode)}
+                    aria-label={
+                      mode === "light"
+                        ? (t("admin.light") as string)
+                        : mode === "dark"
+                          ? (t("admin.dark") as string)
+                          : (t("admin.system") as string)
+                    }
                     className={cn(
                       "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200",
                       currentTheme === mode
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     )}
-                    title={mode === "light" ? (t("admin.light") as string) : mode === "dark" ? (t("admin.dark") as string) : (t("admin.system") as string)}
                   >
                     <Icon size={14} />
                     <span className="hidden sm:inline">

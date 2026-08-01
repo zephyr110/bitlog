@@ -17,6 +17,11 @@ import { toast } from "sonner"
 import { type Post } from "@bitlog/database"
 import { MediaPickerDialog } from "@/components/admin/media-picker-dialog"
 import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip"
+import {
   Bold,
   Italic,
   Heading2,
@@ -426,16 +431,23 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
                   onChange={(e) => setCover(e.target.value)}
                   placeholder={t("admin.coverPlaceholder") as string}
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0"
-                  title={t("admin.pickCoverImage") as string}
-                  onClick={() => setCoverPickerOpen(true)}
-                >
-                  <ImagePlus size={16} />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="shrink-0"
+                      aria-label={t("admin.pickCoverImage") as string}
+                      onClick={() => setCoverPickerOpen(true)}
+                    >
+                      <ImagePlus size={16} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {t("admin.pickCoverImage") as string}
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
           </div>
@@ -506,56 +518,71 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
             {TOOLBAR.map((item) => {
               const Icon = item.icon
               return (
-                <button
-                  key={item.key}
-                  type="button"
-                  title={t(item.i18nKey) as string}
-                  aria-label={t(item.i18nKey) as string}
-                  onClick={() => applyToolbar(item)}
-                  className="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                >
-                  <Icon size={15} />
-                </button>
+                <Tooltip key={item.key}>
+                  <TooltipTrigger>
+                    <button
+                      type="button"
+                      aria-label={t(item.i18nKey) as string}
+                      onClick={() => applyToolbar(item)}
+                      className="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    >
+                      <Icon size={15} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {t(item.i18nKey) as string}
+                  </TooltipContent>
+                </Tooltip>
               )
             })}
             <span className="w-px h-5 bg-border mx-1" />
-            <button
-              type="button"
-              title={t("admin.insertImage") as string}
-              aria-label={t("admin.insertImage") as string}
-              onClick={() => setImagePickerOpen(true)}
-              className="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              <ImageIcon size={15} />
-            </button>
+            <Tooltip>
+              <TooltipTrigger>
+                <button
+                  type="button"
+                  aria-label={t("admin.insertImage") as string}
+                  onClick={() => setImagePickerOpen(true)}
+                  className="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <ImageIcon size={15} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {t("admin.insertImage") as string}
+              </TooltipContent>
+            </Tooltip>
             <span className="w-px h-5 bg-border mx-1" />
             {/* Collapse/expand preview (desktop split view) */}
-            <button
-              type="button"
-              title={
-                previewCollapsed
+            <Tooltip>
+              <TooltipTrigger>
+                <button
+                  type="button"
+                  aria-label={
+                    previewCollapsed
+                      ? (t("admin.expandPreview") as string)
+                      : (t("admin.collapsePreview") as string)
+                  }
+                  onClick={() => setPreviewCollapsed(!previewCollapsed)}
+                  className={cn(
+                    "inline-flex items-center justify-center size-8 rounded-md transition-colors",
+                    previewCollapsed
+                      ? "text-primary bg-primary/10 hover:bg-primary/15"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  {previewCollapsed ? (
+                    <Eye size={15} />
+                  ) : (
+                    <EyeOff size={15} />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {previewCollapsed
                   ? (t("admin.expandPreview") as string)
-                  : (t("admin.collapsePreview") as string)
-              }
-              aria-label={
-                previewCollapsed
-                  ? (t("admin.expandPreview") as string)
-                  : (t("admin.collapsePreview") as string)
-              }
-              onClick={() => setPreviewCollapsed(!previewCollapsed)}
-              className={cn(
-                "inline-flex items-center justify-center size-8 rounded-md transition-colors",
-                previewCollapsed
-                  ? "text-primary bg-primary/10 hover:bg-primary/15"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-            >
-              {previewCollapsed ? (
-                <Eye size={15} />
-              ) : (
-                <EyeOff size={15} />
-              )}
-            </button>
+                  : (t("admin.collapsePreview") as string)}
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Split view (lg+) — preview on the left, editor on the right.

@@ -9,6 +9,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { buttonVariants } from "@/components/ui/button"
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { Spinner } from "@/components/ui/spinner"
 import { apiFetch } from "@/lib/api-client"
@@ -95,16 +100,16 @@ export function MediaPickerDialog({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {files.map((file) => (
-              <button
-                key={file.url}
-                type="button"
-                onClick={() => {
-                  onSelect(file.url)
-                  onOpenChange(false)
-                }}
-                className="group relative aspect-video rounded-lg border overflow-hidden bg-muted hover:border-primary/40 hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                title={file.name}
-              >
+              <Tooltip key={file.url}>
+                <TooltipTrigger>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelect(file.url)
+                      onOpenChange(false)
+                    }}
+                    className="group relative aspect-video w-full rounded-lg border overflow-hidden bg-muted hover:border-primary/40 hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={file.url}
@@ -120,7 +125,10 @@ export function MediaPickerDialog({
                     {file.name}
                   </span>
                 </span>
-              </button>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{file.name}</TooltipContent>
+              </Tooltip>
             ))}
           </div>
         )}
