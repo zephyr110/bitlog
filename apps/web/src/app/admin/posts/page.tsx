@@ -3,10 +3,11 @@
 import { useEffect, useState, useMemo, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { EllipsisVertical, Search, FileText, ChevronLeft, ChevronRight } from "lucide-react"
+import { EllipsisVertical, Search, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TableSkeleton } from "@/components/ui/loading"
 import { HeaderActions } from "@/components/admin/header-actions"
+import { PaginationBar } from "@/components/admin/pagination-bar"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -32,13 +33,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-} from "@/components/ui/pagination"
 import {
   Select,
   SelectContent,
@@ -128,19 +122,6 @@ function AdminPostsContent() {
   }, [filteredPosts, page])
 
   const totalPages = Math.ceil(filteredPosts.length / PAGE_SIZE)
-
-  const paginationItems = useMemo<(number | "ellipsis")[]>(() => {
-    if (totalPages <= 5) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1)
-    }
-    if (page <= 3) {
-      return [1, 2, 3, 4, "ellipsis", totalPages]
-    }
-    if (page >= totalPages - 2) {
-      return [1, "ellipsis", totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
-    }
-    return [1, "ellipsis", page - 1, page, page + 1, "ellipsis", totalPages]
-  }, [page, totalPages])
 
   async function handleDelete() {
     if (!deleteTarget) return
@@ -416,58 +397,14 @@ function AdminPostsContent() {
             </Table>
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <p className="text-sm text-muted-foreground">
-                {filteredPosts.length} {t("admin.posts") as string} · {t("admin.page") as string} {page}/{totalPages}
-              </p>
-              <div className="flex items-center gap-3">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationLink
-                        onClick={() => setPage(page - 1)}
-                        disabled={page <= 1}
-                        size="default"
-                        className="gap-1 pl-2.5"
-                      >
-                        <ChevronLeft className="size-4" />
-                        <span>{t("admin.prev") as string}</span>
-                      </PaginationLink>
-                    </PaginationItem>
-                    {paginationItems.map((item, index) =>
-                      item === "ellipsis" ? (
-                        <PaginationItem key={`ellipsis-${index}`}>
-                          <PaginationEllipsis />
-                        </PaginationItem>
-                      ) : (
-                        <PaginationItem key={item}>
-                          <PaginationLink
-                            isActive={page === item}
-                            onClick={() => setPage(item)}
-                          >
-                            {item}
-                          </PaginationLink>
-                        </PaginationItem>
-                      )
-                    )}
-                    <PaginationItem>
-                      <PaginationLink
-                        onClick={() => setPage(page + 1)}
-                        disabled={page >= totalPages}
-                        size="default"
-                        className="gap-1 pr-2.5"
-                      >
-                        <span>{t("admin.next") as string}</span>
-                        <ChevronRight className="size-4" />
-                      </PaginationLink>
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            </div>
-          )}
+          {/* Pagination — shared with the media library */}
+          <PaginationBar
+            page={page}
+            totalPages={totalPages}
+            total={filteredPosts.length}
+            itemLabel={t("admin.posts") as string}
+            onPageChange={setPage}
+          />
         </>
       )}
 

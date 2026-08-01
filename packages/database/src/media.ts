@@ -99,18 +99,34 @@ export async function setMediaSha(
   })
 }
 
-export async function listMedia(): Promise<MediaMeta[]> {
+/** List media, newest first. Optional limit/offset pages the result. */
+export async function listMedia(
+  limit?: number,
+  offset = 0
+): Promise<MediaMeta[]> {
   const db = requireDb()
   await ensureTable(db)
-  const result = await db.execute(
-    "SELECT filename, content_type, size, created_at FROM media ORDER BY created_at DESC"
-  )
+  const result = limit
+    ? await db.execute({
+        sql: "SELECT filename, content_type, size, created_at FROM media ORDER BY created_at DESC LIMIT ? OFFSET ?",
+        args: [limit, offset],
+      })
+    : await db.execute(
+        "SELECT filename, content_type, size, created_at FROM media ORDER BY created_at DESC"
+      )
   return result.rows.map((row) => ({
     name: row.filename as string,
     contentType: row.content_type as string,
     size: row.size as number,
     createdAt: row.created_at as string,
   }))
+}
+
+export async function countMedia(): Promise<number> {
+  const db = requireDb()
+  await ensureTable(db)
+  const result = await db.execute("SELECT COUNT(*) AS n FROM media")
+  return Number(result.rows[0]?.n ?? 0)
 }
 
 export async function getMediaData(

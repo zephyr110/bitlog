@@ -4,6 +4,7 @@ import {
   insertMedia,
   setMediaSha,
   listMedia,
+  countMedia,
   deleteMedia,
 } from "@bitlog/database"
 import { compressImage } from "@/lib/image-compress"
@@ -58,17 +59,38 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  // Pagination: page is 1-based, pageSize clamped to [1, 100] (default 24 —
+  // roughly four rows of the ~200px grid tiles on a 1440px screen).
+  const rawPage = Number(request.nextUrl.searchParams.get("page") ?? "1")
+  const rawSize = Number(request.nextUrl.searchParams.get("pageSize") ?? "24")
+  const page = Number.isInteger(rawPage) && rawPage >= 1 ? rawPage : 1
+  const pageSize =
+    Number.isInteger(rawSize) && rawSize >= 1 && rawSize <= 100 ? rawSize : 24
+
   try {
-    const records = await listMedia()
+    const [records, total] = await Promise.all([
+      listMedia(pageSize, (page - 1) * pageSize),
+      countMedia(),
+    ])
     return NextResponse.json({
       images: records.map((record) => ({
         name: record.name,
         url: cdnUrl(record.name),
       })),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
     })
   } catch (error) {
     console.error("List media error:", error)
-    return NextResponse.json({ images: [] })
+    return NextResponse.json({
+      images: [],
+      total: 0,
+      page,
+      pageSize,
+      totalPages: 1,
+    })
   }
 }
 

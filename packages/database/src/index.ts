@@ -15,6 +15,7 @@ export {
   insertMedia,
   setMediaSha,
   listMedia,
+  countMedia,
   getMediaData,
   deleteMedia,
 } from "./media"

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { apiFetch } from "@/lib/api-client"
 import { HeaderActions } from "@/components/admin/header-actions"
+import { PaginationBar } from "@/components/admin/pagination-bar"
 import { MediaLightbox } from "@/components/admin/media-lightbox"
 import { useT } from "@/components/layout/trans"
 import {
@@ -43,24 +44,39 @@ export default function AdminMediaPage() {
   const [previewFile, setPreviewFile] = useState<MediaFile | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<MediaFile | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  // Stale-response guard: rapid page changes only let the newest fetch win.
+  const fetchSeq = useRef(0)
 
-  async function fetchMedia() {
+  // ~4 rows of the ~200px grid tiles on a 1440px screen.
+  const PAGE_SIZE = 24
+
+  const fetchMedia = useCallback(async (targetPage: number) => {
+    const seq = ++fetchSeq.current
     try {
-      const res = await apiFetch("/api/upload")
+      const res = await apiFetch(
+        `/api/upload?page=${targetPage}&pageSize=${PAGE_SIZE}`
+      )
       if (res.ok) {
         const data = await res.json()
-        setFiles(data.images || [])
+        if (seq === fetchSeq.current) {
+          setFiles(data.images || [])
+          setTotal(data.total ?? 0)
+          setTotalPages(data.totalPages ?? 1)
+        }
       }
     } catch {
       // silent
     } finally {
-      setLoading(false)
+      if (seq === fetchSeq.current) setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    fetchMedia() // eslint-disable-line react-hooks/set-state-in-effect
-  }, [])
+    fetchMedia(page) // eslint-disable-line react-hooks/set-state-in-effect
+  }, [page, fetchMedia])
 
   // Restore the user's last view once mounted (localStorage is client-only;
   // SSR always renders the grid so there is no hydration mismatch).
@@ -100,11 +116,13 @@ export default function AdminMediaPage() {
       })
 
       if (res.ok) {
-        const data = await res.json()
-        setFiles((prev) => [
-          { name: data.filename || file.name, url: data.url },
-          ...prev,
-        ])
+        // New uploads are newest-first → jump back to page 1 to see them.
+        // If we're already on page 1 the effect won't refire, so fetch here.
+        if (page === 1) {
+          await fetchMedia(1)
+        } else {
+          setPage(1)
+        }
         toast.success(t("admin.uploadSuccess") as string)
       } else {
         const err = await res.json()
@@ -117,7 +135,7 @@ export default function AdminMediaPage() {
       const input = document.getElementById("media-file-input") as HTMLInputElement
       if (input) input.value = ""
     }
-  }, [t])
+  }, [t, page, fetchMedia])
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -176,7 +194,13 @@ export default function AdminMediaPage() {
         { method: "DELETE" }
       )
       if (res.ok) {
-        setFiles((prev) => prev.filter((f) => f.name !== deleteTarget.name))
+        // Refetch the page: the row is gone (so totals shift). If this was
+        // the last item on a page > 1, step back a page instead.
+        if (files.length === 1 && page > 1) {
+          setPage(page - 1)
+        } else {
+          await fetchMedia(page)
+        }
         toast.success(t("admin.imageDeleted") as string)
         if (previewFile?.name === deleteTarget.name) setPreviewFile(null)
       } else {
@@ -389,6 +413,22 @@ export default function AdminMediaPage() {
               />
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination — fixed to the bottom of the viewport while scrolling
+          (sticky + backdrop, mirroring the admin header). Negative margins
+          cancel the content area's p-4 md:p-8 so the border runs edge to
+          edge. */}
+      {totalPages > 1 && (
+        <div className="sticky bottom-0 z-10 -mx-4 md:-mx-8 border-t bg-background/80 px-4 py-3 backdrop-blur md:px-8">
+          <PaginationBar
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            itemLabel={t("admin.media") as string}
+            onPageChange={setPage}
+          />
         </div>
       )}
 
