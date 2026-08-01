@@ -15,39 +15,16 @@ function getJwtSecret(): Uint8Array {
   return new TextEncoder().encode(secret)
 }
 
-function decodePasswordHash(hash: string | undefined): string | undefined {
-  if (!hash) return undefined
-  try {
-    return Buffer.from(hash, "base64").toString("utf8")
-  } catch {
-    return hash
-  }
-}
-
-/** Env-based fallback credentials (used when the database is unavailable). */
-function getEnvCredential(): { username: string; hash: string; version: string } | null {
-  const username = process.env.ADMIN_USERNAME
-  const hash = decodePasswordHash(process.env.ADMIN_PASSWORD_HASH)
-  if (!username || !hash) return null
-  return { username, hash, version: hash.slice(0, 8) }
-}
-
 /**
- * Resolve the password hash + version for a username.
- * Prefers the database; falls back to env credentials (local dev / DB down).
+ * Resolve the password hash + version for a username from the database.
+ * Returns null when the user does not exist or the database is unavailable.
  */
 async function resolveCredential(
   username: string
 ): Promise<{ hash: string; version: string } | null> {
   const dbUser = await getUserByUsername(username)
-  if (dbUser) {
-    return { hash: dbUser.passwordHash, version: dbUser.passwordVersion }
-  }
-  const env = getEnvCredential()
-  if (env && env.username === username) {
-    return { hash: env.hash, version: env.version }
-  }
-  return null
+  if (!dbUser) return null
+  return { hash: dbUser.passwordHash, version: dbUser.passwordVersion }
 }
 
 export async function createToken(user: AuthUser): Promise<string> {

@@ -56,8 +56,8 @@ Required variables:
 |----------|-------------|
 | `TURSO_DATABASE_URL` | Turso/libSQL database URL (use `file:./bitlog.db` for local dev) |
 | `TURSO_AUTH_TOKEN` | Turso auth token (only needed for remote databases) |
-| `ADMIN_USERNAME` | Username for the admin panel (seeds the `users` table on first login) |
-| `ADMIN_PASSWORD_HASH` | Base64-encoded bcrypt hash of the admin password (seeds the `users` table on first login) |
+| `ADMIN_USERNAME` | Initial admin username — used only to seed the `users` table on first login; can be removed afterwards |
+| `ADMIN_PASSWORD_HASH` | Base64-encoded bcrypt hash of the initial admin password — used only to seed the `users` table; can be removed afterwards |
 | `SESSION_SECRET` | Random secret for signing JWT tokens |
 | `NEXT_PUBLIC_SITE_URL` | Public URL of the site |
 
@@ -80,7 +80,15 @@ Optional Giscus variables for comments:
 
 BitLog uses Turso (libSQL) for content storage and admin credentials. For local development without a Turso Cloud account, use a local SQLite file — set `TURSO_DATABASE_URL=file:./bitlog.db` in `.env.local`. The table schema is created automatically on first request.
 
-The `users` table stores the admin account (bcrypt hash). On the first login, the table is seeded from `ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH` — changing the password later updates the database (not the env file), so password changes work on Vercel and any serverless deployment. If the database is unreachable, auth falls back to the env credentials.
+The `users` table stores the admin account (bcrypt hash). On the first login, the table is seeded from `ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH`. Changing the password later updates the database (not the env file), so password changes work on Vercel and any serverless deployment. The database is the single source of truth for credentials — once the first user is seeded, the env variables are no longer needed.
+
+To create or reset an admin user without the env variables (e.g. on a fresh deployment):
+
+```bash
+pnpm create-admin --username admin --password "your-password"
+```
+
+Existing JWTs are invalidated when the password changes.
 
 ### Run Development Server
 
