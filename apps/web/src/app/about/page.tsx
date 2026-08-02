@@ -1,5 +1,5 @@
 import { Separator } from "@/components/ui/separator"
-import { siteConfig } from "@/lib/site-config"
+import { getSiteConfig } from "@/lib/get-site-config"
 import { Trans } from "@/components/layout/trans"
 import { GitBranch, MessageCircle, Sparkles, Palette, FileCode, Cloud, Rocket, Database } from "lucide-react"
 
@@ -36,7 +36,8 @@ const techStack = [
   },
 ]
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const site = await getSiteConfig()
   return (
     <div className="min-h-[calc(100vh-4rem)]">
       {/* Hero */}
@@ -114,26 +115,32 @@ export default function AboutPage() {
           <p className="text-muted-foreground leading-relaxed mb-6">
             <Trans k="about.contactDesc" />
           </p>
-          <div className="flex gap-3">
-            <a
-              href={siteConfig.social.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border bg-card hover:bg-muted hover:border-primary/20 transition-all text-sm font-medium"
-            >
-              <GitBranch size={16} />
-              <Trans k="about.github" />
-            </a>
-            <a
-              href={siteConfig.social.twitter}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border bg-card hover:bg-muted hover:border-primary/20 transition-all text-sm font-medium"
-            >
-              <MessageCircle size={16} />
-              <Trans k="about.twitter" />
-            </a>
-          </div>
+          {(site.social.github || site.social.twitter) && (
+            <div className="flex gap-3">
+              {site.social.github ? (
+                <a
+                  href={site.social.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border bg-card hover:bg-muted hover:border-primary/20 transition-all text-sm font-medium"
+                >
+                  <GitBranch size={16} />
+                  <Trans k="about.github" />
+                </a>
+              ) : null}
+              {site.social.twitter ? (
+                <a
+                  href={site.social.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border bg-card hover:bg-muted hover:border-primary/20 transition-all text-sm font-medium"
+                >
+                  <MessageCircle size={16} />
+                  <Trans k="about.twitter" />
+                </a>
+              ) : null}
+            </div>
+          )}
         </section>
       </div>
     </div>

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import { type Metadata } from "next"
 import Link from "next/link"
 import { getPostBySlug, getPublishedPosts } from "@bitlog/database"
-import { siteConfig } from "@/lib/site-config"
+import { getSiteConfig } from "@/lib/get-site-config"
 import { defaultLocale, t } from "@/lib/i18n"
 import { MDXRenderer } from "@/components/blog/mdx-renderer"
 import { TagBadge } from "@/components/blog/tag-badge"
@@ -15,9 +15,6 @@ import { Trans } from "@/components/layout/trans"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Calendar, Clock } from "lucide-react"
-
-const ogImageUrl = (path: string) =>
-  path.startsWith("http") ? path : `${siteConfig.siteUrl}${path}`
 
 interface PostPageProps {
   params: Promise<{ slug: string }>
@@ -32,12 +29,18 @@ export async function generateMetadata({
   params,
 }: PostPageProps): Promise<Metadata> {
   const { slug } = await params
-  const post = await getPostBySlug(slug)
+  const [post, site] = await Promise.all([
+    getPostBySlug(slug),
+    getSiteConfig(),
+  ])
   if (!post) return { title: t(defaultLocale, "site.notFound") as string }
+
+  const ogImageUrl = (path: string) =>
+    path.startsWith("http") ? path : `${site.siteUrl}${path}`
 
   const postImage = post.cover
     ? ogImageUrl(post.cover)
-    : `${siteConfig.siteUrl}${siteConfig.ogImage}`
+    : `${site.siteUrl}${site.ogImage}`
 
   return {
     title: post.title,
@@ -69,7 +72,10 @@ export async function generateMetadata({
 
 export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params
-  const post = await getPostBySlug(slug)
+  const [post, site] = await Promise.all([
+    getPostBySlug(slug),
+    getSiteConfig(),
+  ])
 
   if (!post || post.draft) notFound()
 
@@ -129,12 +135,12 @@ export default async function PostPage({ params }: PostPageProps) {
               <div className="flex items-center gap-3">
                 <Avatar className="size-10 ring-2 ring-border">
                   <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                    A
+                    {(site.author.name || "?").charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-medium text-foreground">
-                    {siteConfig.author.name}
+                    {site.author.name}
                   </p>
                   <div className="flex items-center gap-1.5 text-xs">
                     <Calendar size={12} />

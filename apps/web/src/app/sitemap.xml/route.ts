@@ -1,4 +1,4 @@
-import { siteConfig } from "@/lib/site-config"
+import { getSiteConfig } from "@/lib/get-site-config"
 import { getPublishedPosts } from "@bitlog/database"
 
 function escapeXml(s: string) {
@@ -11,8 +11,11 @@ function escapeXml(s: string) {
 }
 
 export async function GET() {
-  const posts = await getPublishedPosts()
-  const siteUrl = siteConfig.siteUrl.replace(/\/+$/, "")
+  const [posts, site] = await Promise.all([
+    getPublishedPosts(),
+    getSiteConfig(),
+  ])
+  const siteUrl = site.siteUrl.replace(/\/+$/, "")
   const today = new Date().toISOString().slice(0, 10)
 
   const urls = [

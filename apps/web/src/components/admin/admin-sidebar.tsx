@@ -13,7 +13,8 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip"
-import { siteConfig } from "@/lib/site-config"
+import { useSiteConfig } from "@/components/layout/site-config-provider"
+import { isDefaultSiteLogo, siteLogoSrc } from "@/lib/site-config"
 import { useLocale } from "@/components/layout/i18n-provider"
 import { useT } from "@/components/layout/trans"
 import { localeLabels, locales } from "@/lib/i18n"
@@ -58,6 +59,7 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
   const { t } = useT()
+  const site = useSiteConfig()
   const pathname = usePathname()
   const router = useRouter()
   const { theme, setTheme } = useTheme()
@@ -65,6 +67,8 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
 
   const currentTheme = (theme as ThemeMode) || "system"
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const logoSrc = siteLogoSrc(site)
+  const logoDefault = isDefaultSiteLogo(site)
 
   function handleLogout() {
     clearToken()
@@ -100,12 +104,15 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
         <Link href="/admin/dashboard" className="flex items-center gap-2.5 min-w-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/spooky.svg"
+            src={logoSrc}
             alt=""
-            className="size-8 rounded-lg object-contain dark:invert shrink-0"
+            className={cn(
+              "size-8 rounded-lg object-contain shrink-0",
+              logoDefault && "dark:invert"
+            )}
           />
           {!collapsed && (
-            <span className="font-bold text-base tracking-tight truncate">{siteConfig.name}</span>
+            <span className="font-bold text-base tracking-tight truncate">{site.name}</span>
           )}
         </Link>
       </div>
@@ -275,7 +282,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                       {t("admin.administrator") as string}
                     </Badge>
                   </div>
-                  <p className="text-[10px] text-sidebar-foreground/60 truncate">{siteConfig.author.name}</p>
+                  <p className="text-[10px] text-sidebar-foreground/60 truncate">{site.author.name}</p>
                 </div>
                 <ChevronRight size={14} className="text-sidebar-foreground/50 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-90" />
               </>
@@ -286,107 +293,113 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
             align="start"
             side="right"
             sideOffset={8}
-            className="w-64 p-1.5"
+            className="w-64 p-2"
           >
             {/* User info card */}
-            <div className="m-1 rounded-lg bg-muted/50 p-3">
-              <div className="flex items-center gap-3">
-                <Avatar className="size-11 ring-2 ring-border shrink-0">
+            <div className="rounded-lg bg-muted/50 px-3 py-2.5">
+              <div className="flex items-center gap-2.5">
+                <Avatar className="size-10 ring-2 ring-border shrink-0">
                   <AvatarFallback className="bg-gradient-to-br from-primary/30 via-primary/20 to-primary/5 text-primary font-semibold text-sm">
                     A
                   </AvatarFallback>
                 </Avatar>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 leading-snug">
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-semibold truncate">{user.username}</p>
                     <Badge variant="secondary" className="h-4 px-1 text-[9px] font-medium">
                       {t("admin.administrator") as string}
                     </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground truncate">{siteConfig.author.name}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground truncate">{site.author.name}</p>
                 </div>
               </div>
             </div>
 
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="mx-0 my-2" />
 
-            {/* Appearance group */}
-            <div className="px-1 py-1">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">
-                {t("admin.theme") as string}
-              </p>
-              <div className="inline-flex w-full rounded-lg bg-muted/50 p-1 mt-0.5">
-                {([
-                  ["light", Sun],
-                  ["dark", Moon],
-                  ["system", Monitor],
-                ] as const).map(([mode, Icon]) => (
-                  <button
-                    key={mode}
-                    onClick={() => setTheme(mode)}
-                    aria-label={
-                      mode === "light"
-                        ? (t("admin.light") as string)
-                        : mode === "dark"
-                          ? (t("admin.dark") as string)
-                          : (t("admin.system") as string)
-                    }
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition-all duration-200",
-                      currentTheme === mode
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <Icon size={14} />
-                    <span className="hidden sm:inline">
-                      {mode === "light"
-                        ? (t("admin.light") as string)
-                        : mode === "dark"
-                          ? (t("admin.dark") as string)
-                          : (t("admin.system") as string)}
-                    </span>
-                  </button>
-                ))}
+            {/* Appearance + language — shared horizontal inset, even vertical rhythm */}
+            <div className="flex flex-col gap-3 px-0.5">
+              <div className="flex flex-col gap-1.5">
+                <p className="px-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("admin.theme") as string}
+                </p>
+                <div className="inline-flex w-full rounded-lg bg-muted/50 p-1">
+                  {([
+                    ["light", Sun],
+                    ["dark", Moon],
+                    ["system", Monitor],
+                  ] as const).map(([mode, Icon]) => (
+                    <button
+                      key={mode}
+                      onClick={() => setTheme(mode)}
+                      aria-label={
+                        mode === "light"
+                          ? (t("admin.light") as string)
+                          : mode === "dark"
+                            ? (t("admin.dark") as string)
+                            : (t("admin.system") as string)
+                      }
+                      className={cn(
+                        "flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium transition-all duration-200",
+                        currentTheme === mode
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                    >
+                      <Icon size={14} />
+                      <span className="hidden sm:inline">
+                        {mode === "light"
+                          ? (t("admin.light") as string)
+                          : mode === "dark"
+                            ? (t("admin.dark") as string)
+                            : (t("admin.system") as string)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <p className="px-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("admin.language") as string}
+                </p>
+                <div className="inline-flex w-full rounded-lg bg-muted/50 p-1">
+                  {locales.map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => setLocale(l)}
+                      className={cn(
+                        "flex-1 rounded-md py-1.5 text-xs font-medium transition-all duration-200",
+                        locale === l
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                    >
+                      {localeLabels[l]}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Language group */}
-            <div className="px-1 py-1">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">
-                {t("admin.language") as string}
-              </p>
-              <div className="inline-flex w-full rounded-lg bg-muted/50 p-1 mt-0.5">
-                {locales.map((l) => (
-                  <button
-                    key={l}
-                    onClick={() => setLocale(l)}
-                    className={cn(
-                      "flex-1 py-1.5 rounded-md text-xs font-medium transition-all duration-200",
-                      locale === l
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                  >
-                    {localeLabels[l]}
-                  </button>
-                ))}
-              </div>
+            <DropdownMenuSeparator className="mx-0 my-2" />
+
+            <div className="flex flex-col gap-0.5">
+              <DropdownMenuItem
+                onClick={() => setSettingsOpen(true)}
+                className="cursor-pointer gap-2.5 rounded-md px-2.5 py-2"
+              >
+                <Settings size={16} className="shrink-0 opacity-60" />
+                <span>{t("admin.settings") as string}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="cursor-pointer gap-2.5 rounded-md px-2.5 py-2 text-destructive focus:text-destructive"
+              >
+                <LogOut size={16} className="shrink-0 opacity-60" />
+                <span>{t("admin.logout") as string}</span>
+              </DropdownMenuItem>
             </div>
-
-            <DropdownMenuSeparator />
-
-            {/* Settings */}
-            <DropdownMenuItem onClick={() => setSettingsOpen(true)} className="py-2.5 gap-2.5 cursor-pointer rounded-md">
-              <Settings size={16} className="opacity-60 shrink-0" />
-              <span>{t("admin.settings") as string}</span>
-            </DropdownMenuItem>
-
-            {/* Logout */}
-            <DropdownMenuItem onClick={handleLogout} className="py-2.5 gap-2.5 text-destructive focus:text-destructive cursor-pointer rounded-md">
-              <LogOut size={16} className="opacity-60 shrink-0" />
-              <span>{t("admin.logout") as string}</span>
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

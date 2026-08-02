@@ -4,7 +4,8 @@ import { Toaster } from "@/components/ui/sonner"
 import { Header } from "@/components/layout/header"
 import { ThemeProvider } from "@/components/layout/theme-provider"
 import { I18nProvider } from "@/components/layout/i18n-provider"
-import { siteConfig } from "@/lib/site-config"
+import { SiteConfigProvider } from "@/components/layout/site-config-provider"
+import { getSiteConfig } from "@/lib/get-site-config"
 import { defaultLocale } from "@/lib/i18n"
 import { getAllTags } from "@bitlog/database"
 import { categoryKeys } from "@/lib/categories"
@@ -20,49 +21,52 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 })
 
-// Resolves relative OG/Twitter image URLs against the real domain —
-// without this Next falls back to localhost. Derived from siteConfig.siteUrl
-// (single source of truth); guarded so a malformed env value can't crash
-// the build — Next then falls back to the request origin.
-let metadataBase: URL | undefined
-try {
-  metadataBase = new URL(siteConfig.siteUrl)
-} catch {
-  metadataBase = undefined
-}
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteConfig()
 
-export const metadata: Metadata = {
-  metadataBase,
-  title: {
-    default: siteConfig.title,
-    template: `%s | ${siteConfig.title}`,
-  },
-  description: siteConfig.description,
-  icons: {
-    icon: "/favicon.svg",
-    apple: "/favicon.svg",
-  },
-  openGraph: {
-    title: siteConfig.title,
-    description: siteConfig.description,
-    siteName: siteConfig.name,
-    type: "website",
-    locale: "en_US",
-    images: [
-      {
-        url: siteConfig.ogImage,
-        width: 1200,
-        height: 630,
-        alt: siteConfig.name,
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteConfig.title,
-    description: siteConfig.description,
-    images: [siteConfig.ogImage],
-  },
+  // Resolves relative OG/Twitter image URLs against the real domain —
+  // without this Next falls back to localhost. Derived from site.siteUrl
+  // (env-only); guarded so a malformed env value can't crash the build.
+  let metadataBase: URL | undefined
+  try {
+    metadataBase = new URL(site.siteUrl)
+  } catch {
+    metadataBase = undefined
+  }
+
+  return {
+    metadataBase,
+    title: {
+      default: site.title,
+      template: `%s | ${site.title}`,
+    },
+    description: site.description,
+    icons: {
+      icon: "/favicon.svg",
+      apple: "/favicon.svg",
+    },
+    openGraph: {
+      title: site.title,
+      description: site.description,
+      siteName: site.name,
+      type: "website",
+      locale: "en_US",
+      images: [
+        {
+          url: site.ogImage,
+          width: 1200,
+          height: 630,
+          alt: site.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: site.title,
+      description: site.description,
+      images: [site.ogImage],
+    },
+  }
 }
 
 export default async function RootLayout({
@@ -70,7 +74,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const tags = await getAllTags()
+  const [tags, site] = await Promise.all([getAllTags(), getSiteConfig()])
   // Only show categories that have matching tags, with post count
   const navCategories = categoryKeys
     .map((key) => ({
@@ -100,9 +104,11 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <I18nProvider>
-            <Header categories={displayCategories} />
-            <main className="flex-1">{children}</main>
-            <Toaster />
+            <SiteConfigProvider value={site}>
+              <Header categories={displayCategories} />
+              <main className="flex-1">{children}</main>
+              <Toaster />
+            </SiteConfigProvider>
           </I18nProvider>
         </ThemeProvider>
       </body>

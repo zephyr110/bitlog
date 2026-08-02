@@ -12,8 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription as CardDesc }
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { siteConfig } from "@/lib/site-config"
+import { SiteInfoForm } from "@/components/admin/site-info-form"
 import { apiFetch, clearToken } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
@@ -144,36 +143,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               <CardTitle>{t("admin.siteInfo") as string}</CardTitle>
               <CardDesc>{t("admin.siteInfoDesc") as string}</CardDesc>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex justify-between py-2">
-                <span className="text-muted-foreground">{t("admin.siteName") as string}</span>
-                <span className="font-medium">{siteConfig.name}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between py-2">
-                <span className="text-muted-foreground">{t("admin.siteDesc") as string}</span>
-                <span className="font-medium max-w-[200px] truncate">{siteConfig.description}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between py-2">
-                <span className="text-muted-foreground">{t("admin.author") as string}</span>
-                <span className="font-medium">{siteConfig.author.name}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between py-2">
-                <span className="text-muted-foreground">{t("admin.github") as string}</span>
-                <span className="font-medium max-w-[200px] truncate">{siteConfig.social.github}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between py-2">
-                <span className="text-muted-foreground">{t("admin.twitter") as string}</span>
-                <span className="font-medium max-w-[200px] truncate">{siteConfig.social.twitter}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between py-2">
-                <span className="text-muted-foreground">{t("admin.url") as string}</span>
-                <span className="font-medium">{siteConfig.siteUrl}</span>
-              </div>
+            <CardContent>
+              {open ? <SiteInfoForm idPrefix="dlg-site" /> : null}
             </CardContent>
           </Card>
         </div>

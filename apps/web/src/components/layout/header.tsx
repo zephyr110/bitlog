@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { LanguageSwitcher } from "@/components/layout/language-switcher"
 import { IconButton } from "@/components/ui/icon-button"
-import { siteConfig } from "@/lib/site-config"
+import { useSiteConfig } from "@/components/layout/site-config-provider"
+import { isDefaultSiteLogo, siteLogoSrc } from "@/lib/site-config"
 import { useT } from "@/components/layout/trans"
 import {
   DropdownMenu,
@@ -28,10 +28,13 @@ type Category = { key: string; count: number }
 
 export function Header({ categories }: { categories: Category[] }) {
   const { t } = useT()
+  const site = useSiteConfig()
   const pathname = usePathname()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const logoSrc = siteLogoSrc(site)
+  const logoDefault = isDefaultSiteLogo(site)
 
   useEffect(() => {
     function handleScroll() {
@@ -69,14 +72,18 @@ export function Header({ categories }: { categories: Category[] }) {
             href="/"
             className="flex items-center gap-2.5 font-semibold text-base tracking-tight hover:opacity-85 transition-opacity shrink-0"
           >
-            <Image
-              src="/spooky.svg"
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logoSrc}
               alt=""
               width={32}
               height={32}
-              className="size-8 rounded-lg object-contain dark:invert"
+              className={cn(
+                "size-8 rounded-lg object-contain",
+                logoDefault && "dark:invert"
+              )}
             />
-            <span className="hidden sm:inline">{siteConfig.name}</span>
+            <span className="hidden sm:inline">{site.name}</span>
           </Link>
 
           {/* Right: Search · 首页 · 分类 · 时间轴 · 关于 · | · 主题 · 语言 · GitHub */}

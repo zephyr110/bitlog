@@ -1,4 +1,4 @@
-import { siteConfig } from "@/lib/site-config"
+import { getSiteConfig } from "@/lib/get-site-config"
 import { getPublishedPosts } from "@bitlog/database"
 
 function escapeXml(str: string): string {
@@ -11,8 +11,11 @@ function escapeXml(str: string): string {
 }
 
 export async function GET() {
-  const posts = await getPublishedPosts()
-  const siteUrl = siteConfig.siteUrl.replace(/\/+$/, "")
+  const [posts, site] = await Promise.all([
+    getPublishedPosts(),
+    getSiteConfig(),
+  ])
+  const siteUrl = site.siteUrl.replace(/\/+$/, "")
 
   const feedEntries = posts
     .map((post) => {
@@ -35,7 +38,7 @@ export async function GET() {
       ]]>
     </content>
     <author>
-      <name>${escapeXml(siteConfig.author.name)}</name>
+      <name>${escapeXml(site.author.name)}</name>
     </author>
     ${post.tags.map((tag) => `<category term="${escapeXml(tag)}" />`).join("\n    ")}
   </entry>`
@@ -44,14 +47,14 @@ export async function GET() {
 
   const atomFeed = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>${escapeXml(siteConfig.title)}</title>
-  <subtitle>${escapeXml(siteConfig.description)}</subtitle>
+  <title>${escapeXml(site.title)}</title>
+  <subtitle>${escapeXml(site.description)}</subtitle>
   <link href="${escapeXml(siteUrl)}/feed.xml" rel="self" />
   <link href="${escapeXml(siteUrl)}" />
   <updated>${posts.length > 0 ? new Date(posts[0].date).toISOString() : new Date().toISOString()}</updated>
   <id>${escapeXml(siteUrl)}/</id>
   <author>
-    <name>${escapeXml(siteConfig.author.name)}</name>
+    <name>${escapeXml(site.author.name)}</name>
   </author>
   ${feedEntries}
 </feed>`
