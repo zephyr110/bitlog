@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { setToken } from "@/lib/api-client"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -122,7 +123,7 @@ export default function AdminLoginPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="size-4 animate-spin" />
+                  <Spinner size="sm" className="text-primary-foreground" />
                   {t("admin.signingIn") as string}
                 </span>
               ) : (

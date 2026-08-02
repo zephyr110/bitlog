@@ -11,11 +11,13 @@ import { type AuthUser } from "@bitlog/auth"
 export const SidebarCollapsedContext = createContext(false)
 
 /** Page title/subtitle shown in the top header, keyed by exact pathname.
- *  Editor pages (/admin/posts/new, /admin/posts/edit) render their own
- *  in-page headers, so they are intentionally absent. */
-const pageMeta: Record<string, { titleKey: string; descKey: string }> = {
+ *  descKey is optional — editor pages use title only (+ optional
+ *  #admin-header-title-extra for e.g. "View live post"). */
+const pageMeta: Record<string, { titleKey: string; descKey?: string }> = {
   "/admin/dashboard": { titleKey: "admin.dashboard", descKey: "admin.dashboardWelcome" },
   "/admin/posts": { titleKey: "admin.posts", descKey: "admin.postsDesc" },
+  "/admin/posts/new": { titleKey: "admin.newPost" },
+  "/admin/posts/edit": { titleKey: "admin.editPost" },
   "/admin/media": { titleKey: "admin.media", descKey: "admin.mediaDesc" },
   "/admin/settings": { titleKey: "admin.settings", descKey: "admin.settingsDesc" },
 }
@@ -103,21 +105,26 @@ export default function AdminLayout({
           />
           {meta && (
             <div className="min-w-0 leading-tight">
-              <h1 className="text-base font-semibold tracking-tight truncate">
-                {t(meta.titleKey) as string}
-              </h1>
-              <p className="hidden sm:block text-xs text-muted-foreground truncate mt-0.5">
-                {t(meta.descKey) as string}
-              </p>
+              <div className="flex items-center gap-2 min-w-0">
+                <h1 className="text-base font-semibold tracking-tight truncate">
+                  {t(meta.titleKey) as string}
+                </h1>
+                {/* Optional adornment beside the title (e.g. view-live link) */}
+                <div id="admin-header-title-extra" className="min-w-0 shrink-0 empty:hidden" />
+              </div>
+              {meta.descKey && (
+                <p className="hidden sm:block text-xs text-muted-foreground truncate mt-0.5">
+                  {t(meta.descKey) as string}
+                </p>
+              )}
             </div>
           )}
           {/* Page primary actions portaled in via <HeaderActions /> */}
           <div id="admin-header-actions" className="ml-auto flex items-center gap-2" />
         </header>
-        {/* Flex column with viewport-minus-header min height: pages that
-            render a PaginationBar stretch (flex-1) so the bar's mt-auto
-            pins it to the viewport bottom even on short pages; on long
-            pages the bar's own sticky bottom-0 takes over. */}
+        {/* Content column fills the viewport under the header. List pages
+            grow their table/grid (flex-1) and pin PaginationBar to the
+            bottom via the bar's !mt-auto + sticky. */}
         <div className="flex min-h-[calc(100vh-3.5rem)] flex-col p-4 md:p-8">{children}</div>
       </div>
     </div>

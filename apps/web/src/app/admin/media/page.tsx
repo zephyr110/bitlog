@@ -284,7 +284,8 @@ export default function AdminMediaPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col space-y-6">
+    <>
+    <div className="flex min-h-0 flex-1 flex-col gap-6">
       <HeaderActions>
         <input
           type="file"
@@ -391,19 +392,21 @@ export default function AdminMediaPage() {
         </div>
       )}
 
-      <div className="relative">
+      <div className="relative min-h-0 flex-1 overflow-y-auto">
       {loading ? (
         // Skeletons mirror the real card/row layout so the page doesn't
         // jump when the data lands.
         viewMode === "grid" ? (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-x-4 gap-y-5">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="overflow-hidden rounded-xl border bg-card">
-                <Skeleton className="aspect-[4/3] w-full rounded-none" />
-                <div className="p-2 space-y-1.5">
+              <div
+                key={i}
+                className="flex aspect-[4/3] flex-col overflow-hidden rounded-xl border bg-card"
+              >
+                <Skeleton className="min-h-0 flex-1 rounded-none" />
+                <div className="shrink-0 space-y-1 border-t p-2">
                   <Skeleton className="h-3.5 w-3/4" />
                   <Skeleton className="h-3 w-1/3" />
-                  <Skeleton className="h-7 w-full" />
                 </div>
               </div>
             ))}
@@ -438,13 +441,10 @@ export default function AdminMediaPage() {
           </CardContent>
         </Card>
       ) : viewMode === "grid" ? (
-        // auto-fill: column count adapts to any viewport width. 200px min
-        // keeps tiles in the 200–230px sweet spot for scanning thumbnails
-        // (≈ Google Drive tile width); 4:3 image area at 4/3 of the tile.
-        // gap-x-4 / gap-y-5: slightly more vertical breathing room so rows
-        // of dense thumbnails don't read as one block.
+        // Whole tile is 4:3 (flat) — image + meta share the box so upload
+        // and media cards stay the same size. auto-fill ~200px min.
         <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-x-4 gap-y-5">
-          {/* Upload tile — first position, same logic as the header button */}
+          {/* Upload tile — same 4:3 footprint as media cards */}
           <button
             type="button"
             disabled={uploading}
@@ -462,7 +462,8 @@ export default function AdminMediaPage() {
           {files.map((file) => (
             <Card
               key={file.url}
-              className="overflow-hidden group hover:border-primary/20 transition-colors"
+              size="sm"
+              className="group aspect-[4/3] gap-0 py-0 hover:ring-foreground/20 transition-colors"
             >
               <div
                 role="button"
@@ -478,25 +479,20 @@ export default function AdminMediaPage() {
                     setPreviewFile(file)
                   }
                 }}
-                className="block w-full aspect-[4/3] bg-muted relative cursor-zoom-in"
+                className="relative min-h-0 flex-1 cursor-zoom-in bg-muted"
               >
-                {/* absolute positioning: a percentage-height img would
-                    defeat the container's aspect-ratio (h-full on an img
-                    whose parent height comes from aspect-ratio resolves to
-                    auto → the img's intrinsic ratio wins) */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={file.url}
                   alt={file.name || (t("admin.uploadedImageAlt") as string)}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement
                     target.style.display = "none"
                   }}
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                {/* Delete button on hover */}
+                <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
                 <button
                   type="button"
                   aria-label={t("admin.deleteImage") as string}
@@ -504,53 +500,58 @@ export default function AdminMediaPage() {
                     e.stopPropagation()
                     setDeleteTarget(file)
                   }}
-                  className="absolute top-2 right-2 inline-flex items-center justify-center size-8 rounded-full bg-black/50 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80 cursor-pointer"
+                  className="absolute top-2 right-2 inline-flex size-8 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white opacity-0 backdrop-blur-sm transition-opacity hover:bg-red-500/80 group-hover:opacity-100"
                 >
                   <Trash2 size={14} />
                 </button>
               </div>
-              <CardContent className="p-2 space-y-1.5">
+              <CardContent className="shrink-0 space-y-1 border-t p-2">
                 <Tooltip>
                   <TooltipTrigger
-                    render={<p className="text-xs font-medium truncate">{file.name}</p>}
+                    render={<p className="truncate text-xs font-medium">{file.name}</p>}
                   />
                   <TooltipContent>{file.name}</TooltipContent>
                 </Tooltip>
-                <p
-                  className="text-[11px] text-muted-foreground"
-                  title={file.createdAt}
-                >
-                  {file.createdAt ? formatUtcDateTime(file.createdAt) : " "}
-                </p>
-                <MediaRowActions
-                  file={file}
-                  onCopyUrl={copyToClipboard}
-                  onCopyMarkdown={copyMarkdown}
-                  onDelete={setDeleteTarget}
-                />
+                <div className="flex items-center gap-1">
+                  <p
+                    className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground"
+                    title={file.createdAt}
+                  >
+                    {file.createdAt ? formatUtcDateTime(file.createdAt) : " "}
+                  </p>
+                  <MediaRowActions
+                    file={file}
+                    onCopyUrl={copyToClipboard}
+                    onCopyMarkdown={copyMarkdown}
+                    onDelete={setDeleteTarget}
+                  />
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
-        // List view — compact rows with small thumbnails
-        <div className="space-y-1.5">
-          {/* Upload row — first position, same logic as the header button */}
+        // List view — compact rows with small thumbnails. h-14 matches
+        // py-2 + size-10 thumb so the upload row is equal width & height.
+        <div className="flex flex-col gap-1.5">
+          {/* Upload row — first position, same footprint as media rows */}
           <button
             type="button"
             disabled={uploading}
             onClick={() => document.getElementById("media-file-input")?.click()}
-            className="flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-card px-3 py-2.5 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/30 hover:text-foreground disabled:opacity-60 cursor-pointer"
+            className="flex h-14 w-full items-center gap-3 rounded-lg border border-dashed border-muted-foreground/25 bg-card px-3 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/30 hover:text-foreground disabled:opacity-60 cursor-pointer"
           >
-            <Upload size={15} />
-            <span className="text-xs font-medium">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-md border border-dashed border-muted-foreground/25 bg-muted/30">
+              <Upload size={15} />
+            </span>
+            <span className="text-sm font-medium">
               {t("admin.uploadImage") as string}
             </span>
           </button>
           {files.map((file) => (
             <div
               key={file.url}
-              className="group flex items-center gap-3 rounded-lg border bg-card px-3 py-2 transition-colors hover:border-primary/20"
+              className="group flex h-14 w-full items-center gap-3 rounded-lg border bg-card px-3 transition-colors hover:border-primary/20"
             >
               <button
                 type="button"
@@ -594,15 +595,11 @@ export default function AdminMediaPage() {
           just dim it while the new page loads (initial load uses the
           skeletons above). */}
       {refreshing && !loading && (
-        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/40">
-          <Spinner />
+        <div className="pointer-events-none absolute inset-0 z-10 rounded-xl bg-background/40">
+          <Spinner size="md" fill />
         </div>
       )}
       </div>
-
-      {/* Clearance so the sticky bar never covers the last row when the
-          page is scrolled to the bottom. */}
-      <div aria-hidden="true" className="h-10" />
 
       {/* Pagination — PaginationBar carries its own sticky bottom styling,
           shared with the posts list. */}
@@ -615,9 +612,9 @@ export default function AdminMediaPage() {
         onPageChange={setPage}
         onPageSizeChange={changePageSize}
       />
+    </div>
 
-      {/* Full image preview — custom lightbox (not Dialog: no width caps,
-          single close button, long-edge sizing, download action) */}
+      {/* Outside the gap flex column so overlays cannot steal spacing */}
       <MediaLightbox
         file={previewFile}
         onClose={() => setPreviewFile(null)}
@@ -625,8 +622,6 @@ export default function AdminMediaPage() {
         onCopyMarkdown={copyMarkdown}
         onDelete={setDeleteTarget}
       />
-
-      {/* Delete confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent>
           <DialogHeader>
@@ -655,7 +650,7 @@ export default function AdminMediaPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }
 

@@ -17,6 +17,10 @@ import { toast } from "sonner"
 import { type Post } from "@bitlog/database"
 import { MediaPickerDialog } from "@/components/admin/media-picker-dialog"
 import {
+  HeaderActions,
+  HeaderTitleExtra,
+} from "@/components/admin/header-actions"
+import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
@@ -366,38 +370,33 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
 
   return (
     <div className="space-y-6">
-      {/* Top Actions */}
-      <div className="sticky top-0 z-30 -mx-4 px-4 py-3 bg-background/95 backdrop-blur-xl border-b flex items-center justify-between gap-4">
-        <div className="min-w-0 flex items-center gap-3">
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight truncate">
-            {isNew ? (t("admin.newPost") as string) : (t("admin.editPost") as string)}
-          </h1>
-          {!isNew && !draft && (
-            <a
-              href={`/posts/${encodeURIComponent(slug)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline shrink-0"
-            >
-              <ExternalLink size={12} />
-              {t("admin.viewOnline") as string}
-            </a>
-          )}
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => savePost(false)}
-            disabled={saving}
+      {/* Title lives in admin layout pageMeta; adornment + actions portal in. */}
+      {!isNew && !draft && (
+        <HeaderTitleExtra>
+          <a
+            href={`/posts/${encodeURIComponent(slug)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
           >
-            {saving ? (t("admin.saving") as string) : (t("admin.saveDraft") as string)}
-          </Button>
-          <Button size="sm" onClick={() => savePost(true)} disabled={saving}>
-            {saving ? (t("admin.publishing") as string) : (t("admin.publish") as string)}
-          </Button>
-        </div>
-      </div>
+            <ExternalLink size={12} />
+            {t("admin.viewOnline") as string}
+          </a>
+        </HeaderTitleExtra>
+      )}
+      <HeaderActions>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => savePost(false)}
+          disabled={saving}
+        >
+          {saving ? (t("admin.saving") as string) : (t("admin.saveDraft") as string)}
+        </Button>
+        <Button size="sm" onClick={() => savePost(true)} disabled={saving}>
+          {saving ? (t("admin.publishing") as string) : (t("admin.publish") as string)}
+        </Button>
+      </HeaderActions>
 
       {/* Metadata */}
       <Card>

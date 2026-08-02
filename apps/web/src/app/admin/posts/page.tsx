@@ -196,7 +196,8 @@ function AdminPostsContent() {
   }
 
   return (
-    <div className="flex flex-1 flex-col space-y-6">
+    <>
+    <div className="flex min-h-0 flex-1 flex-col gap-6">
       <HeaderActions>
         <Link
           href="/admin/posts/new"
@@ -223,7 +224,7 @@ function AdminPostsContent() {
       ) : (
         <>
           {/* Search & Filter */}
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex shrink-0 items-center gap-3 flex-wrap">
             {/* Status tabs */}
             <div className="inline-flex rounded-lg border p-0.5 bg-muted/30">
               {(["all", "published", "drafts"] as const).map((s) => (
@@ -292,10 +293,12 @@ function AdminPostsContent() {
             )}
           </div>
 
-          {/* Table — body scrolls vertically, header stays pinned (the
-              Table container owns the scroll, so the sticky thead works). */}
-          <div className="border rounded-lg bg-card">
-            <Table containerClassName="max-h-[calc(100vh-20rem)] overflow-y-auto">
+          {/* Outer flex-1 fills space above the pinned PaginationBar;
+              scroll lives on this wrapper so the <table> keeps content
+              height (flex-1 on the table container was stretching the
+              last row to eat leftover space). */}
+          <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-card">
+            <Table>
               <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
                 <TableRow>
                   <TableHead>{t("admin.title") as string}</TableHead>
@@ -409,10 +412,6 @@ function AdminPostsContent() {
             </Table>
           </div>
 
-          {/* Clearance so the sticky bar never covers the last row when
-              the page is scrolled to the bottom. */}
-          <div aria-hidden="true" className="h-10" />
-
           {/* Pagination — shared with the media library */}
           <PaginationBar
             page={page}
@@ -428,8 +427,9 @@ function AdminPostsContent() {
           />
         </>
       )}
+    </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Outside the gap flex column so the portal root cannot steal spacing */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent>
           <DialogHeader>
@@ -456,7 +456,7 @@ function AdminPostsContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }
 

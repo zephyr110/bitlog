@@ -258,7 +258,7 @@ export function MediaPickerDialog({
                 </p>
                 {uploading && (
                   <div className="mt-1.5 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                    <Spinner className="size-4" />
+                    <Spinner size="sm" />
                     <span>{t("admin.uploading") as string}</span>
                   </div>
                 )}
@@ -296,7 +296,7 @@ export function MediaPickerDialog({
             </p>
           </div>
         ) : loading ? (
-          <Spinner className="py-16" />
+          <Spinner size="md" fill className="min-h-64" />
         ) : files.length === 0 ? (
           <div className="py-16 text-center">
             <ImageIcon

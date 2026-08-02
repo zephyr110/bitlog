@@ -42,8 +42,8 @@ function buildPaginationItems(
  *
  * Renders a page-size selector + "{total} {itemLabel} · Page {page}/{totalPages}"
  * on the left and prev / page-number / next controls on the right. Hidden
- * for single-page (or empty) lists — the count summary belongs in the
- * page's empty state.
+ * only for empty lists (total === 0); single-page lists still show the bar
+ * so page-size can be changed.
  */
 export function PaginationBar({
   page,
@@ -68,20 +68,20 @@ export function PaginationBar({
   // page chips always have a sane value.
   const pageCount = Math.max(1, totalPages)
 
-  if (pageCount <= 1) return null
+  // Show whenever there is data so page-size controls stay reachable
+  // even on a single page (media library often has few items).
+  if (total <= 0) return null
 
   const paginationItems = buildPaginationItems(page, pageCount)
 
-  // Sticky footer bar, two regimes:
-  // - Long pages (taller than the viewport): sticky bottom-0 pins the bar
-  //   while scrolling — the bar is the last child of a tall page column.
-  // - Short pages: the admin layout's content column is a min-h flex
-  //   column and the page root grows (flex-1), so !mt-auto pushes the bar
-  //   to the viewport bottom (! needed to beat space-y's margin-top).
-  // Negative margins bleed the bar edge-to-edge within the admin content
-  // column (p-4 md:p-8); inner padding re-aligns the text.
+  // Pinned to the bottom of the admin content column: !mt-auto absorbs
+  // leftover height when the list above doesn't flex-grow; sticky keeps
+  // the bar reachable if the page itself scrolls. List pages should give
+  // the table/grid flex-1 so free space fills the list — not a void
+  // between list and bar. Negative margins bleed edge-to-edge within
+  // the admin content column (p-4 md:p-8).
   return (
-    <div className="sticky bottom-0 z-10 !mt-auto -mx-4 -mb-4 md:-mx-8 md:-mb-8 bg-background/85 backdrop-blur px-4 md:px-8 py-3">
+    <div className="sticky bottom-0 z-10 shrink-0 !mt-auto -mx-4 -mb-4 md:-mx-8 md:-mb-8 bg-background/85 backdrop-blur px-4 md:px-8 py-2.5">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <p className="text-sm text-muted-foreground">
           {total} {itemLabel} · {t("admin.page") as string} {page}/{pageCount}

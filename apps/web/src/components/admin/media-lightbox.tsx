@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import { createPortal } from "react-dom"
 import { toast } from "sonner"
 import { Copy, FileCode, Download, Trash2, X, Loader2 } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 import { useT } from "@/components/layout/trans"
 
 export interface MediaFile {
@@ -111,8 +112,8 @@ export function MediaLightbox({
         {!imageLoaded && (
           // Absolute overlay so the spinner is dead-center regardless of
           // the img's (zero) in-flow size while it loads.
-          <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
-            <Loader2 size={32} className="animate-spin text-white/60" />
+          <div className="absolute inset-0">
+            <Spinner size="md" fill className="text-white/50" />
           </div>
         )}
         {/* key remounts the img when switching files, so a stale image is

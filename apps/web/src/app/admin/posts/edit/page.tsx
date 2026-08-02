@@ -1,12 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { PostEditor } from "@/components/admin/post-editor"
 import { apiFetch } from "@/lib/api-client"
 import { Spinner } from "@/components/ui/spinner"
 import { type Post } from "@bitlog/database"
-import { Suspense } from "react"
 
 function EditPostContent() {
   const searchParams = useSearchParams()
@@ -42,9 +41,11 @@ function EditPostContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner />
-      </div>
+      <Spinner
+        size="lg"
+        fill
+        className="min-h-[calc(100vh-3.5rem-4rem)]"
+      />
     )
   }
 
@@ -55,7 +56,15 @@ function EditPostContent() {
 
 export default function EditPostPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center py-20"><Spinner /></div>}>
+    <Suspense
+      fallback={
+        <Spinner
+          size="lg"
+          fill
+          className="min-h-[calc(100vh-3.5rem-4rem)]"
+        />
+      }
+    >
       <EditPostContent />
     </Suspense>
   )
