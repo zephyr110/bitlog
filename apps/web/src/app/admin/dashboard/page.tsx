@@ -7,6 +7,7 @@ import { PostStats } from "@/components/admin/post-stats"
 import { ContributionCalendar } from "@/components/admin/contribution-calendar"
 import { FormattedDate } from "@/components/blog/formatted-date"
 import { CardSkeleton, ListSkeleton } from "@/components/ui/loading"
+import { Skeleton } from "@/components/ui/skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useT } from "@/components/layout/trans"
 import { apiFetch } from "@/lib/api-client"
@@ -70,10 +71,29 @@ export default function AdminDashboardPage() {
   ]
 
   if (loading) {
+    // Mirrors the loaded layout: Statistics (title + stat cards +
+    // calendar card), the two chart cards, then recent posts.
     return (
       <div className="space-y-8">
-        <CardSkeleton count={4} />
-        <div className="h-64 bg-muted animate-pulse rounded-xl" />
+        <section className="space-y-4">
+          <Skeleton className="h-7 w-32" />
+          <CardSkeleton count={4} />
+          <div className="space-y-3 rounded-xl border bg-card p-4">
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-[118px] w-full" />
+            <Skeleton className="h-3 w-40" />
+          </div>
+        </section>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="space-y-3 rounded-xl border bg-card p-4">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+          <div className="space-y-3 rounded-xl border bg-card p-4">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+        </div>
         <ListSkeleton items={5} />
       </div>
     )

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { EllipsisVertical, Search, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TableSkeleton } from "@/components/ui/loading"
+import { Skeleton } from "@/components/ui/skeleton"
 import { HeaderActions } from "@/components/admin/header-actions"
 import { PaginationBar } from "@/components/admin/pagination-bar"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -188,8 +189,16 @@ function AdminPostsContent() {
   }
 
   if (loading) {
+    // Mirrors the loaded layout: the filter row (status tabs, tag
+    // select, search) above the table. Same root classes so the table
+    // skeleton fills the flex column like the real one.
     return (
-      <div className="space-y-6">
+      <div className="flex min-h-0 flex-1 flex-col gap-6">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Skeleton className="h-9 w-44 rounded-lg" />
+          <Skeleton className="h-9 w-44 rounded-lg" />
+          <Skeleton className="h-9 max-w-sm flex-1 rounded-lg" />
+        </div>
         <TableSkeleton rows={5} />
       </div>
     )
