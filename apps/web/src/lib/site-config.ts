@@ -21,8 +21,8 @@ export type SiteConfig = {
 
 /** Compile-time / fallback defaults when DB has no row yet. */
 export const defaultSiteConfig: SiteConfig = {
-  name: "BitLog",
-  title: "BitLog",
+  name: "Zlog",
+  title: "Zlog",
   description: "A personal blog about technology, programming, and more.",
   author: {
     name: "Admin",
@@ -38,7 +38,7 @@ export const defaultSiteConfig: SiteConfig = {
   logoUrl: "",
   logoInvertInDark: true,
   social: {
-    github: "https://github.com/zephyr110/bitlog",
+    github: "https://github.com/zephyr110/zlog",
     twitter: "https://twitter.com",
   },
 }

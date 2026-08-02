@@ -109,7 +109,7 @@ export function Footer() {
                   <TooltipTrigger
                     render={
                       <a
-                        href="https://github.com/zephyr110/bitlog"
+                        href="https://github.com/zephyr110/zlog"
                         target="_blank"
                         rel="noopener noreferrer"
                         className={iconButtonClass}

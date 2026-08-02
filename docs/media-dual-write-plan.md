@@ -1,12 +1,12 @@
 # 图片存储双写架构（Turso 权威存储 + GitHub/jsdelivr 分发层）实现方案
 
 > 方案状态：**已确认，待实施**
-> 适用项目：`zephyr110/bitlog`
+> 适用项目：`zephyr110/zlog`
 > 日期：2026-08-01
 
 ## 1. 背景与动机
 
-bitlog 后台媒体页面上传的图片当前写入本地磁盘 `public/images`（`apps/web/src/app/api/upload/route.ts`），存在两个问题：
+项目后台媒体页面上传的图片当前写入本地磁盘 `public/images`（`apps/web/src/app/api/upload/route.ts`），存在两个问题：
 
 1. **Vercel/Serverless 下 `public/` 写入是临时性的**（构建时重置），图片无法持久化
 2. 图片走站点自身域名，无 CDN 加速，国内访问跨洋加载慢
@@ -214,7 +214,7 @@ BLOG_IMG_QUALITY=80
 | 验证项 | 方法 |
 |--------|------|
 | 压缩生效 | 上传 jpeg → 返回 `.webp`，体积较原图明显减小 |
-| 双写一致 | 本地 `bitlog.db` media 表有行 & github.com/zephyr110/blog-img 有新 commit |
+| 双写一致 | 本地 `zlog.db` media 表有行 & github.com/zephyr110/blog-img 有新 commit |
 | jsdelivr 链接 | 返回 URL 访问：预热后 HTTP 200，Content-Type `image/webp` |
 | GIF 动图 | 上传动图 → 动画保留，链接可用 |
 | 列表 / 删除 | media 页刷新可见新图；删除后 Turso 行 + GitHub 文件都消失 |
