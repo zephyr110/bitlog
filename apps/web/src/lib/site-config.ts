@@ -43,7 +43,7 @@ export const defaultSiteConfig: SiteConfig = {
 /** @deprecated Prefer getSiteConfig() / useSiteConfig() — kept for sync env fields. */
 export const siteConfig = defaultSiteConfig
 
-export const DEFAULT_SITE_LOGO = "/spooky.svg"
+export const DEFAULT_SITE_LOGO = "/logo.svg"
 
 export function siteLogoSrc(config: Pick<SiteConfig, "logoUrl">): string {
   return config.logoUrl || DEFAULT_SITE_LOGO
