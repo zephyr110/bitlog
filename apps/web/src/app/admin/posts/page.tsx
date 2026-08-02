@@ -358,7 +358,11 @@ function AdminPostsContent() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground tabular-nums">
-                        {new Date(post.date).toLocaleDateString()}
+                        {/* UTC dates — format in UTC so every admin sees
+                            the authored date, not the previous day. */}
+                        {new Date(post.date).toLocaleDateString(undefined, {
+                          timeZone: "UTC",
+                        })}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">

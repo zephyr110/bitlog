@@ -1,18 +1,11 @@
 import { MDXRemote } from "next-mdx-remote/rsc"
 import remarkGfm from "remark-gfm"
-import rehypePrettyCode, { type Options } from "rehype-pretty-code"
 import { type Post } from "@zlog/database"
 import { mdxComponents } from "@/components/blog/mdx-components"
+import { blogRehypePlugins } from "@/lib/mdx-pipeline"
 
 interface MDXRendererProps {
   post: Post
-}
-
-const rehypePrettyCodeOptions: Options = {
-  theme: "github-dark",
-  keepBackground: false,
-  defaultLang: "plaintext",
-  grid: true,
 }
 
 export function MDXRenderer({ post }: MDXRendererProps) {
@@ -24,7 +17,7 @@ export function MDXRenderer({ post }: MDXRendererProps) {
           parseFrontmatter: false,
           mdxOptions: {
             remarkPlugins: [remarkGfm],
-            rehypePlugins: [[rehypePrettyCode, rehypePrettyCodeOptions] as never],
+            rehypePlugins: blogRehypePlugins,
           },
         }}
         components={mdxComponents}

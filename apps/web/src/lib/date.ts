@@ -15,3 +15,13 @@ export function formatUtcDateTime(utc: string): string {
   if (Number.isNaN(d.getTime())) return utc.slice(0, 10)
   return formatLocalDate(d)
 }
+
+/** "YYYY-MM-DD" (the post/media wire format) → Date at UTC midnight.
+ *  Dates are authored as UTC calendar dates (the API stores
+ *  toISOString().split("T")[0]); parsing them as UTC keeps every
+ *  computation timezone-independent — the same string renders
+ *  identically in the build (SSR) and in every viewer's browser, with
+ *  no hydration mismatch. */
+export function parseUtcDate(value: string): Date {
+  return new Date(`${value}T00:00:00Z`)
+}

@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef, useDeferredValue, Component, 
 import { useRouter } from "next/navigation"
 import { MarkdownHooks } from "react-markdown"
 import remarkGfm from "remark-gfm"
-import rehypePrettyCode, { type Options as RehypePrettyCodeOptions } from "rehype-pretty-code"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { mdxComponents } from "@/components/blog/mdx-components"
+import { blogRehypePlugins } from "@/lib/mdx-pipeline"
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
@@ -73,16 +73,6 @@ const TOOLBAR: ToolbarItem[] = [
   { key: "code", i18nKey: "admin.codeBlock", icon: Code, prefix: "```\n", suffix: "\n```" },
   { key: "link", i18nKey: "admin.link", icon: LinkIcon, prefix: "[", suffix: "](https://)", inline: true },
 ]
-
-// Same highlight pipeline as the public post page (MDXRenderer):
-// rehype-pretty-code with the github-dark theme. MarkdownHooks runs the
-// plugins on the client, so previewed code blocks match the live site.
-const previewRehypeOptions: RehypePrettyCodeOptions = {
-  theme: "github-dark",
-  keepBackground: false,
-  defaultLang: "plaintext",
-  grid: true,
-}
 
 /**
  * MarkdownHooks throws render-time errors (e.g. a highlight failure) —
@@ -436,7 +426,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
         >
           <MarkdownHooks
             remarkPlugins={[remarkGfm]}
-            rehypePlugins={[[rehypePrettyCode, previewRehypeOptions] as never]}
+            rehypePlugins={blogRehypePlugins}
             components={mdxComponents}
             fallback={
               <p className="text-muted-foreground italic">

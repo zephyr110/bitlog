@@ -15,6 +15,8 @@ export const metadata: Metadata = {
 function groupByYear(posts: { date: string; slug: string; title: string }[]) {
   const map = new Map<number, typeof posts>()
   for (const post of posts) {
+    // Dates are UTC calendar dates — the UTC year is the authored year,
+    // timezone-independent.
     const year = new Date(post.date).getFullYear()
     if (!Number.isFinite(year)) continue
     if (!map.has(year)) map.set(year, [])

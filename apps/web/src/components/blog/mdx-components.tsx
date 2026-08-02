@@ -10,6 +10,7 @@
 
 import { CodeBlock } from "@/components/blog/code-block"
 import { HeadingLink } from "@/components/blog/heading-link"
+import { Mermaid } from "@/components/blog/mermaid"
 
 export const mdxComponents = {
   // Headings with anchor links
@@ -77,8 +78,19 @@ export const mdxComponents = {
     </blockquote>
   ),
 
-  // Code blocks
-  pre: CodeBlock,
+  // Code blocks — mermaid diagrams (flagged with data-mermaid by the
+  // rehype-mermaid-block plugin) render as live SVG diagrams; everything
+  // else gets the CodeBlock chrome (header, copy button, line numbers).
+  // `!== undefined` (not truthiness): an EMPTY fence still carries
+  // data-mermaid="" and must reach Mermaid, which shows a neutral
+  // placeholder instead of the plugin's children-less CodeBlock.
+  pre: ({
+    "data-mermaid": dataMermaid,
+    ...props
+  }: React.ComponentProps<"pre"> & { "data-mermaid"?: string }) => {
+    if (dataMermaid !== undefined) return <Mermaid code={dataMermaid} />
+    return <CodeBlock {...props} />
+  },
 
   // Inline code
   code: ({

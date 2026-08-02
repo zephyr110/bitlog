@@ -1,6 +1,7 @@
 "use client"
 
 import { useLocale } from "@/components/layout/i18n-provider"
+import { parseUtcDate } from "@/lib/date"
 
 interface FormattedDateProps {
   date: string
@@ -18,7 +19,11 @@ export function FormattedDate({ date, month = "long" }: FormattedDateProps) {
 
   return (
     <time dateTime={date}>
-      {new Date(date).toLocaleDateString(lang, {
+      {parseUtcDate(date).toLocaleDateString(lang, {
+        // Dates are UTC calendar dates — formatting in UTC shows the
+        // authored date identically in every timezone (a negative-offset
+        // viewer must not see yesterday's date), and SSR matches client.
+        timeZone: "UTC",
         year: "numeric",
         month,
         day: "numeric",
