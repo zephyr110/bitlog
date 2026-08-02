@@ -104,7 +104,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
           <SiteLogo
             src={logoSrc}
             invertInDark={site.logoInvertInDark ?? true}
-            className="size-8 rounded-lg shrink-0"
+            className="size-9 rounded-lg shrink-0"
           />
           {!collapsed && (
             <span className="font-black text-base tracking-tight truncate">{site.name}</span>
