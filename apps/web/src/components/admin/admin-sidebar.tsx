@@ -20,7 +20,6 @@ import { useT } from "@/components/layout/trans"
 import { localeLabels, locales } from "@/lib/i18n"
 import { type AuthUser } from "@bitlog/auth"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -275,14 +274,10 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
             </div>
             {!collapsed && (
               <>
+                {/* Just the username — the author name and role badge live
+                    in the menu, where there is room for them. */}
                 <div className="flex-1 text-left min-w-0 leading-tight">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-semibold truncate">{user.username}</p>
-                    <Badge variant="secondary" className="h-4 px-1 text-[9px] font-medium">
-                      {t("admin.administrator") as string}
-                    </Badge>
-                  </div>
-                  <p className="text-[10px] text-sidebar-foreground/60 truncate">{site.author.name}</p>
+                  <p className="text-sm font-semibold truncate">{user.username}</p>
                 </div>
                 <ChevronRight size={14} className="text-sidebar-foreground/50 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-90" />
               </>
@@ -304,12 +299,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1 leading-snug">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-semibold truncate">{user.username}</p>
-                    <Badge variant="secondary" className="h-4 px-1 text-[9px] font-medium">
-                      {t("admin.administrator") as string}
-                    </Badge>
-                  </div>
+                  <p className="text-sm font-semibold truncate">{user.username}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground truncate">{site.author.name}</p>
                 </div>
               </div>
