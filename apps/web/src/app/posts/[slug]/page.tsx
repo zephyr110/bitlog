@@ -11,6 +11,7 @@ import { FormattedDate } from "@/components/blog/formatted-date"
 import { Container } from "@/components/ui/container"
 import { CopyLinkButton } from "@/components/blog/share-buttons"
 import { CommentSection } from "@/components/blog/comment-section"
+import { HeroGlow } from "@/components/layout/hero-glow"
 import { Trans } from "@/components/layout/trans"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Calendar, Clock } from "lucide-react"
@@ -89,14 +90,7 @@ export default async function PostPage({ params }: PostPageProps) {
       <article className="min-h-screen">
         {/* Hero Header */}
         <header className="relative overflow-hidden border-b bg-gradient-to-b from-muted/40 via-muted/20 to-background">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_70%_-10%,var(--primary)_0%,transparent_60%)] opacity-[0.07] dark:opacity-[0.12]"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-20 top-20 size-80 rounded-full bg-primary/[0.04] blur-3xl dark:bg-primary/[0.08]"
-          />
+          <HeroGlow className="top-20 size-80" />
           {post.cover && (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}

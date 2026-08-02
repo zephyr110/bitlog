@@ -1,6 +1,7 @@
 import Link from "next/link"
 import type { ReactNode } from "react"
 import { Container } from "@/components/ui/container"
+import { HeroGlow } from "@/components/layout/hero-glow"
 
 interface BreadcrumbItem {
   href: string
@@ -12,6 +13,9 @@ interface PageHeaderProps {
   /** Breadcrumb trail; the last item is rendered as the current page. */
   breadcrumb?: BreadcrumbItem[]
   description?: ReactNode
+  /** Icon rendered in a card tile above the title. Pass a lucide icon
+   *  with explicit size/className (e.g. <History size={22} className="text-primary" />). */
+  icon?: ReactNode
   /** Extra content on the right side of the title row (actions, counts). */
   actions?: ReactNode
   children?: ReactNode
@@ -22,12 +26,13 @@ export function PageHeader({
   title,
   breadcrumb,
   description,
+  icon,
   actions,
   children,
 }: PageHeaderProps) {
   return (
-    <section className="relative border-b bg-muted/10 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/3 to-transparent" />
+    <section className="relative border-b bg-gradient-to-b from-muted/40 via-muted/20 to-background overflow-hidden">
+      <HeroGlow />
       <Container size="lg" className="relative">
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {breadcrumb && breadcrumb.length > 0 && (
@@ -57,6 +62,11 @@ export function PageHeader({
 
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
+              {icon && (
+                <div aria-hidden className="mb-5 flex size-12 items-center justify-center rounded-2xl border bg-card shadow-sm">
+                  {icon}
+                </div>
+              )}
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
                 {title}
               </h1>

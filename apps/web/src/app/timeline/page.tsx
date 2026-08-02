@@ -1,4 +1,5 @@
 import { type Metadata } from "next"
+import { History } from "lucide-react"
 import { getPublishedPosts } from "@bitlog/database"
 import { Trans } from "@/components/layout/trans"
 import { defaultLocale, t } from "@/lib/i18n"
@@ -30,6 +31,7 @@ export default async function TimelinePage() {
     <div className="min-h-[calc(100vh-4rem)]">
       <PageHeader
         breadcrumb={[{ href: "/", label: <Trans k="site.home" /> }]}
+        icon={<History size={22} className="text-primary" />}
         title={<Trans k="timeline.title" />}
         description={
           (t(defaultLocale, "timeline.total") as (n: number) => string)(posts.length)

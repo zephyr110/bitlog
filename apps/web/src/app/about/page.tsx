@@ -3,7 +3,8 @@ import { Separator } from "@/components/ui/separator"
 import { getSiteConfig } from "@/lib/get-site-config"
 import { Trans } from "@/components/layout/trans"
 import { defaultLocale, t } from "@/lib/i18n"
-import { GitBranch, MessageCircle, Sparkles, Palette, FileCode, Cloud, Rocket, Database } from "lucide-react"
+import { PageHeader } from "@/components/layout/page-header"
+import { GitBranch, MessageCircle, Sparkles, Palette, FileCode, Cloud, Rocket, Database, UserRound } from "lucide-react"
 
 export const metadata: Metadata = {
   title: t(defaultLocale, "about.title") as string,
@@ -47,20 +48,11 @@ export default async function AboutPage() {
   const site = await getSiteConfig()
   return (
     <div className="min-h-[calc(100vh-4rem)]">
-      {/* Hero */}
-      <section className="relative border-b bg-muted/10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
-        <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl relative">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-              <Trans k="about.title" />
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl">
-              <Trans k="about.description" />
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHeader
+        icon={<UserRound size={22} className="text-primary" />}
+        title={<Trans k="about.title" />}
+        description={<Trans k="about.description" />}
+      />
 
       <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl space-y-16">
         {/* About Me */}

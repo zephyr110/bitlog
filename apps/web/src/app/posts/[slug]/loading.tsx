@@ -8,7 +8,7 @@ export default function PostLoading() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <section className="border-b bg-muted/10 overflow-hidden">
+      <section className="border-b bg-gradient-to-b from-muted/40 via-muted/20 to-background overflow-hidden">
         <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl relative">
           <Skeleton className="h-4 w-48 mb-8" />
           <Skeleton className="h-10 w-3/4 mb-4" />
