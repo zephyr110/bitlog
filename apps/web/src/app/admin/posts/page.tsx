@@ -449,7 +449,8 @@ function AdminPostsContent() {
 
       {/* Outside the gap flex column so the portal root cannot steal spacing */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent>
+        {/* Same as the media delete confirm: cap the width (default is w-full). */}
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{t("admin.delete") as string}</DialogTitle>
             <DialogDescription>

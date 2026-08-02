@@ -633,7 +633,9 @@ export default function AdminMediaPage() {
         onDelete={setDeleteTarget}
       />
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent>
+        {/* max-w-md: DialogContent's default w-full max-w-[calc(100%-2rem)]
+            would stretch this one-line confirm to near full width. */}
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{t("admin.deleteImage") as string}</DialogTitle>
             <DialogDescription>
