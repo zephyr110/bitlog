@@ -45,6 +45,7 @@ import {
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
+import { categoryKeys, getCategoryLabel, resolveCategory } from "@/lib/categories"
 import { type PostSummary } from "@bitlog/database"
 
 function AdminPostsContent() {
@@ -58,16 +59,13 @@ function AdminPostsContent() {
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "drafts">(
     initialStatus === "published" || initialStatus === "drafts" ? initialStatus : "all"
   )
-  const [tagFilter, setTagFilter] = useState<string>("all")
+  // "all" or a category key (frontend, backend, ...) — tags roll up to
+  // their topic via resolveCategory, same as the dashboard chart.
+  const [topicFilter, setTopicFilter] = useState<string>("all")
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [deleteTarget, setDeleteTarget] = useState<PostSummary | null>(null)
   const [deleting, setDeleting] = useState(false)
-
-  const allTags = useMemo(
-    () => [...new Set(posts.flatMap((p) => p.tags))].sort(),
-    [posts]
-  )
 
   async function fetchPosts() {
     try {
@@ -106,9 +104,9 @@ function AdminPostsContent() {
     let result = posts
     if (statusFilter === "published") result = result.filter((p) => !p.draft)
     if (statusFilter === "drafts") result = result.filter((p) => p.draft)
-    if (tagFilter !== "all") {
+    if (topicFilter !== "all") {
       result = result.filter((p) =>
-        p.tags.some((tag) => tag.toLowerCase() === tagFilter.toLowerCase())
+        p.tags.some((tag) => resolveCategory(tag) === topicFilter)
       )
     }
     if (searchQuery.trim()) {
@@ -116,7 +114,7 @@ function AdminPostsContent() {
       result = result.filter((p) => p.title.toLowerCase().includes(query))
     }
     return result
-  }, [posts, searchQuery, statusFilter, tagFilter])
+  }, [posts, searchQuery, statusFilter, topicFilter])
 
   const paginatedPosts = useMemo(() => {
     const start = (page - 1) * pageSize
@@ -266,19 +264,20 @@ function AdminPostsContent() {
               ))}
             </div>
 
-            {/* Tag filter */}
+            {/* Topic filter — tags roll up to their category (dashboard's
+                Posts by Topic uses the same resolution). */}
             <Select
-              value={tagFilter}
-              onValueChange={(v) => { setTagFilter(v || "all"); setPage(1) }}
+              value={topicFilter}
+              onValueChange={(v) => { setTopicFilter(v || "all"); setPage(1) }}
             >
               <SelectTrigger className="w-44">
-                <SelectValue placeholder={t("admin.allTags") as string} />
+                <SelectValue placeholder={t("admin.allTopics") as string} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("admin.allTags") as string}</SelectItem>
-                {allTags.map((tag) => (
-                  <SelectItem key={tag} value={tag}>
-                    {tag}
+                <SelectItem value="all">{t("admin.allTopics") as string}</SelectItem>
+                {categoryKeys.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {getCategoryLabel(key, t)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -296,7 +295,7 @@ function AdminPostsContent() {
                 className="pl-9"
               />
             </div>
-            {(searchQuery || tagFilter !== "all") && (
+            {(searchQuery || topicFilter !== "all") && (
               <p className="text-sm text-muted-foreground">
                 {filteredPosts.length} / {posts.length} {t("admin.posts") as string}
               </p>
