@@ -260,11 +260,16 @@ export default function AdminMediaPage() {
 
   async function handleDelete() {
     if (!deleteTarget) return
+    // Capture the target so the finally below only closes THIS confirm:
+    // if the user dismissed it and opened another delete confirm while
+    // the request was in flight, a stale unconditional close would kill
+    // the new dialog without deleting its file.
+    const target = deleteTarget
     setDeleting(true)
 
     try {
       const res = await apiFetch(
-        `/api/upload?filename=${encodeURIComponent(deleteTarget.name)}`,
+        `/api/upload?filename=${encodeURIComponent(target.name)}`,
         { method: "DELETE" }
       )
       if (res.ok) {
@@ -276,7 +281,15 @@ export default function AdminMediaPage() {
           await fetchMedia(page)
         }
         toast.success(t("admin.imageDeleted") as string)
-        if (previewFile?.name === deleteTarget.name) setPreviewFile(null)
+        if (previewFile?.name === target.name) {
+          // Close the dialog first — its deferred scroll-lock restore runs
+          // while the lightbox still holds body overflow:hidden — then drop
+          // the lightbox a frame later. Closing both in the same tick makes
+          // the lightbox's cleanup clear the lock first, and the dialog's
+          // restore then re-applies the stale hidden, locking body scroll
+          // until a reload.
+          requestAnimationFrame(() => setPreviewFile(null))
+        }
       } else {
         toast.error(t("admin.deleteImageFailed") as string)
       }
@@ -284,7 +297,7 @@ export default function AdminMediaPage() {
       toast.error(t("admin.networkError") as string)
     } finally {
       setDeleting(false)
-      setDeleteTarget(null)
+      setDeleteTarget((cur) => (cur === target ? null : cur))
     }
   }
 
@@ -633,9 +646,7 @@ export default function AdminMediaPage() {
         onDelete={setDeleteTarget}
       />
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        {/* max-w-md: DialogContent's default w-full max-w-[calc(100%-2rem)]
-            would stretch this one-line confirm to near full width. */}
-        <DialogContent className="max-w-md">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("admin.deleteImage") as string}</DialogTitle>
             <DialogDescription>

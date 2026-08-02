@@ -136,17 +136,22 @@ function AdminPostsContent() {
 
   async function handleDelete() {
     if (!deleteTarget) return
+    // Capture the target so the finally below only closes THIS confirm:
+    // if the user dismissed it and opened another delete confirm while
+    // the request was in flight, a stale unconditional close would kill
+    // the new dialog without deleting its post.
+    const target = deleteTarget
     setDeleting(true)
 
     try {
       const res = await apiFetch(
-        `/api/posts?slug=${encodeURIComponent(deleteTarget.slug)}`,
+        `/api/posts?slug=${encodeURIComponent(target.slug)}`,
         {
           method: "DELETE",
         }
       )
       if (res.ok) {
-        setPosts(posts.filter((p) => p.slug !== deleteTarget.slug))
+        setPosts(posts.filter((p) => p.slug !== target.slug))
         toast.success(t("admin.deleteSuccess") as string)
       } else {
         toast.error(t("admin.deleteFailed") as string)
@@ -155,7 +160,7 @@ function AdminPostsContent() {
       toast.error(t("admin.networkError") as string)
     } finally {
       setDeleting(false)
-      setDeleteTarget(null)
+      setDeleteTarget((cur) => (cur === target ? null : cur))
     }
   }
 
@@ -449,8 +454,7 @@ function AdminPostsContent() {
 
       {/* Outside the gap flex column so the portal root cannot steal spacing */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        {/* Same as the media delete confirm: cap the width (default is w-full). */}
-        <DialogContent className="max-w-md">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("admin.delete") as string}</DialogTitle>
             <DialogDescription>
