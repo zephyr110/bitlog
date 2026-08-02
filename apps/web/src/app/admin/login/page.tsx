@@ -15,6 +15,12 @@ import { toast } from "sonner"
 import { setToken } from "@/lib/api-client"
 import { Eye, EyeOff, ArrowLeft } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
+import {
+  HeroParticle,
+  HeroPixel,
+  loginBlinkingParticles,
+  loginFloatingParticles,
+} from "@/components/blog/hero-particles"
 import { cn } from "@/lib/utils"
 
 type LoginMode = "login" | "reset"
@@ -105,8 +111,9 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
-      {/* Atmosphere — vertical wash + brand-tinted glow + faint grid */}
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12 [--card-w:400px]">
+      {/* Atmosphere — vertical wash + brand-tinted glow + drifting
+          aurora blobs + faint grid */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-muted/50 via-muted/30 to-background"
@@ -117,10 +124,41 @@ export default function AdminLoginPage() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-25 [background-image:linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] [background-size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_15%,transparent_70%)]"
+        className="animate-login-drift-a pointer-events-none absolute -left-32 top-1/4 size-96 rounded-full bg-primary/[0.06] blur-3xl dark:bg-primary/[0.10]"
+      />
+      <div
+        aria-hidden
+        className="animate-login-drift-b pointer-events-none absolute -right-32 bottom-1/4 size-[28rem] rounded-full bg-primary/[0.05] blur-3xl dark:bg-primary/[0.08]"
+      />
+      {/* Faint grid. The vertical lines live in their own layer whose box
+          matches the card's (w-full max-w-[var(--card-w)], centered), so
+          they always frame the card's left/right edges at any viewport
+          width — no phase offset to keep in sync. The horizontal lines
+          span the page. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-1/2 w-full max-w-[var(--card-w)] -translate-x-1/2 opacity-40 dark:opacity-25 [background-image:linear-gradient(90deg,var(--border)_1px,transparent_1px)] [background-size:40px_100%] [background-position:center] [mask-image:radial-gradient(ellipse_at_center,black_15%,transparent_70%)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-25 [background-image:linear-gradient(var(--border)_1px,transparent_1px)] [background-size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_15%,transparent_70%)]"
       />
 
-      <div className="relative z-10 flex w-full max-w-[380px] flex-col items-center">
+      {/* Particles — same rising/blinking effects as the home hero,
+          reusing the shared seeded sets and global keyframes */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 motion-safe:block hidden"
+      >
+        {loginBlinkingParticles.map((p, i) => (
+          <HeroPixel key={i} p={p} />
+        ))}
+        {loginFloatingParticles.map((p, i) => (
+          <HeroParticle key={i} p={p} className="hero-particle" />
+        ))}
+      </div>
+
+      <div className="relative z-10 flex w-full max-w-[var(--card-w)] flex-col items-center">
         {/* Brand lockup — mark + wordmark on one line, then sign-in copy */}
         <div className="mb-8 flex flex-col items-center text-center animate-in fade-in slide-in-from-bottom-3 duration-500">
           <Link
@@ -145,10 +183,16 @@ export default function AdminLoginPage() {
           </h1>
         </div>
 
+        {/* Shake lives on a wrapper, not the Card: both animate-login-shake
+            and the Card's animate-in utilities set `animation`, so toggling
+            the class on the Card would restart the enter animation after
+            every failed login (the card blinks out and re-fades). */}
+        <div
+          className={cn("w-full", mode === "login" && shake && "animate-login-shake")}
+        >
         <Card
           className={cn(
-            "w-full gap-0 py-0 ring-foreground/10 shadow-xl shadow-foreground/[0.04] dark:shadow-black/30 animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both [animation-delay:80ms]",
-            mode === "login" && shake && "animate-login-shake"
+            "w-full gap-0 py-0 ring-foreground/10 shadow-xl shadow-foreground/[0.04] dark:shadow-black/30 animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both [animation-delay:80ms]"
           )}
         >
           <CardContent className="p-7 sm:p-8">
@@ -324,6 +368,7 @@ export default function AdminLoginPage() {
             )}
           </CardContent>
         </Card>
+        </div>
 
         <Link
           href="/"
@@ -334,29 +379,6 @@ export default function AdminLoginPage() {
         </Link>
       </div>
 
-      <style jsx global>{`
-        @keyframes login-shake {
-          0%,
-          100% {
-            transform: translateX(0);
-          }
-          20% {
-            transform: translateX(-5px);
-          }
-          40% {
-            transform: translateX(5px);
-          }
-          60% {
-            transform: translateX(-3px);
-          }
-          80% {
-            transform: translateX(3px);
-          }
-        }
-        .animate-login-shake {
-          animation: login-shake 0.42s ease-in-out;
-        }
-      `}</style>
     </div>
   )
 }

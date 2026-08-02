@@ -57,7 +57,7 @@ function makeParticles(
   const [tMin, tMax] = opts.durRange
   const pad = opts.leftPad ?? 2
   return Array.from({ length: count }, () => ({
-    left: `${(rand() * (100 - pad * 2 - pad) + pad).toFixed(1)}%`,
+    left: `${(rand() * (100 - pad * 2) + pad).toFixed(1)}%`,
     ...(opts.includeTop ? { top: `${(rand() * 85 + 5).toFixed(1)}%` } : {}),
     size: Math.round(rand() * (szMax - szMin) + szMin),
     hue: pick(rand, HUES),
@@ -77,6 +77,15 @@ export const blinkingParticles = makeParticles(7, 40, {
   sizeRange: [4, 14], delayRange: [0, 6], durRange: [3, 6], leftPad: 3, includeTop: true,
 })
 
+/** Login page sets — different seeds/counts so the scatter differs from
+ *  the home hero; same shapes/hues via the shared factory. */
+export const loginFloatingParticles = makeParticles(2024, 18, {
+  sizeRange: [2, 6], delayRange: [0, 8], durRange: [9, 14], leftPad: 2,
+})
+export const loginBlinkingParticles = makeParticles(99, 32, {
+  sizeRange: [3, 12], delayRange: [0, 6], durRange: [3, 6], leftPad: 3, includeTop: true,
+})
+
 export function HeroParticle({ p, className }: { p: ParticleDef; className: string }) {
   return (
     <span
@@ -85,7 +94,9 @@ export function HeroParticle({ p, className }: { p: ParticleDef; className: stri
         left: p.left,
         bottom: "-8px",
         ...shapeStyle(p.shape, p.size, `oklch(0.78 0.18 ${p.hue})`, `0 0 ${p.size * 3}px ${p.size}px oklch(0.78 0.18 ${p.hue} / 0.45)`),
-        animation: `hero-rise ${p.duration}s linear ${p.delay}s infinite`,
+        // backwards fill: during the delay the 0% frame (opacity 0) applies,
+        // so a particle never renders fully opaque before its animation starts.
+        animation: `hero-rise ${p.duration}s linear ${p.delay}s infinite backwards`,
       }}
     />
   )
