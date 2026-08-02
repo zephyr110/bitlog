@@ -11,6 +11,7 @@ import { getSiteConfig } from "@/lib/get-site-config"
 import { defaultLocale } from "@/lib/i18n"
 import { getAllTags } from "@bitlog/database"
 import { unstable_cache } from "next/cache"
+import { Analytics } from "@vercel/analytics/next"
 import { categoryKeys } from "@/lib/categories"
 import "./globals.css"
 
@@ -123,6 +124,7 @@ export default async function RootLayout({
             </SiteConfigProvider>
           </I18nProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )
