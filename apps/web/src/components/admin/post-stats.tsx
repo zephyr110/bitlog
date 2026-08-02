@@ -145,7 +145,7 @@ export function PostStats({ posts }: PostStatsProps) {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       {/* Timeline Chart */}
-      <Card collapsible>
+      <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("admin.postsOverTime") as string}</CardTitle>
           <CardAction>{renderTimeRangeSelect()}</CardAction>
@@ -210,7 +210,7 @@ export function PostStats({ posts }: PostStatsProps) {
       </Card>
 
       {/* Tags Chart */}
-      <Card collapsible>
+      <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("admin.postsByTag") as string}</CardTitle>
           <CardAction>{renderTimeRangeSelect()}</CardAction>

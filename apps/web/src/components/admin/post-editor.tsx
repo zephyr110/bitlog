@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { apiFetch } from "@/lib/api-client"
@@ -398,9 +398,12 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
         </Button>
       </HeaderActions>
 
-      {/* Metadata */}
-      <Card>
-        <CardContent className="pt-6 space-y-4">
+      {/* Metadata — collapsible so the editor can focus on content */}
+      <Card collapsible>
+        <CardHeader>
+          <CardTitle>{t("admin.postDetails") as string}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">{t("admin.title") as string}</Label>
             <Input
