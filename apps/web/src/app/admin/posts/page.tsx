@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { EllipsisVertical, Search, FileText } from "lucide-react"
+import { Ellipsis, Search, FileText, SquarePen, Eye, Globe, FilePen, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TableSkeleton } from "@/components/ui/loading"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -32,6 +32,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -306,9 +307,9 @@ function AdminPostsContent() {
               table's own container also scrolls vertically (max-h-full) —
               the sticky thead pins against THAT scrollport, since the
               inner container is its nearest scrolling ancestor. */}
-          <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-card">
+          <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border bg-card">
             <Table containerClassName="max-h-full overflow-y-auto">
-              <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
+              <TableHeader className="sticky top-0 z-10 bg-card">
                 <TableRow>
                   <TableHead>{t("admin.title") as string}</TableHead>
                   <TableHead>{t("admin.status") as string}</TableHead>
@@ -320,7 +321,7 @@ function AdminPostsContent() {
               <TableBody>
                 {paginatedPosts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={5} className="py-16 text-center text-muted-foreground">
                       {t("admin.noMatchSearch") as string}
                     </TableCell>
                   </TableRow>
@@ -332,7 +333,8 @@ function AdminPostsContent() {
                           href={`/admin/posts/edit?slug=${encodeURIComponent(
                             post.slug
                           )}`}
-                          className="hover:text-primary transition-colors"
+                          title={post.title}
+                          className="block max-w-[320px] truncate hover:text-primary transition-colors"
                         >
                           {post.title}
                         </Link>
@@ -351,7 +353,7 @@ function AdminPostsContent() {
                             : (t("admin.publishedStatus") as string)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="text-muted-foreground tabular-nums">
                         {new Date(post.date).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
@@ -360,7 +362,7 @@ function AdminPostsContent() {
                             <Badge
                               key={tag}
                               variant="outline"
-                              className="text-xs"
+                              className="text-xs font-normal"
                             >
                               {tag}
                             </Badge>
@@ -374,10 +376,13 @@ function AdminPostsContent() {
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
-                          <DropdownMenuTrigger className="inline-flex items-center justify-center size-8 rounded-lg hover:bg-muted transition-colors">
-                            <EllipsisVertical size={16} />
+                          <DropdownMenuTrigger
+                            aria-label={t("admin.actions") as string}
+                            className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                          >
+                            <Ellipsis size={16} />
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                          <DropdownMenuContent align="end" className="min-w-36">
                             <DropdownMenuItem
                               onClick={() =>
                                 router.push(
@@ -387,6 +392,7 @@ function AdminPostsContent() {
                                 )
                               }
                             >
+                              <SquarePen />
                               {t("admin.edit") as string}
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -394,6 +400,7 @@ function AdminPostsContent() {
                                 handleToggleDraft(post.slug, post.draft)
                               }
                             >
+                              {post.draft ? <Globe /> : <FilePen />}
                               {post.draft ? (t("admin.publish") as string) : (t("admin.unpublish") as string)}
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -403,12 +410,15 @@ function AdminPostsContent() {
                                 )
                               }
                             >
+                              <Eye />
                               {t("admin.view") as string}
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              className="text-destructive"
+                              variant="destructive"
                               onClick={() => setDeleteTarget(post)}
                             >
+                              <Trash2 />
                               {t("admin.delete") as string}
                             </DropdownMenuItem>
                           </DropdownMenuContent>

@@ -176,7 +176,7 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
             setSelectedYear(v === "recent" ? null : Number(v))
           }
         >
-          <SelectTrigger className="w-36">
+          <SelectTrigger size="sm" className="w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -246,10 +246,10 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
                     }}
                     onMouseLeave={() => setTooltip(null)}
                     className={cn(
-                      "aspect-square w-full rounded-[2px] transition-colors",
+                      "aspect-square w-full rounded-[3px] transition-all",
                       isFuture
                         ? "opacity-30"
-                        : "hover:ring-1 hover:ring-primary/40",
+                        : "hover:ring-2 hover:ring-primary/40 hover:ring-offset-1 hover:ring-offset-card",
                       LEVEL_CLASSES[level]
                     )}
                   />
@@ -279,7 +279,7 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
       <div className="mt-2.5 flex items-center justify-end gap-1.5 text-[10px] text-muted-foreground/70">
         <span>{t("admin.contributionLess") as string}</span>
         {LEVEL_CLASSES.map((cls, i) => (
-          <span key={i} className={cn("size-2.5 rounded-[2px]", cls)} />
+          <span key={i} className={cn("size-2.5 rounded-[3px]", cls)} />
         ))}
         <span>{t("admin.contributionMore") as string}</span>
       </div>

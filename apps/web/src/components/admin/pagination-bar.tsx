@@ -143,7 +143,7 @@ export function PaginationBar({
               </SelectTrigger>
               {/* w-fit + min-w-20: a bare-number menu shouldn't stretch to
                   the default 144px; tabular-nums keeps 20/40/60 aligned. */}
-              <SelectContent align="end" className="w-fit min-w-20 p-1">
+              <SelectContent align="end" className="w-fit min-w-20">
                 {[20, 40, 60].map((size) => (
                   <SelectItem
                     key={size}

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { setToken } from "@/lib/api-client"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, ArrowLeft } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 
@@ -106,14 +106,14 @@ export default function AdminLoginPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
-      {/* Atmosphere — soft wash + faint grid (not a flat fill) */}
+      {/* Atmosphere — vertical wash + brand-tinted glow + faint grid */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-muted/40"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-muted/50 via-muted/30 to-background"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,var(--foreground)_0%,transparent_55%)] opacity-[0.06] dark:opacity-[0.12]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_-10%,var(--primary)_0%,transparent_60%)] opacity-[0.08] dark:opacity-[0.16]"
       />
       <div
         aria-hidden
@@ -127,15 +127,17 @@ export default function AdminLoginPage() {
             href="/"
             className="inline-flex items-center gap-3 rounded-xl transition-opacity hover:opacity-80"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={logoSrc}
-              alt=""
-              className={cn(
-                "size-10 rounded-xl object-contain",
-                logoDefault && "dark:invert"
-              )}
-            />
+            <span className="flex size-11 items-center justify-center rounded-xl border bg-card shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={logoSrc}
+                alt=""
+                className={cn(
+                  "size-6 object-contain",
+                  logoDefault && "dark:invert"
+                )}
+              />
+            </span>
             <span className="font-heading text-2xl font-semibold tracking-tight text-foreground">
               {site.name}
             </span>
@@ -149,7 +151,7 @@ export default function AdminLoginPage() {
 
         <Card
           className={cn(
-            "w-full gap-0 py-0 ring-foreground/10 animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both [animation-delay:80ms]",
+            "w-full gap-0 py-0 ring-foreground/10 shadow-xl shadow-foreground/[0.04] dark:shadow-black/30 animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both [animation-delay:80ms]",
             mode === "login" && shake && "animate-login-shake"
           )}
         >
@@ -327,6 +329,13 @@ export default function AdminLoginPage() {
           </CardContent>
         </Card>
 
+        <Link
+          href="/"
+          className="mt-8 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground animate-in fade-in duration-500 fill-mode-both [animation-delay:160ms]"
+        >
+          <ArrowLeft size={14} />
+          {t("admin.backToSite") as string}
+        </Link>
       </div>
 
       <style jsx global>{`

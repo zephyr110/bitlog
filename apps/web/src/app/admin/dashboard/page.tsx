@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Card, CardAction, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { PostStats } from "@/components/admin/post-stats"
 import { ContributionCalendar } from "@/components/admin/contribution-calendar"
 import { FormattedDate } from "@/components/blog/formatted-date"
@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useT } from "@/components/layout/trans"
 import { apiFetch } from "@/lib/api-client"
+import { cn } from "@/lib/utils"
 import { FileText, PenLine, Clock, Tag } from "lucide-react"
 import { type PostSummary } from "@bitlog/database"
 
@@ -45,28 +46,28 @@ export default function AdminDashboardPage() {
       label: t("admin.totalPosts") as string,
       value: posts.length,
       icon: FileText,
-      color: "text-foreground",
+      tile: "bg-muted text-foreground",
       href: "/admin/posts",
     },
     {
       label: t("admin.published") as string,
       value: published.length,
       icon: PenLine,
-      color: "text-emerald-600 dark:text-emerald-400",
+      tile: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
       href: "/admin/posts?status=published",
     },
     {
       label: t("admin.drafts") as string,
       value: drafts.length,
       icon: Clock,
-      color: "text-amber-600 dark:text-amber-400",
+      tile: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
       href: "/admin/posts?status=drafts",
     },
     {
       label: t("admin.tags") as string,
       value: allTags.size,
       icon: Tag,
-      color: "text-blue-600 dark:text-blue-400",
+      tile: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
     },
   ]
 
@@ -112,13 +113,24 @@ export default function AdminDashboardPage() {
             const inner = (
               <>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Icon size={14} />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
                     {stat.label}
                   </CardTitle>
+                  <CardAction>
+                    <span
+                      className={cn(
+                        "flex size-8 items-center justify-center rounded-lg",
+                        stat.tile
+                      )}
+                    >
+                      <Icon size={16} />
+                    </span>
+                  </CardAction>
                 </CardHeader>
                 <CardContent>
-                  <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+                  <p className="text-3xl font-bold tracking-tight tabular-nums">
+                    {stat.value}
+                  </p>
                 </CardContent>
               </>
             )
@@ -128,12 +140,15 @@ export default function AdminDashboardPage() {
                 href={stat.href}
                 className="block rounded-xl transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <Card className="hover:border-primary/20 transition-colors h-full">
+                <Card className="h-full transition-all hover:border-primary/20 hover:shadow-md hover:shadow-foreground/[0.04]">
                   {inner}
                 </Card>
               </Link>
             ) : (
-              <Card key={stat.label} className="hover:border-primary/10 transition-colors">
+              <Card
+                key={stat.label}
+                className="transition-all hover:border-primary/10 hover:shadow-md hover:shadow-foreground/[0.04]"
+              >
                 {inner}
               </Card>
             )

@@ -7,6 +7,7 @@ import {
   Area,
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -31,7 +32,17 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { useT } from "@/components/layout/trans"
+import { resolveCategory, getCategoryLabel } from "@/lib/categories"
 import { type PostSummary } from "@bitlog/database"
+
+/** shadcn chart palette — bars cycle chart-1…chart-5. */
+const BAR_COLORS = [
+  "var(--color-chart-1)",
+  "var(--color-chart-2)",
+  "var(--color-chart-3)",
+  "var(--color-chart-4)",
+  "var(--color-chart-5)",
+]
 
 type TimeRange = "7d" | "30d" | "90d" | "all"
 
@@ -44,7 +55,7 @@ function buildChartConfig(label: string) {
   return {
     count: {
       label,
-      color: "hsl(var(--primary))",
+      color: "var(--color-chart-2)",
     },
   }
 }
@@ -123,19 +134,26 @@ export function PostStats({ posts }: PostStatsProps) {
       .map(([date, count]) => ({ date, count }))
   }, [filteredPosts, timeRange])
 
-  // Posts by tag (top 8)
-  const tagData = useMemo(() => {
-    const byTag: Record<string, number> = {}
+  // Posts by topic — tags roll up to their category prefix (e.g.
+  // "frontend-react" → "frontend"); a post counts once per topic even if
+  // several of its tags resolve to the same one.
+  const topicData = useMemo(() => {
+    const byTopic: Record<string, number> = {}
     for (const p of filteredPosts) {
-      for (const tag of p.tags) {
-        byTag[tag] = (byTag[tag] || 0) + 1
+      const topics = new Set(p.tags.map(resolveCategory))
+      for (const topic of topics) {
+        byTopic[topic] = (byTopic[topic] || 0) + 1
       }
     }
-    return Object.entries(byTag)
-      .map(([tag, count]) => ({ tag, count }))
+    return Object.entries(byTopic)
+      .map(([topic, count]) => ({
+        topic,
+        label: getCategoryLabel(topic, t),
+        count,
+      }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 8)
-  }, [filteredPosts])
+  }, [filteredPosts, t])
 
   const renderTimeRangeSelect = () => (
     <Select
@@ -177,17 +195,21 @@ export function PostStats({ posts }: PostStatsProps) {
                   <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
                     <stop
                       offset="5%"
-                      stopColor="hsl(var(--primary))"
-                      stopOpacity={0.25}
+                      stopColor="var(--color-chart-2)"
+                      stopOpacity={0.3}
                     />
                     <stop
                       offset="95%"
-                      stopColor="hsl(var(--primary))"
-                      stopOpacity={0}
+                      stopColor="var(--color-chart-2)"
+                      stopOpacity={0.02}
                     />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="var(--border)"
+                />
                 <XAxis
                   dataKey="date"
                   tickLine={false}
@@ -204,13 +226,13 @@ export function PostStats({ posts }: PostStatsProps) {
                   width={32}
                 />
                 <ChartTooltip
-                  cursor={false}
+                  cursor={{ stroke: "var(--border)" }}
                   content={<ChartTooltipContent indicator="line" />}
                 />
                 <Area
                   type="monotone"
                   dataKey="count"
-                  stroke="hsl(var(--primary))"
+                  stroke="var(--color-chart-2)"
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorCount)"
@@ -221,24 +243,28 @@ export function PostStats({ posts }: PostStatsProps) {
         </CardContent>
       </Card>
 
-      {/* Tags Chart */}
+      {/* Topics Chart */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("admin.postsByTag") as string}</CardTitle>
+          <CardTitle className="text-base">{t("admin.postsByTopic") as string}</CardTitle>
           <CardAction>{renderTimeRangeSelect()}</CardAction>
         </CardHeader>
         <CardContent>
-          {tagData.length === 0 ? (
+          {topicData.length === 0 ? (
             <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">
-              {t("admin.noTags") as string}
+              {t("admin.noTopics") as string}
             </div>
           ) : (
             <ChartContainer
               config={chartConfig}
               className="aspect-auto h-[240px] w-full"
             >
-              <BarChart data={tagData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+              <BarChart data={topicData} layout="vertical">
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  horizontal={false}
+                  stroke="var(--border)"
+                />
                 <XAxis
                   type="number"
                   allowDecimals={false}
@@ -248,25 +274,28 @@ export function PostStats({ posts }: PostStatsProps) {
                 />
                 <YAxis
                   type="category"
-                  dataKey="tag"
+                  dataKey="label"
                   tickLine={false}
                   axisLine={false}
-                  width={150}
+                  width={110}
                   tickMargin={8}
                   tickFormatter={(value: string) =>
-                    value.length > 18 ? `${value.slice(0, 17)}…` : value
+                    value.length > 14 ? `${value.slice(0, 13)}…` : value
                   }
                   interval={0}
                 />
                 <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent hideLabel />}
+                  cursor={{ fill: "var(--muted)", opacity: 0.4 }}
+                  content={<ChartTooltipContent />}
                 />
-                <Bar
-                  dataKey="count"
-                  fill="hsl(var(--primary))"
-                  radius={[0, 4, 4, 0]}
-                />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={20}>
+                  {topicData.map((entry, index) => (
+                    <Cell
+                      key={entry.topic}
+                      fill={BAR_COLORS[index % BAR_COLORS.length]}
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ChartContainer>
           )}

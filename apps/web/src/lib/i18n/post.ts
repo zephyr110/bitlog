@@ -3,7 +3,7 @@
 export const post = {
   zh: {
 
-minRead: (n: number) => `${n} 分钟阅读`,
+minRead: (n: number) => `${n} 分钟`,
 comments: "评论",
 commentsNotConfigured: "评论功能尚未配置",
 configureGiscus: "要启用 Giscus 评论，请配置以下环境变量：",
@@ -18,7 +18,7 @@ codeCopied: "已复制！",
 updated: "更新于",
 chars: (n: number) => `${n} 字`,
 words: (n: number) => `${n} 词`,
-readTime: (n: number) => `约 ${n} 分钟阅读`,
+readTime: (n: number) => `约 ${n} 分钟`,
 today: "今天",
 yesterday: "昨天",
 daysAgo: (n: number) => `${n} 天前`,
@@ -30,7 +30,7 @@ shortDate: (d: Date) =>
   },
   en: {
 
-minRead: (n: number) => `${n} min read`,
+minRead: (n: number) => `${n} min`,
 comments: "Comments",
 commentsNotConfigured: "Comments are not configured",
 configureGiscus: "To enable Giscus comments, configure the following environment variables:",
@@ -45,7 +45,7 @@ codeCopied: "Copied!",
 updated: "Updated",
 chars: (n: number) => `${n} chars`,
 words: (n: number) => `${n} words`,
-readTime: (n: number) => `~${n} min read`,
+readTime: (n: number) => `~${n} min`,
 today: "Today",
 yesterday: "Yesterday",
 daysAgo: (n: number) => `${n} days ago`,

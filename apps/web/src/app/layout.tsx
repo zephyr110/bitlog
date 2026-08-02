@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner"
 import { Header } from "@/components/layout/header"
+import { Footer } from "@/components/layout/footer"
 import { ThemeProvider } from "@/components/layout/theme-provider"
 import { I18nProvider } from "@/components/layout/i18n-provider"
 import { SiteConfigProvider } from "@/components/layout/site-config-provider"
@@ -114,6 +115,7 @@ export default async function RootLayout({
             <SiteConfigProvider value={site}>
               <Header categories={displayCategories} />
               <main className="flex-1">{children}</main>
+              <Footer />
               <Toaster />
             </SiteConfigProvider>
           </I18nProvider>
