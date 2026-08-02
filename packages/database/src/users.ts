@@ -1,5 +1,5 @@
 import { type Client } from "@libsql/client"
-import { getDb } from "./db"
+import { requireDb, createTableGuard } from "./db"
 
 // ── Schema ──────────────────────────────────────────────────────────────
 
@@ -27,40 +27,20 @@ export interface UserRecord {
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
-function requireDb(): Client {
-  const db = getDb()
-  if (!db) {
-    throw new Error(
-      "TURSO_DATABASE_URL environment variable is required. " +
-        "Set it to a libsql:// or file: URL (and TURSO_AUTH_TOKEN for remote databases)."
-    )
+const ensureUsersTable = createTableGuard(async () => {
+  const db = requireDb()
+  await db.executeMultiple(USERS_SCHEMA)
+  // Migrate pre-recovery tables: CREATE TABLE IF NOT EXISTS won't add
+  // the column to an existing table. Only the duplicate-column error
+  // is expected — anything else (e.g. a locked DB) must propagate,
+  // otherwise the column stays missing and every user lookup fails.
+  try {
+    await db.execute("ALTER TABLE users ADD COLUMN recovery_hash TEXT")
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (!/duplicate column/i.test(msg)) throw err
   }
-  return db
-}
-
-let usersTableReady: Promise<void> | null = null
-
-async function ensureUsersTable(db: Client): Promise<void> {
-  if (!usersTableReady) {
-    usersTableReady = (async () => {
-      await db.executeMultiple(USERS_SCHEMA)
-      // Migrate pre-recovery tables: CREATE TABLE IF NOT EXISTS won't add
-      // the column to an existing table. Only the duplicate-column error
-      // is expected — anything else (e.g. a locked DB) must propagate,
-      // otherwise the column stays missing and every user lookup fails.
-      try {
-        await db.execute("ALTER TABLE users ADD COLUMN recovery_hash TEXT")
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err)
-        if (!/duplicate column/i.test(msg)) throw err
-      }
-    })().catch((err) => {
-      usersTableReady = null // reset on failure so next call retries
-      throw err
-    })
-  }
-  await usersTableReady
-}
+})
 
 /** .env stores the bcrypt hash base64-encoded to survive $-expansion. */
 function decodeEnvHash(hash: string | undefined): string | undefined {
@@ -78,7 +58,7 @@ let seedPromise: Promise<void> | null = null
 function ensureSeeded(db: Client): Promise<void> {
   if (!seedPromise) {
     seedPromise = (async () => {
-      await ensureUsersTable(db)
+      await ensureUsersTable()
       const count = await db.execute("SELECT COUNT(*) AS c FROM users")
       if (Number(count.rows[0]?.c ?? 0) === 0) {
         const username = process.env.ADMIN_USERNAME

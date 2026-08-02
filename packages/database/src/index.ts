@@ -12,6 +12,12 @@ export {
 } from "./content"
 export { getUserByUsername, setUserPassword, setUserRecoveryHash } from "./users"
 export {
+  getLockoutState,
+  recordLoginFailure,
+  clearLoginFailures,
+} from "./lockout"
+export type { LockoutState } from "./lockout"
+export {
   insertMedia,
   setMediaSha,
   listMedia,

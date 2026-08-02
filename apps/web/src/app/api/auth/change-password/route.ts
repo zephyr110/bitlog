@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { requireAuth } from "@/lib/api-auth"
-import { verifyLogin, hashPassword } from "@bitlog/auth"
-import { setUserPassword } from "@bitlog/database"
+import { verifyLogin, hashPassword, recordFailedAttempt } from "@bitlog/auth"
+import { setUserPassword, clearLoginFailures } from "@bitlog/database"
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string().min(8, "New password must be at least 8 characters"),
+  // bcrypt truncates at 72 bytes — cap new passwords so the stored hash
+  // covers the whole password.
+  newPassword: z
+    .string()
+    .min(8, "New password must be at least 8 characters")
+    .refine(
+      (s) => Buffer.byteLength(s, "utf8") <= 72,
+      "New password is too long (max 72 bytes)"
+    ),
 })
 
 export async function POST(request: NextRequest) {
@@ -29,6 +37,10 @@ export async function POST(request: NextRequest) {
 
     const verifiedUser = await verifyLogin(user.username, currentPassword)
     if (!verifiedUser) {
+      // A wrong current password is still a credential guess — feed the
+      // shared lockout counter and eat the delay so this endpoint can't
+      // double as an unthrottled password oracle for session holders.
+      await recordFailedAttempt()
       return NextResponse.json(
         { error: "Current password is incorrect" },
         { status: 401 }
@@ -46,6 +58,11 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    // A successful password change is proof of legitimate admin access —
+    // clear any failure streak (also unblocks a login lockout that a
+    // lockout-era password change would otherwise strand the admin in).
+    await clearLoginFailures()
 
     return NextResponse.json({ success: true, requireRelogin: true })
   } catch (error) {

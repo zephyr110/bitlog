@@ -4,7 +4,11 @@ const REQUEST_TIMEOUT = 15_000
 
 // Routes whose 401 responses are business errors (wrong password),
 // not expired/invalid sessions — never redirect on these.
-const AUTH_EXEMPT_PATHS = ["/api/auth/login", "/api/auth/change-password"]
+const AUTH_EXEMPT_PATHS = [
+  "/api/auth/login",
+  "/api/auth/change-password",
+  "/api/auth/reset", // wrong recovery key is a business error, not a dead session
+]
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null

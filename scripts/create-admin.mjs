@@ -84,6 +84,12 @@ async function main() {
     console.error("Password must be at least 8 characters.")
     process.exit(1)
   }
+  if (Buffer.byteLength(password, "utf8") > 72) {
+    // bcrypt silently truncates at 72 bytes — reject so the stored hash
+    // covers the whole password (same limit as the runtime routes).
+    console.error("Password must be at most 72 bytes.")
+    process.exit(1)
+  }
 
   const url = process.env.TURSO_DATABASE_URL
   if (!url) {
@@ -118,7 +124,8 @@ async function main() {
       // column already exists
     }
 
-    const hash = await bcrypt.hash(password, 10)
+    // Cost 12 — keep in sync with hashPassword in packages/auth/src/auth.ts.
+    const hash = await bcrypt.hash(password, 12)
     const existing = await db.execute(
       "SELECT id FROM users WHERE username = ?",
       [username]
@@ -142,7 +149,7 @@ async function main() {
     const recoveryKey = generateRecoveryKey()
     const recoveryHash = await bcrypt.hash(
       recoveryKey.replace(/[^a-zA-Z0-9]/g, "").toUpperCase(),
-      10
+      12
     )
     await db.execute("UPDATE users SET recovery_hash = ? WHERE username = ?", [
       recoveryHash,

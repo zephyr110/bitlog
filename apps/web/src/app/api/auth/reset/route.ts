@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { verifyRecoveryKey, hashPassword } from "@bitlog/auth"
+import { attemptRecoveryKey, hashPassword } from "@bitlog/auth"
 import { setUserPassword } from "@bitlog/database"
+import { lockedResponse } from "@/lib/auth-lockout"
 
 const resetPasswordSchema = z.object({
   username: z.string().min(1, "Username is required"),
   recoveryKey: z.string().min(1, "Recovery key is required"),
-  newPassword: z.string().min(8, "New password must be at least 8 characters"),
+  // bcrypt truncates at 72 bytes — cap new passwords so the stored hash
+  // covers the whole password.
+  newPassword: z
+    .string()
+    .min(8, "New password must be at least 8 characters")
+    .refine(
+      (s) => Buffer.byteLength(s, "utf8") <= 72,
+      "New password is too long (max 72 bytes)"
+    ),
 })
 
 /**
@@ -29,8 +38,16 @@ export async function POST(request: NextRequest) {
 
     const { username, recoveryKey, newPassword } = parseResult.data
 
-    const keyValid = await verifyRecoveryKey(username, recoveryKey)
-    if (!keyValid) {
+    // Same lockout as login, with one difference: a CORRECT key is still
+    // honored while locked — this is the admin's escape hatch when the
+    // login lock is armed (and success clears the lockout).
+    const attempt = await attemptRecoveryKey(username, recoveryKey)
+
+    if (attempt.status === "locked") {
+      return lockedResponse(attempt.retryAfterSeconds)
+    }
+
+    if (attempt.status === "invalid") {
       return NextResponse.json(
         { error: "Invalid recovery key" },
         { status: 401 }
