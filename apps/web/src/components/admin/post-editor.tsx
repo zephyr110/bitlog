@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, useDeferredValue, Component, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
-import ReactMarkdown from "react-markdown"
+import { MarkdownHooks } from "react-markdown"
 import remarkGfm from "remark-gfm"
+import rehypePrettyCode, { type Options as RehypePrettyCodeOptions } from "rehype-pretty-code"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { mdxComponents } from "@/components/blog/mdx-components"
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
@@ -71,6 +73,44 @@ const TOOLBAR: ToolbarItem[] = [
   { key: "code", i18nKey: "admin.codeBlock", icon: Code, prefix: "```\n", suffix: "\n```" },
   { key: "link", i18nKey: "admin.link", icon: LinkIcon, prefix: "[", suffix: "](https://)", inline: true },
 ]
+
+// Same highlight pipeline as the public post page (MDXRenderer):
+// rehype-pretty-code with the github-dark theme. MarkdownHooks runs the
+// plugins on the client, so previewed code blocks match the live site.
+const previewRehypeOptions: RehypePrettyCodeOptions = {
+  theme: "github-dark",
+  keepBackground: false,
+  defaultLang: "plaintext",
+  grid: true,
+}
+
+/**
+ * MarkdownHooks throws render-time errors (e.g. a highlight failure) —
+ * without a boundary that would unmount the whole editor. The resetKey
+ * (the deferred content) clears the error on the next keystroke so the
+ * preview retries, without remounting the pipeline (a remount would flash
+ * the fallback on every keypress).
+ */
+class PreviewErrorBoundary extends Component<
+  { resetKey: string; fallback: ReactNode; children: ReactNode },
+  { hasError: boolean; lastKey: string }
+> {
+  state = { hasError: false, lastKey: "" }
+  static getDerivedStateFromProps(
+    props: { resetKey: string },
+    state: { hasError: boolean; lastKey: string }
+  ) {
+    return state.lastKey !== props.resetKey
+      ? { hasError: false, lastKey: props.resetKey }
+      : null
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  render() {
+    return this.state.hasError ? this.props.fallback : this.props.children
+  }
+}
 
 export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
   const { t } = useT()
@@ -368,35 +408,45 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     }
   }
 
+  // Deferred so typing stays responsive — the preview re-renders with the
+  // stale content while the new text is being processed in the background.
+  const deferredContent = useDeferredValue(content)
+
+  // Prose classes mirror the public post page (posts/[slug]/page.tsx), and
+  // the component map + rehype pipeline are the same as MDXRenderer, so the
+  // preview matches the published typography, colors, and code blocks.
   const previewPanel = (
-    <div className="prose dark:prose-invert max-w-none min-h-[400px] lg:min-h-[calc(100vh-24rem)] border rounded-lg p-6 bg-card prose-p:my-4 prose-headings:mt-6 prose-headings:mb-3">
-      {content ? (
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          components={{
-            a: ({ href, children }) => (
-              <a href={href} target="_blank" rel="noopener noreferrer">
-                {children}
-              </a>
-            ),
-            img: ({ src, alt }) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={src}
-                alt={alt || ""}
-                className="rounded-lg"
-                loading="lazy"
-              />
-            ),
-            pre: ({ children }) => (
-              <pre className="overflow-x-auto rounded-lg bg-muted/40 p-4">
-                {children}
-              </pre>
-            ),
-          }}
+    <div
+      className="prose dark:prose-invert prose-lg max-w-none min-h-[400px] lg:min-h-[calc(100vh-24rem)] border rounded-lg p-6 bg-card
+        prose-headings:scroll-mt-20 prose-headings:font-semibold prose-headings:tracking-tight
+        prose-p:leading-relaxed prose-p:my-5
+        prose-strong:text-foreground prose-strong:font-semibold
+        prose-li:my-1.5
+        prose-img:rounded-xl prose-img:shadow-md
+        prose-a:no-underline prose-pre:!bg-transparent prose-pre:!p-0 prose-pre:!border-0"
+    >
+      {deferredContent.trim() ? (
+        <PreviewErrorBoundary
+          resetKey={deferredContent}
+          fallback={
+            <p className="text-muted-foreground italic">
+              {t("admin.previewError") as string}
+            </p>
+          }
         >
-          {content}
-        </ReactMarkdown>
+          <MarkdownHooks
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[[rehypePrettyCode, previewRehypeOptions] as never]}
+            components={mdxComponents}
+            fallback={
+              <p className="text-muted-foreground italic">
+                {t("admin.previewRendering") as string}
+              </p>
+            }
+          >
+            {deferredContent}
+          </MarkdownHooks>
+        </PreviewErrorBoundary>
       ) : (
         <p className="text-muted-foreground italic">
           {t("admin.previewEmpty") as string}
