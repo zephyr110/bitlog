@@ -293,12 +293,12 @@ function AdminPostsContent() {
             )}
           </div>
 
-          {/* Outer flex-1 fills space above the pinned PaginationBar;
-              scroll lives on this wrapper so the <table> keeps content
-              height (flex-1 on the table container was stretching the
-              last row to eat leftover space). */}
+          {/* Outer flex-1 fills space above the pinned PaginationBar. The
+              table's own container also scrolls vertically (max-h-full) —
+              the sticky thead pins against THAT scrollport, since the
+              inner container is its nearest scrolling ancestor. */}
           <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-card">
-            <Table>
+            <Table containerClassName="max-h-full overflow-y-auto">
               <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
                 <TableRow>
                   <TableHead>{t("admin.title") as string}</TableHead>

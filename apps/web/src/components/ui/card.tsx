@@ -25,6 +25,8 @@ function Card({
   defaultOpen = true,
   open: openProp,
   onOpenChange,
+  collapseLabel = "Collapse",
+  expandLabel = "Expand",
   children,
   ...props
 }: React.ComponentProps<"div"> & {
@@ -34,6 +36,9 @@ function Card({
   defaultOpen?: boolean
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  /** Accessible labels for the collapse toggle — localize via the caller. */
+  collapseLabel?: string
+  expandLabel?: string
 }) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen)
   const isControlled = openProp !== undefined
@@ -69,7 +74,7 @@ function Card({
             variant="ghost"
             size="icon-xs"
             aria-expanded={open}
-            aria-label={open ? "Collapse" : "Expand"}
+            aria-label={open ? collapseLabel : expandLabel}
             onClick={toggle}
             className="absolute top-(--card-spacing) right-(--card-spacing) z-10 text-muted-foreground hover:text-foreground"
           >

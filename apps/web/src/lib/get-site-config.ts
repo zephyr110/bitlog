@@ -18,26 +18,18 @@ export type SiteSettingsDto = {
   twitterUrl: string
 }
 
-function envBits() {
-  return {
-    siteUrl: process.env.NEXT_PUBLIC_SITE_URL || defaultSiteConfig.siteUrl,
-    ogImage: process.env.NEXT_PUBLIC_OG_IMAGE || defaultSiteConfig.ogImage,
-  }
-}
-
 /**
  * Merge a DB row with compile-time defaults.
  * Once a row exists, stored empty strings are intentional (cleared fields)
- * and must not fall back to defaults — only name/title keep a non-empty
- * fallback so metadata never ships blank.
+ * and must not fall back to defaults — except author.name, which the Atom
+ * feed spec requires non-empty, so it keeps the default fallback like
+ * name/title.
  */
 export function siteConfigFromRow(
   row: SiteSettingsRecord | null
 ): SiteConfig {
-  const env = envBits()
-
   if (!row) {
-    return { ...defaultSiteConfig, ...env }
+    return { ...defaultSiteConfig }
   }
 
   return {
@@ -45,7 +37,9 @@ export function siteConfigFromRow(
     title: row.title.trim() ? row.title : defaultSiteConfig.title,
     description: row.description,
     author: {
-      name: row.authorName,
+      name: row.authorName.trim()
+        ? row.authorName
+        : defaultSiteConfig.author.name,
       avatar: defaultSiteConfig.author.avatar,
     },
     logoUrl: row.logoUrl,
@@ -53,7 +47,8 @@ export function siteConfigFromRow(
       github: row.githubUrl,
       twitter: row.twitterUrl,
     },
-    ...env,
+    siteUrl: defaultSiteConfig.siteUrl,
+    ogImage: defaultSiteConfig.ogImage,
   }
 }
 
@@ -69,14 +64,12 @@ export function toSettingsDto(config: SiteConfig): SiteSettingsDto {
   }
 }
 
+// DB failure propagates here — the fallback below must NOT be cached, or
+// a transient outage at first fetch would freeze the site identity on
+// defaults for the whole revalidate window.
 async function loadSiteConfig(): Promise<SiteConfig> {
-  try {
-    const row = await getSiteSettings()
-    return siteConfigFromRow(row)
-  } catch {
-    // DB unavailable (e.g. static export / missing env) — serve defaults.
-    return { ...defaultSiteConfig, ...envBits() }
-  }
+  const row = await getSiteSettings()
+  return siteConfigFromRow(row)
 }
 
 const cachedLoad = unstable_cache(loadSiteConfig, [SITE_CONFIG_TAG], {
@@ -84,5 +77,13 @@ const cachedLoad = unstable_cache(loadSiteConfig, [SITE_CONFIG_TAG], {
   revalidate: 3600,
 })
 
-/** Request-deduped + cross-request cached site config. */
-export const getSiteConfig = cache(async (): Promise<SiteConfig> => cachedLoad())
+/** Request-deduped + cross-request cached site config. A DB failure falls
+ *  back to compile-time defaults without caching them. */
+export const getSiteConfig = cache(async (): Promise<SiteConfig> => {
+  try {
+    return await cachedLoad()
+  } catch {
+    console.warn("[site-config] DB read failed — using compile-time defaults")
+    return { ...defaultSiteConfig }
+  }
+})

@@ -43,6 +43,10 @@ export function SiteInfoForm({ idPrefix = "site" }: { idPrefix?: string }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  // Fields the user actually touched — the save PUT sends only these, so
+  // two SiteInfoForm instances (settings page + sidebar dialog) editing
+  // different fields can't silently overwrite each other's changes.
+  const touchedRef = useRef<Set<keyof FormState>>(new Set())
 
   useEffect(() => {
     let cancelled = false
@@ -64,6 +68,9 @@ export function SiteInfoForm({ idPrefix = "site" }: { idPrefix?: string }) {
         })
       } catch {
         if (!cancelled) {
+          // Don't silently fall back — the save below would overwrite the
+          // real DB row with possibly-stale values.
+          toast.error(t("admin.siteInfoLoadFailed") as string)
           setForm({
             name: site.name,
             title: site.title,
@@ -87,6 +94,7 @@ export function SiteInfoForm({ idPrefix = "site" }: { idPrefix?: string }) {
   }, [])
 
   function patch<K extends keyof FormState>(key: K, value: FormState[K]) {
+    touchedRef.current.add(key)
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
@@ -124,18 +132,31 @@ export function SiteInfoForm({ idPrefix = "site" }: { idPrefix?: string }) {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
+    if (touchedRef.current.size === 0) {
+      toast.info(t("admin.siteInfoNoChanges") as string)
+      return
+    }
     setSaving(true)
     try {
+      // Partial update: only the touched fields are sent, so a save from
+      // one form never overwrites fields another form (or dialog session)
+      // changed in between.
+      const patchBody = Object.fromEntries(
+        [...touchedRef.current].map((key) => [key, form[key]])
+      )
       const res = await apiFetch("/api/site-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(patchBody),
       })
       const data = await res.json()
       if (!res.ok) {
         toast.error(data.error || (t("admin.siteInfoSaveFailed") as string))
         return
       }
+      // The server returns the merged full record — use it to refresh the
+      // context so every consumer (header, sidebar, other form instances)
+      // sees the latest values.
       const s = data.settings
       site.setSiteConfig((prev) => ({
         ...prev,
@@ -149,6 +170,7 @@ export function SiteInfoForm({ idPrefix = "site" }: { idPrefix?: string }) {
           twitter: s.twitterUrl,
         },
       }))
+      touchedRef.current.clear()
       toast.success(t("admin.siteInfoSaved") as string)
     } catch {
       toast.error(t("admin.networkError") as string)

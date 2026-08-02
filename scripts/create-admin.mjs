@@ -20,6 +20,9 @@ import { resolve, dirname } from "path"
 import { fileURLToPath } from "url"
 
 // No 0/O/1/I/L — unambiguous when transcribed by hand.
+// NOTE: keep in sync with packages/auth/src/auth.ts (generateRecoveryKey /
+// normalizeRecoveryKey) — the app verifies keys with THAT implementation,
+// so a drift here would make printed keys unredeemable.
 const KEY_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 /** 20 chars in 4 groups of 5, e.g. "4F8K9-W2P3X-7L6QD-MZQTN". */

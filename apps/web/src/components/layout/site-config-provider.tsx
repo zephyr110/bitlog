@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from "react"
@@ -28,11 +27,12 @@ export function SiteConfigProvider({
   value: SiteConfig
   children: React.ReactNode
 }) {
+  // Seeded from the server value once. Deliberately NOT re-synced on
+  // prop changes: a settings save updates the context immediately, and a
+  // re-sync would let a stale server value (e.g. from the 1h cache during
+  // a router.refresh()) clobber the user's in-session edits. Full page
+  // reloads remount with fresh server data anyway.
   const [config, setConfig] = useState(value)
-
-  useEffect(() => {
-    setConfig(value) // eslint-disable-line react-hooks/set-state-in-effect -- prop→state sync: server-rendered config may differ after hydration
-  }, [value])
 
   const refreshSiteConfig = useCallback(async () => {
     try {

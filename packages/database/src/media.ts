@@ -112,6 +112,12 @@ export interface MediaFilter {
   q?: string
 }
 
+/** Escape LIKE wildcards so a user query matches literally (% and _ in a
+ *  filename no longer act as pattern metacharacters). */
+function escapeLike(input: string): string {
+  return input.replace(/[\\%_]/g, "\\$&")
+}
+
 /** WHERE clause + args shared by listMedia and countMedia. */
 function filterSql(filter?: MediaFilter): { sql: string; args: string[] } {
   const clauses: string[] = []
@@ -125,8 +131,8 @@ function filterSql(filter?: MediaFilter): { sql: string; args: string[] } {
     args.push(filter.to)
   }
   if (filter?.q) {
-    clauses.push("filename LIKE ? COLLATE NOCASE")
-    args.push(`%${filter.q}%`)
+    clauses.push("filename LIKE ? ESCAPE '\\' COLLATE NOCASE")
+    args.push(`%${escapeLike(filter.q)}%`)
   }
   return { sql: clauses.length ? `WHERE ${clauses.join(" AND ")}` : "", args }
 }

@@ -8,6 +8,7 @@ import { SiteConfigProvider } from "@/components/layout/site-config-provider"
 import { getSiteConfig } from "@/lib/get-site-config"
 import { defaultLocale } from "@/lib/i18n"
 import { getAllTags } from "@bitlog/database"
+import { unstable_cache } from "next/cache"
 import { categoryKeys } from "@/lib/categories"
 import "./globals.css"
 
@@ -69,12 +70,18 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
+// Nav category counts only need to track post writes, not per-request
+// freshness — cache so every page load doesn't scan all posts' tags.
+const getNavTags = unstable_cache(getAllTags, ["nav-tags"], {
+  revalidate: 3600,
+})
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const [tags, site] = await Promise.all([getAllTags(), getSiteConfig()])
+  const [tags, site] = await Promise.all([getNavTags(), getSiteConfig()])
   // Only show categories that have matching tags, with post count
   const navCategories = categoryKeys
     .map((key) => ({

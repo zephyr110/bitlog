@@ -37,15 +37,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   async function handleGenerateRecoveryKey() {
     setGeneratingKey(true)
     try {
+      // apiFetch already redirects to login on 401, so no manual handling
+      // is needed here (unlike change-password, which is exempt).
       const res = await apiFetch("/api/auth/recovery", { method: "POST" })
       const data = await res.json()
       if (res.ok) {
         setNewRecoveryKey(data.recoveryKey)
-      } else if (res.status === 401 && data.error === "Unauthorized") {
-        // Session expired — back to login.
-        onOpenChange(false)
-        clearToken()
-        router.push("/admin/login")
       } else {
         toast.error(data.error || (t("admin.recoveryKeyGenerateFailed") as string))
       }
@@ -54,6 +51,17 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     } finally {
       setGeneratingKey(false)
     }
+  }
+
+  // Closing the dialog with a fresh key still on screen: the server has
+  // already replaced the old key, so warn (the plaintext is shown only
+  // once — it will be gone) and clear it to keep the once-only guarantee.
+  function handleOpenChange(open: boolean) {
+    if (!open && newRecoveryKey) {
+      toast.warning(t("admin.recoveryKeyCloseWarning") as string)
+      setNewRecoveryKey(null)
+    }
+    onOpenChange(open)
   }
 
   async function handleChangePassword(e: React.FormEvent) {
@@ -101,7 +109,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("admin.settings") as string}</DialogTitle>
@@ -189,6 +197,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                         navigator.clipboard
                           .writeText(newRecoveryKey)
                           .then(() => toast.success(t("admin.urlCopied") as string))
+                          .catch(() =>
+                            toast.error(t("admin.copyFailed") as string)
+                          )
                       }}
                     >
                       {t("admin.copyURL") as string}

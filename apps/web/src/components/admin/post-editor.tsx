@@ -91,9 +91,34 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
   const desktopContentRef = useRef<HTMLTextAreaElement>(null)
   const mobileContentRef = useRef<HTMLTextAreaElement>(null)
 
+  // Baseline for "unsaved changes": the LAST successfully persisted state
+  // (not the initial fetch) — otherwise auto-save would re-PUT the
+  // identical body every 30s forever, bumping updated_at each time.
+  const savedSnapshotRef = useRef<{
+    title: string
+    slug: string
+    description: string
+    content: string
+    tags: string[]
+    cover: string
+    draft: boolean
+  } | null>(
+    initialPost
+      ? {
+          title: initialPost.title,
+          slug: initialPost.slug,
+          description: initialPost.description,
+          content: initialPost.content,
+          tags: initialPost.tags,
+          cover: initialPost.cover || "",
+          draft: initialPost.draft,
+        }
+      : null
+  )
+
   // Track unsaved changes
   const hasUnsavedChanges = useCallback(() => {
-    const initial = initialPost
+    const initial = savedSnapshotRef.current
     if (!initial && isNew) {
       return (
         title !== "" ||
@@ -114,7 +139,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
       cover !== (initial.cover || "") ||
       draft !== initial.draft
     )
-  }, [title, slug, description, content, tags, cover, draft, initialPost, isNew])
+  }, [title, slug, description, content, tags, cover, draft, isNew])
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -297,6 +322,18 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
         const data = await res.json()
         const savedDraft = data.post.draft ?? draft
         setDraft(savedDraft)
+        // Re-baseline: what was just persisted is now "clean", so the
+        // auto-save interval and the beforeunload prompt stop firing
+        // until the user actually edits something.
+        savedSnapshotRef.current = {
+          title,
+          slug,
+          description,
+          content,
+          tags,
+          cover: cover || "",
+          draft: savedDraft,
+        }
         if (publish) {
           toast.success(t("admin.publishSuccess") as string)
         } else if (!silent) {
@@ -399,7 +436,11 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
       </HeaderActions>
 
       {/* Metadata — collapsible so the editor can focus on content */}
-      <Card collapsible>
+      <Card
+        collapsible
+        collapseLabel={t("admin.collapsePreview") as string}
+        expandLabel={t("admin.expandPreview") as string}
+      >
         <CardHeader>
           <CardTitle>{t("admin.postDetails") as string}</CardTitle>
         </CardHeader>

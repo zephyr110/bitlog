@@ -1,6 +1,12 @@
 import { getSiteConfig } from "@/lib/get-site-config"
 import { getPublishedPosts } from "@bitlog/database"
 
+/** Escape the CDATA terminator so a description containing "]]>" can't
+ *  truncate the CDATA block and break the whole feed's XML. */
+function escapeCdata(str: string): string {
+  return str.replace(/]]>/g, "]]]]><![CDATA[>")
+}
+
 function escapeXml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
@@ -33,7 +39,7 @@ export async function GET() {
     <summary type="html">${escapeXml(post.description || "")}</summary>
     <content type="html" xml:base="${escapeXml(siteUrl)}">
       <![CDATA[
-        <p>${post.description || ""}</p>
+        <p>${escapeCdata(post.description || "")}</p>
         <p><a href="${postUrl}">Read more</a></p>
       ]]>
     </content>

@@ -216,7 +216,12 @@ export default function AdminLoginPage() {
                   </Button>
                   <button
                     type="button"
-                    onClick={() => setMode("reset")}
+                    onClick={() => {
+                      // Don't carry the typed password into reset mode.
+                      setPassword("")
+                      setShowPassword(false)
+                      setMode("reset")
+                    }}
                     className="h-8 self-center text-xs text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {t("admin.forgotPassword") as string}
@@ -304,7 +309,14 @@ export default function AdminLoginPage() {
                   </Button>
                   <button
                     type="button"
-                    onClick={() => setMode("login")}
+                    onClick={() => {
+                      // Clear the sensitive reset fields so a stray Enter
+                      // can't re-submit with the old key/password.
+                      setRecoveryKey("")
+                      setNewPassword("")
+                      setConfirmPassword("")
+                      setMode("login")
+                    }}
                     className="h-8 self-center text-xs text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {t("admin.backToLogin") as string}
@@ -315,16 +327,6 @@ export default function AdminLoginPage() {
           </CardContent>
         </Card>
 
-        <p className="mt-8 text-center text-xs text-muted-foreground animate-in fade-in duration-700 fill-mode-both [animation-delay:160ms]">
-          {t("admin.localDevNotice") as string}
-          <span className="mx-1.5 text-border">·</span>
-          <Link
-            href="/"
-            className="underline-offset-4 transition-colors hover:text-foreground hover:underline"
-          >
-            {site.name}
-          </Link>
-        </p>
       </div>
 
       <style jsx global>{`

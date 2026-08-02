@@ -26,7 +26,12 @@ export const defaultSiteConfig: SiteConfig = {
     name: "Admin",
     avatar: "/images/avatar.jpg",
   },
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+  // Trailing slash stripped so URL concatenation (ogImageUrl, feeds)
+  // never produces double slashes regardless of the env value.
+  siteUrl: (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(
+    /\/+$/,
+    ""
+  ),
   ogImage: process.env.NEXT_PUBLIC_OG_IMAGE || "/images/og-default.jpg",
   logoUrl: "",
   social: {

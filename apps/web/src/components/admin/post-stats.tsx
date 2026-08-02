@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+
 import {
   AreaChart,
   Area,
@@ -30,7 +31,6 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { useT } from "@/components/layout/trans"
-import { formatLocalDate } from "@/lib/date"
 import { type PostSummary } from "@bitlog/database"
 
 type TimeRange = "7d" | "30d" | "90d" | "all"
@@ -56,12 +56,16 @@ const RANGE_DAYS: Record<TimeRange, number | null> = {
   all: null,
 }
 
-/** Civil-date cutoff (local YYYY-MM-DD), inclusive window of the last N days. */
-function cutoffDateString(days: number): string {
-  const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  d.setDate(d.getDate() - (days - 1))
-  return formatLocalDate(d)
+// Coarse "now" (refreshed at most once a minute) so the date-window
+// cutoff can be computed during render without calling the impure
+// Date.now() directly in the component (react-compiler lint) — chart
+// windows don't need second-level precision.
+let coarseNow: number | null = null
+function nowCoarse(): number {
+  if (coarseNow === null || Date.now() - coarseNow > 60_000) {
+    coarseNow = Date.now()
+  }
+  return coarseNow
 }
 
 /** Short ranges bucket by day; longer ranges by month. */
@@ -80,23 +84,31 @@ function formatTimelineTick(value: string): string {
 export function PostStats({ posts }: PostStatsProps) {
   const { t } = useT()
   const [timeRange, setTimeRange] = useState<TimeRange>("all")
-  const chartConfig = buildChartConfig(t("admin.posts") as string)
+  const chartConfig = useMemo(
+    () => buildChartConfig(t("admin.posts") as string),
+    [t]
+  )
 
   const publishedPosts = useMemo(() => posts.filter((p) => !p.draft), [posts])
 
-  const timeRangeLabels: Record<TimeRange, string> = {
-    "7d": t("admin.days7") as string,
-    "30d": t("admin.days30") as string,
-    "90d": t("admin.days90") as string,
-    all: t("admin.allTime") as string,
-  }
+  const timeRangeLabels = useMemo<Record<TimeRange, string>>(
+    () => ({
+      "7d": t("admin.days7") as string,
+      "30d": t("admin.days30") as string,
+      "90d": t("admin.days90") as string,
+      all: t("admin.allTime") as string,
+    }),
+    [t]
+  )
 
   const filteredPosts = useMemo(() => {
     const days = RANGE_DAYS[timeRange]
     if (days == null) return publishedPosts
-    const cutoff = cutoffDateString(days)
-    // String compare on civil YYYY-MM-DD — avoids UTC parse off-by-one.
-    return publishedPosts.filter((p) => p.date.slice(0, 10) >= cutoff)
+    // Exact rolling N×24h timestamp window — post.date is a UTC ISO
+    // string, so comparing timestamps (not civil-date strings) keeps the
+    // boundary correct in every timezone.
+    const cutoff = nowCoarse() - days * 86_400_000
+    return publishedPosts.filter((p) => new Date(p.date).getTime() >= cutoff)
   }, [publishedPosts, timeRange])
 
   // Posts over time — bucket granularity follows the selected range.

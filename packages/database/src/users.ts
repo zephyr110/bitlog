@@ -45,11 +45,14 @@ async function ensureUsersTable(db: Client): Promise<void> {
     usersTableReady = (async () => {
       await db.executeMultiple(USERS_SCHEMA)
       // Migrate pre-recovery tables: CREATE TABLE IF NOT EXISTS won't add
-      // the column to an existing table. Duplicate-column errors are fine.
+      // the column to an existing table. Only the duplicate-column error
+      // is expected — anything else (e.g. a locked DB) must propagate,
+      // otherwise the column stays missing and every user lookup fails.
       try {
         await db.execute("ALTER TABLE users ADD COLUMN recovery_hash TEXT")
-      } catch {
-        // column already exists
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        if (!/duplicate column/i.test(msg)) throw err
       }
     })().catch((err) => {
       usersTableReady = null // reset on failure so next call retries
@@ -85,6 +88,21 @@ function ensureSeeded(db: Client): Promise<void> {
             "INSERT INTO users (username, password_hash) VALUES (?, ?)",
             [username, hash]
           )
+          // Optional pre-hashed recovery key (base64 bcrypt, like
+          // ADMIN_PASSWORD_HASH). Without one, the forgot-password flow
+          // can't be used until `pnpm create-admin` assigns a key.
+          const keyHash = decodeEnvHash(process.env.ADMIN_RECOVERY_KEY_HASH)
+          if (keyHash) {
+            await db.execute(
+              "UPDATE users SET recovery_hash = ? WHERE username = ?",
+              [keyHash, username]
+            )
+          } else {
+            console.warn(
+              "[auth] env-seeded admin has no recovery key — the forgot-" +
+                "password flow needs one. Run `pnpm create-admin` to set it."
+            )
+          }
         } else {
           console.warn(
             "[auth] users table is empty and ADMIN_USERNAME/ADMIN_PASSWORD_HASH " +

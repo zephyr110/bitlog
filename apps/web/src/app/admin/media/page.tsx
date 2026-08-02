@@ -82,14 +82,19 @@ export default function AdminMediaPage() {
   const [refreshing, setRefreshing] = useState(false)
 
   // Debounce the search input, then reset to page 1 — the [page,
-  // fetchMedia] effect refetches automatically.
+  // fetchMedia] effect refetches automatically. Page 1 is only forced
+  // when the query actually changed, so a stale timer can't override a
+  // page/pageSize/date change made within the debounce window.
   useEffect(() => {
     const id = setTimeout(() => {
-      setSearchQuery(searchInput.trim())
-      setPage(1)
+      const next = searchInput.trim()
+      if (next !== searchQuery) {
+        setSearchQuery(next)
+        setPage(1)
+      }
     }, 400)
     return () => clearTimeout(id)
-  }, [searchInput])
+  }, [searchInput, searchQuery])
 
   const fetchMedia = useCallback(async (targetPage: number) => {
     const seq = ++fetchSeq.current
@@ -366,8 +371,9 @@ export default function AdminMediaPage() {
         </Button>
       </HeaderActions>
 
-      {/* Drop zone */}
-      {files.length === 0 && !loading && (
+      {/* Drop zone — only when the library is genuinely empty; a filter
+          with zero matches gets the no-results card below instead. */}
+      {files.length === 0 && !loading && !searchQuery && !dateFrom && !dateTo && (
         <div
           onDragEnter={handleDrag}
           onDragOver={handleDrag}
@@ -433,10 +439,14 @@ export default function AdminMediaPage() {
               <ImageIcon size={48} className="mx-auto text-muted-foreground" aria-hidden="true" />
             </div>
             <h3 className="text-lg font-semibold mb-2">
-              {t("admin.noImages") as string}
+              {searchQuery || dateFrom || dateTo
+                ? (t("admin.noMatchMedia") as string)
+                : (t("admin.noImages") as string)}
             </h3>
             <p className="text-muted-foreground mb-4">
-              {t("admin.noImagesDesc") as string}
+              {searchQuery || dateFrom || dateTo
+                ? (t("admin.noMatchMediaDesc") as string)
+                : (t("admin.noImagesDesc") as string)}
             </p>
           </CardContent>
         </Card>
