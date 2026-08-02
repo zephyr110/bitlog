@@ -110,19 +110,27 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{t("admin.settings") as string}</DialogTitle>
+      {/* The dialog shell never scrolls — only the body below does, so
+          the header (and its close button) stays fixed while the cards
+          scroll. */}
+      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col overflow-hidden p-5">
+        <DialogHeader className="shrink-0 pr-10">
+          <DialogTitle className="text-lg">{t("admin.settings") as string}</DialogTitle>
           <DialogDescription>
             {t("admin.settingsDesc") as string}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 pt-4">
+        {/* Padding rhythm: p-5 shell, gap-4 from the dialog separates the
+            header, and compact sm cards (12px inner padding) at 20px
+            spacing keep the card stack tight without feeling cramped.
+            p-0.5 here keeps the cards' outer ring (1px box-shadow) from
+            being clipped by the scroll container's edges. */}
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-0.5">
           {/* Change Password */}
-          <Card>
+          <Card size="sm">
             <CardHeader>
-              <CardTitle>{t("admin.changePassword") as string}</CardTitle>
+              <CardTitle className="font-semibold">{t("admin.changePassword") as string}</CardTitle>
               <CardDesc>
                 {t("admin.changePasswordDesc") as string}
               </CardDesc>
@@ -170,42 +178,42 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             </CardContent>
           </Card>
 
-          {/* Recovery Key */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("admin.recoveryKey") as string}</CardTitle>
-              <CardDesc>
-                {t("admin.recoveryKeyDesc") as string}
-              </CardDesc>
-            </CardHeader>
+          {/* Recovery Key — compact: no header, the card content carries
+              the label + hint and the action in one row (or the generated
+              key + confirm buttons when one is showing). */}
+          <Card size="sm">
             <CardContent>
               {newRecoveryKey ? (
-                <div className="space-y-3">
-                  <div className="rounded-lg border bg-muted/50 p-3">
-                    <p className="select-all text-center font-mono text-sm font-semibold tracking-wider break-all">
+                <div className="space-y-2.5">
+                  <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                    {t("admin.recoveryKeyOnceOnly") as string}
+                  </p>
+                  <div className="rounded-lg border bg-muted/50 px-3 py-2.5">
+                    <p className="select-all break-all text-center font-mono text-sm font-semibold tracking-[0.12em]">
                       {newRecoveryKey}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t("admin.recoveryKeyOnceOnly") as string}
-                  </p>
                   <div className="flex gap-2">
                     <Button
                       type="button"
                       variant="outline"
+                      size="sm"
                       onClick={() => {
                         navigator.clipboard
                           .writeText(newRecoveryKey)
-                          .then(() => toast.success(t("admin.urlCopied") as string))
+                          .then(() =>
+                            toast.success(t("admin.keyCopied") as string)
+                          )
                           .catch(() =>
                             toast.error(t("admin.copyFailed") as string)
                           )
                       }}
                     >
-                      {t("admin.copyURL") as string}
+                      {t("admin.copyRecoveryKey") as string}
                     </Button>
                     <Button
                       type="button"
+                      size="sm"
                       onClick={() => setNewRecoveryKey(null)}
                     >
                       {t("admin.recoveryKeySaved") as string}
@@ -213,13 +221,19 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    {t("admin.recoveryKeyHint") as string}
-                  </p>
+                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">
+                      {t("admin.recoveryKey") as string}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {t("admin.recoveryKeyHint") as string}
+                    </p>
+                  </div>
                   <Button
                     type="button"
                     variant="outline"
+                    size="sm"
                     disabled={generatingKey}
                     onClick={handleGenerateRecoveryKey}
                   >
@@ -233,13 +247,15 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           </Card>
 
           {/* Site Info */}
-          <Card>
+          <Card size="sm">
             <CardHeader>
-              <CardTitle>{t("admin.siteInfo") as string}</CardTitle>
+              <CardTitle className="font-semibold">{t("admin.siteInfo") as string}</CardTitle>
               <CardDesc>{t("admin.siteInfoDesc") as string}</CardDesc>
             </CardHeader>
             <CardContent>
-              {open ? <SiteInfoForm idPrefix="dlg-site" /> : null}
+              {open ? (
+                <SiteInfoForm idPrefix="dlg-site" className="space-y-4" />
+              ) : null}
             </CardContent>
           </Card>
         </div>

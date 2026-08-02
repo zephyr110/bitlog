@@ -27,7 +27,15 @@ type FormState = {
 const ACCEPT = "image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 
-export function SiteInfoForm({ idPrefix = "site" }: { idPrefix?: string }) {
+export function SiteInfoForm({
+  idPrefix = "site",
+  className,
+}: {
+  idPrefix?: string
+  /** Override the form's vertical rhythm — the settings dialog uses a
+   *  tighter space-y-4 than the standalone settings page. */
+  className?: string
+}) {
   const { t } = useT()
   const site = useSiteConfig()
   const fileRef = useRef<HTMLInputElement>(null)
@@ -191,7 +199,7 @@ export function SiteInfoForm({ idPrefix = "site" }: { idPrefix?: string }) {
   const previewDefault = isDefaultSiteLogo({ logoUrl: form.logoUrl })
 
   return (
-    <form onSubmit={handleSave} className="space-y-5">
+    <form onSubmit={handleSave} className={cn("space-y-5", className)}>
       {/* Logo */}
       <div className="space-y-2">
         <Label>{t("admin.siteLogo") as string}</Label>
