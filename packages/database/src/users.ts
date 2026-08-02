@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
+  recovery_hash TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
@@ -18,6 +19,8 @@ CREATE TABLE IF NOT EXISTS users (
 export interface UserRecord {
   username: string
   passwordHash: string
+  /** bcrypt hash of the one-time recovery key; null when never set. */
+  recoveryHash: string | null
   /** Opaque version token — changes whenever the password changes. */
   passwordVersion: string
 }
@@ -41,6 +44,13 @@ async function ensureUsersTable(db: Client): Promise<void> {
   if (!usersTableReady) {
     usersTableReady = (async () => {
       await db.executeMultiple(USERS_SCHEMA)
+      // Migrate pre-recovery tables: CREATE TABLE IF NOT EXISTS won't add
+      // the column to an existing table. Duplicate-column errors are fine.
+      try {
+        await db.execute("ALTER TABLE users ADD COLUMN recovery_hash TEXT")
+      } catch {
+        // column already exists
+      }
     })().catch((err) => {
       usersTableReady = null // reset on failure so next call retries
       throw err
@@ -105,7 +115,7 @@ export async function getUserByUsername(
     await ensureSeeded(db)
 
     const result = await db.execute(
-      "SELECT username, password_hash, updated_at FROM users WHERE username = ?",
+      "SELECT username, password_hash, recovery_hash, updated_at FROM users WHERE username = ?",
       [username]
     )
     const row = result.rows[0]
@@ -114,6 +124,7 @@ export async function getUserByUsername(
     return {
       username: row.username as string,
       passwordHash: row.password_hash as string,
+      recoveryHash: (row.recovery_hash as string | null) ?? null,
       passwordVersion: row.updated_at as string,
     }
   } catch (error) {
@@ -134,6 +145,25 @@ export async function setUserPassword(
     const result = await db.execute(
       "UPDATE users SET password_hash = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE username = ?",
       [passwordHash, username]
+    )
+    return Number(result.rowsAffected) > 0
+  } catch {
+    return false
+  }
+}
+
+/** Stores (replaces) the bcrypt hash of the user's one-time recovery key. */
+export async function setUserRecoveryHash(
+  username: string,
+  recoveryHash: string
+): Promise<boolean> {
+  try {
+    const db = requireDb()
+    await ensureSeeded(db)
+
+    const result = await db.execute(
+      "UPDATE users SET recovery_hash = ? WHERE username = ?",
+      [recoveryHash, username]
     )
     return Number(result.rowsAffected) > 0
   } catch {

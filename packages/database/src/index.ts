@@ -10,7 +10,7 @@ export {
   getPostsByCategory,
   getPostsByTag,
 } from "./content"
-export { getUserByUsername, setUserPassword } from "./users"
+export { getUserByUsername, setUserPassword, setUserRecoveryHash } from "./users"
 export {
   insertMedia,
   setMediaSha,

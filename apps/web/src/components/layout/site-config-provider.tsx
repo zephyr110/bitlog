@@ -31,7 +31,7 @@ export function SiteConfigProvider({
   const [config, setConfig] = useState(value)
 
   useEffect(() => {
-    setConfig(value)
+    setConfig(value) // eslint-disable-line react-hooks/set-state-in-effect -- prop→state sync: server-rendered config may differ after hydration
   }, [value])
 
   const refreshSiteConfig = useCallback(async () => {

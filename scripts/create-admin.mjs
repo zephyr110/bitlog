@@ -6,13 +6,29 @@
  *   node scripts/create-admin.mjs --username admin --password "your-password"
  *   node scripts/create-admin.mjs --password "new-password"   # updates the existing ADMIN_USERNAME user
  *
+ * Every run also generates a fresh one-time recovery key (bcrypt hash
+ * stored in the DB, plaintext printed exactly once) for the forgot-
+ * password flow on the login page.
+ *
  * Environment: TURSO_DATABASE_URL (and TURSO_AUTH_TOKEN for remote DBs)
  * are loaded from .env.local automatically.
  */
+import { randomInt } from "node:crypto"
 import { createRequire } from "module"
 import { readFileSync, existsSync } from "fs"
 import { resolve, dirname } from "path"
 import { fileURLToPath } from "url"
+
+// No 0/O/1/I/L — unambiguous when transcribed by hand.
+const KEY_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+/** 20 chars in 4 groups of 5, e.g. "4F8K9-W2P3X-7L6QD-MZQTN". */
+function generateRecoveryKey() {
+  const chars = []
+  for (let i = 0; i < 20; i++) chars.push(KEY_ALPHABET[randomInt(KEY_ALPHABET.length)])
+  const k = chars.join("")
+  return `${k.slice(0, 5)}-${k.slice(5, 10)}-${k.slice(10, 15)}-${k.slice(15, 20)}`
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = resolve(__dirname, "..")
@@ -86,10 +102,18 @@ async function main() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
+        recovery_hash TEXT,
         created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
         updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
       );
     `)
+    // Migrate pre-recovery tables (CREATE IF NOT EXISTS won't touch an
+    // existing table). Duplicate-column errors are fine.
+    try {
+      await db.execute("ALTER TABLE users ADD COLUMN recovery_hash TEXT")
+    } catch {
+      // column already exists
+    }
 
     const hash = await bcrypt.hash(password, 10)
     const existing = await db.execute(
@@ -110,6 +134,22 @@ async function main() {
       )
       console.log(`✓ Created admin user "${username}".`)
     }
+
+    // Fresh one-time recovery key on every run — the old one is replaced.
+    const recoveryKey = generateRecoveryKey()
+    const recoveryHash = await bcrypt.hash(
+      recoveryKey.replace(/[^a-zA-Z0-9]/g, "").toUpperCase(),
+      10
+    )
+    await db.execute("UPDATE users SET recovery_hash = ? WHERE username = ?", [
+      recoveryHash,
+      username,
+    ])
+    console.log("\n⚠ Save this recovery key now — it is shown only once:")
+    console.log(`  ${recoveryKey}`)
+    console.log(
+      "  Use it on the admin login page → “Forgot password?” to reset your password.\n"
+    )
   } catch (error) {
     console.error("Failed to create/update user:", error.message)
     // process.exitCode + normal return lets the finally block run

@@ -30,6 +30,31 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  // Newly generated recovery key — shown once until confirmed saved.
+  const [newRecoveryKey, setNewRecoveryKey] = useState<string | null>(null)
+  const [generatingKey, setGeneratingKey] = useState(false)
+
+  async function handleGenerateRecoveryKey() {
+    setGeneratingKey(true)
+    try {
+      const res = await apiFetch("/api/auth/recovery", { method: "POST" })
+      const data = await res.json()
+      if (res.ok) {
+        setNewRecoveryKey(data.recoveryKey)
+      } else if (res.status === 401 && data.error === "Unauthorized") {
+        // Session expired — back to login.
+        onOpenChange(false)
+        clearToken()
+        router.push("/admin/login")
+      } else {
+        toast.error(data.error || (t("admin.recoveryKeyGenerateFailed") as string))
+      }
+    } catch {
+      toast.error(t("admin.networkError") as string)
+    } finally {
+      setGeneratingKey(false)
+    }
+  }
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault()
@@ -134,6 +159,65 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   {loading ? (t("admin.updating") as string) : (t("admin.updatePassword") as string)}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+
+          {/* Recovery Key */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("admin.recoveryKey") as string}</CardTitle>
+              <CardDesc>
+                {t("admin.recoveryKeyDesc") as string}
+              </CardDesc>
+            </CardHeader>
+            <CardContent>
+              {newRecoveryKey ? (
+                <div className="space-y-3">
+                  <div className="rounded-lg border bg-muted/50 p-3">
+                    <p className="select-all text-center font-mono text-sm font-semibold tracking-wider break-all">
+                      {newRecoveryKey}
+                    </p>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("admin.recoveryKeyOnceOnly") as string}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard
+                          .writeText(newRecoveryKey)
+                          .then(() => toast.success(t("admin.urlCopied") as string))
+                      }}
+                    >
+                      {t("admin.copyURL") as string}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => setNewRecoveryKey(null)}
+                    >
+                      {t("admin.recoveryKeySaved") as string}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    {t("admin.recoveryKeyHint") as string}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={generatingKey}
+                    onClick={handleGenerateRecoveryKey}
+                  >
+                    {generatingKey
+                      ? (t("admin.generatingKey") as string)
+                      : (t("admin.generateRecoveryKey") as string)}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
