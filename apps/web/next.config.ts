@@ -1,3 +1,4 @@
+import path from "node:path"
 import type { NextConfig } from "next"
 
 const isExport = process.env.NEXT_EXPORT === "true"
@@ -14,10 +15,17 @@ const nextConfig: NextConfig = {
   // and watch their REAL paths (previously the watcher could silently
   // detach from them — changes to packages/database went unnoticed until
   // the dev server was restarted).
-  // NOTE: do NOT add turbopack.root here — with pnpm symlinks it breaks
-  // module resolution entirely (Cannot find module '@bitlog/database' →
-  // 500 on every page). Use `pnpm dev:watch` for packages/ changes.
   transpilePackages: ["@bitlog/database", "@bitlog/core", "@bitlog/auth"],
+  // Pin the Turbopack root to the pnpm workspace root. The auto-detector
+  // walks up for a lockfile and can pick a stray one above the repo
+  // (e.g. ~/package-lock.json), setting a root that excludes
+  // packages/* — which is what breaks @bitlog/* resolution. An explicit
+  // root must cover the workspace root (parent of apps/ and packages/),
+  // NOT apps/web itself.
+  turbopack: {
+    // __dirname is apps/web; the workspace root is two levels up.
+    root: path.join(__dirname, "../.."),
+  },
   // If deploying to a project page (username.github.io/repo-name),
   // uncomment and set this to the repo name:
   // basePath: "/blog",
