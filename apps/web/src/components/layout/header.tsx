@@ -77,7 +77,7 @@ export function Header({ categories }: { categories: Category[] }) {
               invertInDark={site.logoInvertInDark ?? true}
               className="size-8 rounded-lg"
             />
-            <span className="hidden font-black sm:inline">{site.name}</span>
+            <span className="hidden font-black text-lg sm:inline">{site.name}</span>
           </Link>
 
           {/* Right: Search · 首页 · 分类 · 时间轴 · 关于 · | · 主题 · 语言 · GitHub */}

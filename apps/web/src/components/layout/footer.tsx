@@ -61,7 +61,7 @@ export function Footer() {
                 invertInDark={site.logoInvertInDark ?? true}
                 className="size-6"
               />
-              <span className="font-heading text-base font-black tracking-tight">
+              <span className="font-heading text-lg font-black tracking-tight">
                 {site.name}
               </span>
             </Link>
