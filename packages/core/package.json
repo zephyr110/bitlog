@@ -1,5 +1,5 @@
 {
-  "name": "@bitlog/core",
+  "name": "@zlog/core",
   "version": "0.1.0",
   "private": true,
   "exports": {

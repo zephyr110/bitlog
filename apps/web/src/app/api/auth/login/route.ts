@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createToken, attemptLogin } from "@bitlog/auth"
+import { createToken, attemptLogin } from "@zlog/auth"
 import { lockedResponse } from "@/lib/auth-lockout"
 
 export async function POST(request: NextRequest) {

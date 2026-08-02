@@ -6,7 +6,7 @@ import {
   listMedia,
   countMedia,
   deleteMedia,
-} from "@bitlog/database"
+} from "@zlog/database"
 import { compressImage } from "@/lib/image-compress"
 import {
   uploadToGithub,

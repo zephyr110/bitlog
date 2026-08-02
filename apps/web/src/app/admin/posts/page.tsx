@@ -46,7 +46,7 @@ import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
 import { categoryKeys, getCategoryLabel, resolveCategory } from "@/lib/categories"
-import { type PostSummary } from "@bitlog/database"
+import { type PostSummary } from "@zlog/database"
 
 function AdminPostsContent() {
   const { t } = useT()

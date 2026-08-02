@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { getPublishedPosts, getAllTags } from "@bitlog/database"
+import { getPublishedPosts, getAllTags } from "@zlog/database"
 import { PostFeed } from "@/components/blog/post-feed"
 import { HeroSection } from "@/components/blog/hero-section"
 import { PostFeedSkeleton } from "@/components/ui/loading"

@@ -1,8 +1,8 @@
 import { type Client } from "@libsql/client"
 import { getDb } from "./db"
-import { type Post, type PostSummary } from "@bitlog/core"
-import { toPostSummary } from "@bitlog/core"
-import { safeSlug } from "@bitlog/core"
+import { type Post, type PostSummary } from "@zlog/core"
+import { toPostSummary } from "@zlog/core"
+import { safeSlug } from "@zlog/core"
 
 // ── Schema ──────────────────────────────────────────────────────────────
 

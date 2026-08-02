@@ -1,5 +1,5 @@
 {
-  "name": "@bitlog/database",
+  "name": "@zlog/database",
   "version": "0.1.0",
   "private": true,
   "exports": {
@@ -7,6 +7,6 @@
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
-    "@bitlog/core": "workspace:*"
+    "@zlog/core": "workspace:*"
   }
 }

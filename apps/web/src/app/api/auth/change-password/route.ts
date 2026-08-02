@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { requireAuth } from "@/lib/api-auth"
-import { verifyLogin, hashPassword, recordFailedAttempt } from "@bitlog/auth"
-import { setUserPassword, clearLoginFailures } from "@bitlog/database"
+import { verifyLogin, hashPassword, recordFailedAttempt } from "@zlog/auth"
+import { setUserPassword, clearLoginFailures } from "@zlog/database"
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),

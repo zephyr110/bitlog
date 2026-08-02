@@ -1,5 +1,5 @@
 {
-  "name": "@bitlog/auth",
+  "name": "@zlog/auth",
   "version": "0.1.0",
   "private": true,
   "exports": {
@@ -8,7 +8,7 @@
   "dependencies": {
     "jose": "^6.2.3",
     "bcryptjs": "^3.0.3",
-    "@bitlog/database": "workspace:*",
-    "@bitlog/core": "workspace:*"
+    "@zlog/database": "workspace:*",
+    "@zlog/core": "workspace:*"
   }
 }

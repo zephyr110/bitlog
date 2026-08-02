@@ -1,4 +1,4 @@
-// `pnpm dev:watch` — next dev that also tracks the @bitlog/* workspace
+// `pnpm dev:watch` — next dev that also tracks the @zlog/* workspace
 // packages.
 //
 // Why: Turbopack's file watcher does not reliably watch pnpm-symlinked

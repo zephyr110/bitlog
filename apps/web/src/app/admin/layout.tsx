@@ -6,7 +6,7 @@ import { AdminSidebar, AdminSidebarTrigger } from "@/components/admin/admin-side
 import { getToken, apiFetch, clearToken } from "@/lib/api-client"
 import { PageLoader } from "@/components/ui/page-loader"
 import { useT } from "@/components/layout/trans"
-import { type AuthUser } from "@bitlog/auth"
+import { type AuthUser } from "@zlog/auth"
 
 export const SidebarCollapsedContext = createContext(false)
 

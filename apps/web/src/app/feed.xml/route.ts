@@ -1,5 +1,5 @@
 import { getSiteConfig } from "@/lib/get-site-config"
-import { getPublishedPosts } from "@bitlog/database"
+import { getPublishedPosts } from "@zlog/database"
 
 /** Escape the CDATA terminator so a description containing "]]>" can't
  *  truncate the CDATA block and break the whole feed's XML. */

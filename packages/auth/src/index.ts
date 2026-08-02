@@ -11,4 +11,4 @@ export {
   verifyRecoveryKey,
 } from "./auth"
 export type { LoginAttempt, RecoveryAttempt } from "./auth"
-export type { AuthUser } from "@bitlog/core"
+export type { AuthUser } from "@zlog/core"

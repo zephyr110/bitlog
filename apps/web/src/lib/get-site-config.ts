@@ -3,7 +3,7 @@ import { unstable_cache } from "next/cache"
 import {
   getSiteSettings,
   type SiteSettingsRecord,
-} from "@bitlog/database"
+} from "@zlog/database"
 import { defaultSiteConfig, type SiteConfig } from "@/lib/site-config"
 
 export const SITE_CONFIG_TAG = "site-config"

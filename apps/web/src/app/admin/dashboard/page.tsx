@@ -13,7 +13,7 @@ import { useT } from "@/components/layout/trans"
 import { apiFetch } from "@/lib/api-client"
 import { cn } from "@/lib/utils"
 import { FileText, PenLine, Clock, Tag } from "lucide-react"
-import { type PostSummary } from "@bitlog/database"
+import { type PostSummary } from "@zlog/database"
 
 export default function AdminDashboardPage() {
   const { t } = useT()

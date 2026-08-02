@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server"
-import { verifyToken } from "@bitlog/auth"
-import { type AuthUser } from "@bitlog/auth"
+import { verifyToken } from "@zlog/auth"
+import { type AuthUser } from "@zlog/auth"
 
 export async function requireAuth(
   request: NextRequest

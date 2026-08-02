@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { type Metadata } from "next"
 import Link from "next/link"
-import { getPostsByTag, getAllTags } from "@bitlog/database"
+import { getPostsByTag, getAllTags } from "@zlog/database"
 import { PostCard } from "@/components/blog/post-card"
 import { Trans } from "@/components/layout/trans"
 import { PageHeader } from "@/components/layout/page-header"

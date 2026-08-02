@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { attemptRecoveryKey, hashPassword } from "@bitlog/auth"
-import { setUserPassword } from "@bitlog/database"
+import { attemptRecoveryKey, hashPassword } from "@zlog/auth"
+import { setUserPassword } from "@zlog/database"
 import { lockedResponse } from "@/lib/auth-lockout"
 
 const resetPasswordSchema = z.object({

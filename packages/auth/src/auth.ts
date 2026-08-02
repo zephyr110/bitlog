@@ -7,8 +7,8 @@ import {
   recordLoginFailure,
   clearLoginFailures,
   type LockoutState,
-} from "@bitlog/database"
-import { type AuthUser } from "@bitlog/core"
+} from "@zlog/database"
+import { type AuthUser } from "@zlog/core"
 
 const JWT_EXPIRATION = "7d"
 
@@ -109,7 +109,7 @@ export async function hashPassword(password: string): Promise<string> {
 // ── Brute-force protection ──────────────────────────────────────────────
 
 // A single-admin blog needs no per-IP bookkeeping: any failure streak is
-// attacker traffic, so a global counter (persisted in @bitlog/database's
+// attacker traffic, so a global counter (persisted in @zlog/database's
 // auth_lockout table) is the strongest form of defense.
 const LOGIN_FAILURE_DELAY_MS = 400
 

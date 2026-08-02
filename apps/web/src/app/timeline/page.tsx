@@ -1,6 +1,6 @@
 import { type Metadata } from "next"
 import { History } from "lucide-react"
-import { getPublishedPosts } from "@bitlog/database"
+import { getPublishedPosts } from "@zlog/database"
 import { Trans } from "@/components/layout/trans"
 import { defaultLocale, t } from "@/lib/i18n"
 import { PageHeader } from "@/components/layout/page-header"

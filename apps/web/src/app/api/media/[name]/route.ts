@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getMediaData, listMedia } from "@bitlog/database"
+import { getMediaData, listMedia } from "@zlog/database"
 
 /** Serves the Turso copy of a media file — disaster-recovery fallback for
  *  jsdelivr and the read path for exports. Public, like jsdelivr itself. */

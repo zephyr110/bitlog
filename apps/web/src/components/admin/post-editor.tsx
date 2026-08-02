@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
-import { type Post } from "@bitlog/database"
+import { type Post } from "@zlog/database"
 import { MediaPickerDialog } from "@/components/admin/media-picker-dialog"
 import {
   HeaderActions,

@@ -9,9 +9,9 @@ import {
   deletePost,
   movePost,
   slugify,
-} from "@bitlog/database"
-import { computeReadingStats } from "@bitlog/database"
-import { type Post } from "@bitlog/database"
+} from "@zlog/database"
+import { computeReadingStats } from "@zlog/database"
+import { type Post } from "@zlog/database"
 
 const postBodySchema = z.object({
   title: z.string().min(1).max(200).optional(),

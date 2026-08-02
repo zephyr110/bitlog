@@ -29,6 +29,6 @@ export type { MediaRecord, MediaMeta } from "./media"
 export { getSiteSettings, upsertSiteSettings } from "./site-settings"
 export type { SiteSettingsRecord, SiteSettingsUpdate } from "./site-settings"
 // Re-export domain logic from core for backwards compatibility.
-export { safeSlug, slugify, computeReadingStats, toPostSummary } from "@bitlog/core"
-export type { Post, PostSummary, AuthUser } from "@bitlog/core"
+export { safeSlug, slugify, computeReadingStats, toPostSummary } from "@zlog/core"
+export type { Post, PostSummary, AuthUser } from "@zlog/core"
 export type { UserRecord } from "./users"

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { revalidatePath, revalidateTag } from "next/cache"
-import { getSiteSettings, upsertSiteSettings } from "@bitlog/database"
+import { getSiteSettings, upsertSiteSettings } from "@zlog/database"
 import { requireAuth } from "@/lib/api-auth"
 import {
   getSiteConfig,

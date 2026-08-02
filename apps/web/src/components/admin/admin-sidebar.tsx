@@ -19,7 +19,7 @@ import { SiteLogo } from "@/components/layout/site-logo"
 import { useLocale } from "@/components/layout/i18n-provider"
 import { useT } from "@/components/layout/trans"
 import { localeLabels, locales } from "@/lib/i18n"
-import { type AuthUser } from "@bitlog/auth"
+import { type AuthUser } from "@zlog/auth"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,

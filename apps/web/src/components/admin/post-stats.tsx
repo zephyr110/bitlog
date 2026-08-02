@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/chart"
 import { useT } from "@/components/layout/trans"
 import { resolveCategory, getCategoryLabel } from "@/lib/categories"
-import { type PostSummary } from "@bitlog/database"
+import { type PostSummary } from "@zlog/database"
 
 /** shadcn chart palette — bars cycle chart-1…chart-5. */
 const BAR_COLORS = [

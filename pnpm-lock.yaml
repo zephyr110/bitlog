@@ -17,18 +17,18 @@ importers:
       '@base-ui/react':
         specifier: ^1.6.0
         version: 1.6.0(@date-fns/tz@1.5.0)(@types/react@19.2.18)(date-fns@4.4.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@bitlog/auth':
-        specifier: workspace:*
-        version: link:../../packages/auth
-      '@bitlog/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@bitlog/database':
-        specifier: workspace:*
-        version: link:../../packages/database
       '@vercel/analytics':
         specifier: ^2.0.1
         version: 2.0.1(next@16.2.10(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+      '@zlog/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@zlog/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@zlog/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -120,10 +120,10 @@ importers:
 
   packages/auth:
     dependencies:
-      '@bitlog/core':
+      '@zlog/core':
         specifier: workspace:*
         version: link:../core
-      '@bitlog/database':
+      '@zlog/database':
         specifier: workspace:*
         version: link:../database
       bcryptjs:
@@ -137,12 +137,12 @@ importers:
 
   packages/database:
     dependencies:
-      '@bitlog/core':
-        specifier: workspace:*
-        version: link:../core
       '@libsql/client':
         specifier: ^0.17.4
         version: 0.17.4
+      '@zlog/core':
+        specifier: workspace:*
+        version: link:../core
 
 packages:
 

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { TagBadge } from "@/components/blog/tag-badge"
 import { useT } from "@/components/layout/trans"
-import { type PostSummary } from "@bitlog/database"
+import { type PostSummary } from "@zlog/database"
 import { Calendar, Clock } from "lucide-react"
 
 function formatRelativeDate(

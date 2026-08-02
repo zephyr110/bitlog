@@ -4,8 +4,8 @@ import {
   generateRecoveryKey,
   hashPassword,
   normalizeRecoveryKey,
-} from "@bitlog/auth"
-import { setUserRecoveryHash } from "@bitlog/database"
+} from "@zlog/auth"
+import { setUserRecoveryHash } from "@zlog/database"
 
 /**
  * Generates a new one-time recovery key for the signed-in user.
