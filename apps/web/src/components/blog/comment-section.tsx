@@ -97,9 +97,11 @@ export function CommentSection() {
 
   return (
     <section className="container mx-auto px-4 py-12 max-w-5xl 2xl:max-w-7xl">
-      <div className="border-t pt-12">
-        <div className="flex items-center gap-2 mb-6">
-          <MessageSquare size={20} className="text-primary" />
+      <div className="rounded-2xl border bg-card p-6 md:p-8">
+        <div className="flex items-center gap-3 mb-8">
+          <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <MessageSquare size={18} />
+          </span>
           <h2 className="text-xl font-bold">{t("post.comments") as string}</h2>
         </div>
 

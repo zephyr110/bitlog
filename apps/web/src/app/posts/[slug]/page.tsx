@@ -12,7 +12,6 @@ import { Container } from "@/components/ui/container"
 import { CopyLinkButton } from "@/components/blog/share-buttons"
 import { CommentSection } from "@/components/blog/comment-section"
 import { Trans } from "@/components/layout/trans"
-import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Calendar, Clock } from "lucide-react"
 
@@ -89,8 +88,15 @@ export default async function PostPage({ params }: PostPageProps) {
 
       <article className="min-h-screen">
         {/* Hero Header */}
-        <header className="relative border-b bg-muted/10 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/3 to-transparent" />
+        <header className="relative overflow-hidden border-b bg-gradient-to-b from-muted/40 via-muted/20 to-background">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_70%_-10%,var(--primary)_0%,transparent_60%)] opacity-[0.07] dark:opacity-[0.12]"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-20 top-20 size-80 rounded-full bg-primary/[0.04] blur-3xl dark:bg-primary/[0.08]"
+          />
           {post.cover && (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -192,22 +198,28 @@ export default async function PostPage({ params }: PostPageProps) {
           </div>
 
           {/* Post Footer */}
-          <Separator className="my-12" />
-
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
-                <TagBadge
-                  key={tag}
-                  tag={tag}
-                  href={`/tags/${encodeURIComponent(tag.toLowerCase())}`}
+          <div className="my-12 rounded-2xl border bg-card p-5 md:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-col gap-3">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground/80">
+                  <Trans k="post.tagsLabel" />
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {post.tags.map((tag) => (
+                    <TagBadge
+                      key={tag}
+                      tag={tag}
+                      href={`/tags/${encodeURIComponent(tag.toLowerCase())}`}
+                      className="bg-muted/50 text-foreground hover:bg-muted"
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 sm:pt-6">
+                <CopyLinkButton
+                  url={`/posts/${encodeURIComponent(post.slug)}`}
                 />
-              ))}
-            </div>
-            <div className="flex items-center gap-2">
-              <CopyLinkButton
-                url={`/posts/${encodeURIComponent(post.slug)}`}
-              />
+              </div>
             </div>
           </div>
         </Container>
@@ -217,25 +229,25 @@ export default async function PostPage({ params }: PostPageProps) {
 
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
-          <section className="border-t bg-muted/10">
-            <Container className="py-12">
+          <section className="border-t bg-gradient-to-b from-muted/20 to-background">
+            <Container className="py-14">
               <h2 className="text-2xl font-bold mb-8">
                 <Trans k="post.relatedPosts" />
               </h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {relatedPosts.map((rp) => (
                   <Link
                     key={rp.slug}
                     href={`/posts/${encodeURIComponent(rp.slug)}`}
-                    className="group block p-4 rounded-xl border bg-card hover:border-primary/20 hover:shadow-sm transition-all"
+                    className="group flex flex-col rounded-2xl border bg-card p-5 hover:border-primary/20 hover:shadow-md hover:shadow-foreground/[0.04] transition-all"
                   >
-                    <h3 className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors line-clamp-2">
+                    <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
                       {rp.title}
                     </h3>
-                    <p className="text-xs text-muted-foreground line-clamp-1 mb-2">
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
                       {rp.description}
                     </p>
-                    <p className="text-[10px] text-muted-foreground/80 flex items-center gap-1.5">
+                    <p className="mt-auto text-xs text-muted-foreground/80 flex items-center gap-1.5">
                       <Calendar size={10} />
                       <FormattedDate date={rp.date} month="short" />
                       <span>·</span>
