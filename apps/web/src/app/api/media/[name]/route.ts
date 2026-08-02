@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getMediaData } from "@bitlog/database"
+import { getMediaData, listMedia } from "@bitlog/database"
 
 /** Serves the Turso copy of a media file — disaster-recovery fallback for
  *  jsdelivr and the read path for exports. Public, like jsdelivr itself. */
@@ -30,4 +30,17 @@ export async function GET(
       "Cache-Control": "public, max-age=86400",
     },
   })
+}
+
+/**
+ * Static export requires dynamic segments to enumerate their params —
+ * with output: export every media file is pre-rendered as a static file
+ * under /api/media/<name>, which is exactly what this route exists for
+ * (the read path for exports; jsdelivr remains the primary delivery).
+ * New uploads appear after the next export run, matching the static
+ * deployment model.
+ */
+export async function generateStaticParams(): Promise<{ name: string }[]> {
+  const media = await listMedia()
+  return media.map((m) => ({ name: m.name }))
 }
