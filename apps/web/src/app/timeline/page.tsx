@@ -7,8 +7,8 @@ import { Container } from "@/components/ui/container"
 import { YearSection } from "./year-section"
 
 export const metadata: Metadata = {
-  title: "时间轴 | Timeline",
-  description: "按时间顺序浏览所有文章 | Browse articles in chronological order",
+  title: t(defaultLocale, "timeline.title") as string,
+  description: t(defaultLocale, "timeline.description") as string,
 }
 
 function groupByYear(posts: { date: string; slug: string; title: string }[]) {

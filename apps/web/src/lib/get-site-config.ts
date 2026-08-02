@@ -14,6 +14,7 @@ export type SiteSettingsDto = {
   description: string
   authorName: string
   logoUrl: string
+  logoInvertInDark: boolean
   githubUrl: string
   twitterUrl: string
 }
@@ -43,6 +44,7 @@ export function siteConfigFromRow(
       avatar: defaultSiteConfig.author.avatar,
     },
     logoUrl: row.logoUrl,
+    logoInvertInDark: row.logoInvertDark ?? true,
     social: {
       github: row.githubUrl,
       twitter: row.twitterUrl,
@@ -59,6 +61,7 @@ export function toSettingsDto(config: SiteConfig): SiteSettingsDto {
     description: config.description,
     authorName: config.author.name,
     logoUrl: config.logoUrl,
+    logoInvertInDark: config.logoInvertInDark,
     githubUrl: config.social.github,
     twitterUrl: config.social.twitter,
   }

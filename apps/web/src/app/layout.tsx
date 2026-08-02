@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer"
 import { ThemeProvider } from "@/components/layout/theme-provider"
 import { I18nProvider } from "@/components/layout/i18n-provider"
 import { SiteConfigProvider } from "@/components/layout/site-config-provider"
+import { DocumentTitle } from "@/components/layout/document-title"
 import { getSiteConfig } from "@/lib/get-site-config"
 import { defaultLocale } from "@/lib/i18n"
 import { getAllTags } from "@bitlog/database"
@@ -40,7 +41,8 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase,
     title: {
       default: site.title,
-      template: `%s | ${site.title}`,
+      // Brand first so tabs read "Zlog | Timeline", not "Timeline | Zlog".
+      template: `${site.title} | %s`,
     },
     description: site.description,
     icons: {
@@ -113,6 +115,7 @@ export default async function RootLayout({
         >
           <I18nProvider>
             <SiteConfigProvider value={site}>
+              <DocumentTitle />
               <Header categories={displayCategories} />
               <main className="flex-1">{children}</main>
               <Footer />

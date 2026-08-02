@@ -1,7 +1,14 @@
+import { type Metadata } from "next"
 import { Separator } from "@/components/ui/separator"
 import { getSiteConfig } from "@/lib/get-site-config"
 import { Trans } from "@/components/layout/trans"
+import { defaultLocale, t } from "@/lib/i18n"
 import { GitBranch, MessageCircle, Sparkles, Palette, FileCode, Cloud, Rocket, Database } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: t(defaultLocale, "about.title") as string,
+  description: t(defaultLocale, "about.description") as string,
+}
 
 const techStack = [
   {

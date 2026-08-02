@@ -34,6 +34,7 @@ const updateSchema = z.object({
   description: z.string().max(500).optional(),
   authorName: z.string().max(100).optional(),
   logoUrl: optionalLogoUrl.optional(),
+  logoInvertInDark: z.boolean().optional(),
   githubUrl: optionalHttpUrl.optional(),
   twitterUrl: optionalHttpUrl.optional(),
 })
@@ -60,18 +61,29 @@ export async function PUT(request: NextRequest) {
   }
 
   const patch = parsed.data
+  const dbPatch = {
+    name: patch.name,
+    title: patch.title,
+    description: patch.description,
+    authorName: patch.authorName,
+    logoUrl: patch.logoUrl,
+    logoInvertDark: patch.logoInvertInDark,
+    githubUrl: patch.githubUrl,
+    twitterUrl: patch.twitterUrl,
+  }
 
   // First save with no existing row: fill missing fields from defaults so
   // we don't persist empty strings over the compile-time identity.
   const existing = await getSiteSettings()
   const settings = existing
-    ? await upsertSiteSettings(patch)
+    ? await upsertSiteSettings(dbPatch)
     : await upsertSiteSettings({
         name: patch.name ?? defaultSiteConfig.name,
         title: patch.title ?? defaultSiteConfig.title,
         description: patch.description ?? defaultSiteConfig.description,
         authorName: patch.authorName ?? defaultSiteConfig.author.name,
         logoUrl: patch.logoUrl ?? "",
+        logoInvertDark: patch.logoInvertInDark ?? true,
         githubUrl: patch.githubUrl ?? defaultSiteConfig.social.github,
         twitterUrl: patch.twitterUrl ?? defaultSiteConfig.social.twitter,
       })

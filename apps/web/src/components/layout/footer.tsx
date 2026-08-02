@@ -5,7 +5,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Rss, UserRoundKey, LayoutDashboard } from "lucide-react"
 import { useSiteConfig } from "@/components/layout/site-config-provider"
-import { isDefaultSiteLogo, siteLogoSrc } from "@/lib/site-config"
+import { siteLogoSrc } from "@/lib/site-config"
+import { SiteLogo } from "@/components/layout/site-logo"
 import { useT } from "@/components/layout/trans"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -14,7 +15,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { getToken } from "@/lib/api-client"
-import { cn } from "@/lib/utils"
 
 const iconButtonClass =
   "inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
@@ -30,7 +30,6 @@ export function Footer() {
   const { t } = useT()
   const site = useSiteConfig()
   const logoSrc = siteLogoSrc(site)
-  const logoDefault = isDefaultSiteLogo(site)
   const [loggedIn, setLoggedIn] = useState(false)
 
   // The token lives in localStorage, so it can only be read after mount —
@@ -57,16 +56,12 @@ export function Footer() {
               href="/"
               className="inline-flex w-fit items-center gap-2.5 rounded-lg transition-opacity hover:opacity-80"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <SiteLogo
                 src={logoSrc}
-                alt=""
-                className={cn(
-                  "size-6 object-contain",
-                  logoDefault && "dark:invert"
-                )}
+                invertInDark={site.logoInvertInDark ?? true}
+                className="size-6"
               />
-              <span className="font-heading text-base font-semibold tracking-tight">
+              <span className="font-heading text-base font-black tracking-tight">
                 {site.name}
               </span>
             </Link>

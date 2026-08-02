@@ -48,6 +48,10 @@ export function SiteConfigProvider({
         description: s.description ?? prev.description,
         author: { ...prev.author, name: s.authorName ?? prev.author.name },
         logoUrl: s.logoUrl ?? prev.logoUrl,
+        logoInvertInDark:
+          typeof s.logoInvertInDark === "boolean"
+            ? s.logoInvertInDark
+            : prev.logoInvertInDark,
         social: {
           github: s.githubUrl ?? prev.social.github,
           twitter: s.twitterUrl ?? prev.social.twitter,

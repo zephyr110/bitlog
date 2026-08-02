@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useSiteConfig } from "@/components/layout/site-config-provider"
-import { isDefaultSiteLogo, siteLogoSrc } from "@/lib/site-config"
+import { siteLogoSrc } from "@/lib/site-config"
+import { SiteLogo } from "@/components/layout/site-logo"
 import { useT } from "@/components/layout/trans"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,7 +24,6 @@ export default function AdminLoginPage() {
   const { t } = useT()
   const site = useSiteConfig()
   const logoSrc = siteLogoSrc(site)
-  const logoDefault = isDefaultSiteLogo(site)
   const [mode, setMode] = useState<LoginMode>("login")
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -128,17 +128,13 @@ export default function AdminLoginPage() {
             className="inline-flex items-center gap-3 rounded-xl transition-opacity hover:opacity-80"
           >
             <span className="flex size-11 items-center justify-center rounded-xl border bg-card shadow-sm">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <SiteLogo
                 src={logoSrc}
-                alt=""
-                className={cn(
-                  "size-6 object-contain",
-                  logoDefault && "dark:invert"
-                )}
+                invertInDark={site.logoInvertInDark ?? true}
+                className="size-6"
               />
             </span>
-            <span className="font-heading text-2xl font-semibold tracking-tight text-foreground">
+            <span className="font-heading text-2xl font-black tracking-tight text-foreground">
               {site.name}
             </span>
           </Link>

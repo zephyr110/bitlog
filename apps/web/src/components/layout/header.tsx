@@ -8,7 +8,8 @@ import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { LanguageSwitcher } from "@/components/layout/language-switcher"
 import { IconButton } from "@/components/ui/icon-button"
 import { useSiteConfig } from "@/components/layout/site-config-provider"
-import { isDefaultSiteLogo, siteLogoSrc } from "@/lib/site-config"
+import { siteLogoSrc } from "@/lib/site-config"
+import { SiteLogo } from "@/components/layout/site-logo"
 import { useT } from "@/components/layout/trans"
 import {
   DropdownMenu,
@@ -34,7 +35,6 @@ export function Header({ categories }: { categories: Category[] }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const logoSrc = siteLogoSrc(site)
-  const logoDefault = isDefaultSiteLogo(site)
 
   useEffect(() => {
     function handleScroll() {
@@ -70,20 +70,14 @@ export function Header({ categories }: { categories: Category[] }) {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 font-semibold text-base tracking-tight hover:opacity-85 transition-opacity shrink-0"
+            className="flex items-center gap-2.5 text-base tracking-tight hover:opacity-85 transition-opacity shrink-0"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <SiteLogo
               src={logoSrc}
-              alt=""
-              width={32}
-              height={32}
-              className={cn(
-                "size-8 rounded-lg object-contain",
-                logoDefault && "dark:invert"
-              )}
+              invertInDark={site.logoInvertInDark ?? true}
+              className="size-8 rounded-lg"
             />
-            <span className="hidden sm:inline">{site.name}</span>
+            <span className="hidden font-black sm:inline">{site.name}</span>
           </Link>
 
           {/* Right: Search · 首页 · 分类 · 时间轴 · 关于 · | · 主题 · 语言 · GitHub */}

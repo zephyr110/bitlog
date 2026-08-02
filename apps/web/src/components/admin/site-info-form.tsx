@@ -10,6 +10,7 @@ import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { useSiteConfig } from "@/components/layout/site-config-provider"
 import { siteLogoSrc, isDefaultSiteLogo } from "@/lib/site-config"
+import { SiteLogo } from "@/components/layout/site-logo"
 import { toast } from "sonner"
 import { ImageIcon, Upload, X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -20,6 +21,7 @@ type FormState = {
   description: string
   authorName: string
   logoUrl: string
+  logoInvertInDark: boolean
   githubUrl: string
   twitterUrl: string
 }
@@ -45,6 +47,7 @@ export function SiteInfoForm({
     description: "",
     authorName: "",
     logoUrl: "",
+    logoInvertInDark: true,
     githubUrl: "",
     twitterUrl: "",
   })
@@ -71,6 +74,7 @@ export function SiteInfoForm({
           description: s.description ?? "",
           authorName: s.authorName ?? "",
           logoUrl: s.logoUrl ?? "",
+          logoInvertInDark: s.logoInvertInDark ?? true,
           githubUrl: s.githubUrl ?? "",
           twitterUrl: s.twitterUrl ?? "",
         })
@@ -85,6 +89,7 @@ export function SiteInfoForm({
             description: site.description,
             authorName: site.author.name,
             logoUrl: site.logoUrl,
+            logoInvertInDark: site.logoInvertInDark ?? true,
             githubUrl: site.social.github,
             twitterUrl: site.social.twitter,
           })
@@ -173,6 +178,7 @@ export function SiteInfoForm({
         description: s.description,
         author: { ...prev.author, name: s.authorName },
         logoUrl: s.logoUrl,
+        logoInvertInDark: s.logoInvertInDark ?? prev.logoInvertInDark,
         social: {
           github: s.githubUrl,
           twitter: s.twitterUrl,
@@ -210,60 +216,72 @@ export function SiteInfoForm({
               previewDefault && "dark:bg-foreground/5"
             )}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <SiteLogo
               src={previewSrc}
-              alt=""
-              className={cn(
-                "size-12 object-contain",
-                previewDefault && "dark:invert"
-              )}
+              invertInDark={form.logoInvertInDark}
+              className="size-12"
             />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <input
-              ref={fileRef}
-              type="file"
-              accept={ACCEPT}
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                e.target.value = ""
-                if (file) void handleUpload(file)
-              }}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={uploading}
-              onClick={() => fileRef.current?.click()}
-            >
-              {uploading ? (
-                <Spinner size="sm" />
-              ) : (
-                <Upload className="size-3.5" />
-              )}
-              {uploading
-                ? (t("admin.uploading") as string)
-                : (t("admin.uploadLogo") as string)}
-            </Button>
-            {form.logoUrl ? (
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap gap-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept={ACCEPT}
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  e.target.value = ""
+                  if (file) void handleUpload(file)
+                }}
+              />
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                onClick={() => patch("logoUrl", "")}
+                disabled={uploading}
+                onClick={() => fileRef.current?.click()}
               >
-                <X className="size-3.5" />
-                {t("admin.removeLogo") as string}
+                {uploading ? (
+                  <Spinner size="sm" />
+                ) : (
+                  <Upload className="size-3.5" />
+                )}
+                {uploading
+                  ? (t("admin.uploading") as string)
+                  : (t("admin.uploadLogo") as string)}
               </Button>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                <ImageIcon className="size-3.5" />
-                {t("admin.defaultLogo") as string}
+              {form.logoUrl ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => patch("logoUrl", "")}
+                >
+                  <X className="size-3.5" />
+                  {t("admin.removeLogo") as string}
+                </Button>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <ImageIcon className="size-3.5" />
+                  {t("admin.defaultLogo") as string}
+                </span>
+              )}
+            </div>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={form.logoInvertInDark}
+                onChange={(e) => patch("logoInvertInDark", e.target.checked)}
+                className="size-3.5 accent-primary"
+              />
+              <span>
+                {t("admin.logoInvertDark") as string}
+                <span className="ml-1 text-xs opacity-70">
+                  ({t("admin.logoInvertDarkHint") as string})
+                </span>
               </span>
-            )}
+            </label>
           </div>
         </div>
       </div>

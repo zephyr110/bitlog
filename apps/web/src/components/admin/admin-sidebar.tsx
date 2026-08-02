@@ -14,7 +14,8 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip"
 import { useSiteConfig } from "@/components/layout/site-config-provider"
-import { isDefaultSiteLogo, siteLogoSrc } from "@/lib/site-config"
+import { siteLogoSrc } from "@/lib/site-config"
+import { SiteLogo } from "@/components/layout/site-logo"
 import { useLocale } from "@/components/layout/i18n-provider"
 import { useT } from "@/components/layout/trans"
 import { localeLabels, locales } from "@/lib/i18n"
@@ -67,7 +68,6 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
   const currentTheme = (theme as ThemeMode) || "system"
   const [settingsOpen, setSettingsOpen] = useState(false)
   const logoSrc = siteLogoSrc(site)
-  const logoDefault = isDefaultSiteLogo(site)
 
   function handleLogout() {
     clearToken()
@@ -101,17 +101,13 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
         )}
       >
         <Link href="/admin/dashboard" className="flex items-center gap-2.5 min-w-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <SiteLogo
             src={logoSrc}
-            alt=""
-            className={cn(
-              "size-8 rounded-lg object-contain shrink-0",
-              logoDefault && "dark:invert"
-            )}
+            invertInDark={site.logoInvertInDark ?? true}
+            className="size-8 rounded-lg shrink-0"
           />
           {!collapsed && (
-            <span className="font-bold text-base tracking-tight truncate">{site.name}</span>
+            <span className="font-black text-base tracking-tight truncate">{site.name}</span>
           )}
         </Link>
       </div>

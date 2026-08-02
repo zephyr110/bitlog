@@ -11,6 +11,8 @@ export type SiteConfig = {
   ogImage: string
   /** Uploaded site logo URL; empty means use the built-in mark. */
   logoUrl: string
+  /** Invert logo colors in dark mode (for monochrome marks). */
+  logoInvertInDark: boolean
   social: {
     github: string
     twitter: string
@@ -34,6 +36,7 @@ export const defaultSiteConfig: SiteConfig = {
   ),
   ogImage: process.env.NEXT_PUBLIC_OG_IMAGE || "/images/og-default.jpg",
   logoUrl: "",
+  logoInvertInDark: true,
   social: {
     github: "https://github.com/zephyr110/bitlog",
     twitter: "https://twitter.com",
@@ -49,6 +52,19 @@ export function siteLogoSrc(config: Pick<SiteConfig, "logoUrl">): string {
   return config.logoUrl || DEFAULT_SITE_LOGO
 }
 
+/** True for the built-in mark (empty url or a known builtin SVG path). */
 export function isDefaultSiteLogo(config: Pick<SiteConfig, "logoUrl">): boolean {
-  return !config.logoUrl
+  const url = config.logoUrl
+  if (!url) return true
+  try {
+    const path = url.startsWith("http") ? new URL(url).pathname : url.split("?")[0]
+    return (
+      path === DEFAULT_SITE_LOGO ||
+      path === "/spooky.svg" ||
+      path === "/favicon.svg" ||
+      path.endsWith("/logo.svg")
+    )
+  } catch {
+    return false
+  }
 }
