@@ -134,7 +134,8 @@ export default async function PostPage({ params }: PostPageProps) {
             <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-muted-foreground animate-in fade-in duration-700">
               <div className="flex items-center gap-3">
                 <Avatar className="size-10 ring-2 ring-border">
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                  {/* Same gradient tile as the admin sidebar's avatar. */}
+                  <AvatarFallback className="bg-gradient-to-br from-primary/30 via-primary/20 to-primary/5 text-primary font-semibold text-sm">
                     {(site.author.name || "?").charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
