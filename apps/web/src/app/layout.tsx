@@ -102,6 +102,10 @@ export default async function RootLayout({
     <html
       lang={defaultLocale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      // globals.css sets `scroll-behavior: smooth` on <html>; Next.js 16
+      // requires this explicit opt-in to keep smooth scrolling across
+      // route transitions (otherwise it warns and forces instant jumps).
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <body

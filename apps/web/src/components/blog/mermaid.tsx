@@ -2,9 +2,12 @@
 
 import { useEffect, useId, useRef, useState } from "react"
 import { useTheme } from "next-themes"
+import { Check, Copy } from "lucide-react"
 import { CodeBlock } from "@/components/blog/code-block"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
 import { useT } from "@/components/layout/trans"
+import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
 import { cn } from "@/lib/utils"
 
 interface RenderResult {
@@ -133,7 +136,7 @@ async function getMermaid(scheme: MermaidColorScheme) {
  *    the previous SVG stays visible (no skeleton flash per keystroke),
  *    and only the newest run may set state.
  *  - The diagram re-renders when the site theme flips; the SVG has a
- *    transparent background and sits directly on the page (no card),
+ *    transparent background inside a thin bordered, rounded frame,
  *    so it blends into both light and dark mode. */
 export function Mermaid({ code, className }: { code: string; className?: string }) {
   const { t } = useT()
@@ -142,6 +145,7 @@ export function Mermaid({ code, className }: { code: string; className?: string 
   const baseId = useId().replace(/[^a-zA-Z0-9_-]/g, "")
   const runRef = useRef(0)
   const [result, setResult] = useState<RenderResult | null>(null)
+  const { copied, copy } = useCopyToClipboard()
 
   useEffect(() => {
     if (!code.trim()) return
@@ -200,14 +204,40 @@ export function Mermaid({ code, className }: { code: string; className?: string 
   }
 
   return (
-    <div
-      className={cn(
-        "my-8 overflow-x-auto [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full",
-        className
-      )}
-      // mermaid output is sanitized (securityLevel: "strict") before
-      // it reaches this point.
-      dangerouslySetInnerHTML={{ __html: visibleSvg }}
-    />
+    <div className="group/mermaid relative my-8">
+      <div
+        className={cn(
+          "overflow-x-auto rounded-xl border border-border/60 p-4 [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full",
+          className
+        )}
+        // mermaid output is sanitized (securityLevel: "strict") before
+        // it reaches this point.
+        dangerouslySetInnerHTML={{ __html: visibleSvg }}
+      />
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => void copy(code)}
+        aria-label={t("post.copyCode") as string}
+        className={cn(
+          "absolute right-2 top-2 h-7 px-2 rounded-md text-xs gap-1.5 transition-all",
+          copied
+            ? "text-emerald-600 dark:text-emerald-400 opacity-100 hover:text-emerald-500 dark:hover:text-emerald-300 hover:bg-emerald-500/10"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+        )}
+      >
+        {copied ? (
+          <>
+            <Check size={13} />
+            {t("post.codeCopied") as string}
+          </>
+        ) : (
+          <>
+            <Copy size={13} />
+            {t("post.copyCode") as string}
+          </>
+        )}
+      </Button>
+    </div>
   )
 }

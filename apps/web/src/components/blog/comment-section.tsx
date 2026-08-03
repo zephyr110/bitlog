@@ -24,15 +24,23 @@ export function CommentSection() {
   const initialized = useRef(false)
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(hasGiscusConfig)
+  // giscus maps discussions by pathname and logs a "Discussion not found"
+  // console warning for every uncommented post — noisy in local dev, so
+  // the widget is skipped on localhost entirely (production unaffected).
+  const [isLocalhost, setIsLocalhost] = useState(false)
 
   useEffect(() => {
     setMounted(true) // eslint-disable-line react-hooks/set-state-in-effect
+    setIsLocalhost(
+      window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+    )
   }, [])
 
   useEffect(() => {
     if (!mounted) return
 
-    if (!hasGiscusConfig) return
+    if (!hasGiscusConfig || isLocalhost) return
 
     const theme = resolvedTheme === "dark" ? "dark" : "light"
     const lang = locale === "zh" ? "zh-CN" : "en"
@@ -93,7 +101,7 @@ export function CommentSection() {
       }
       initialized.current = false
     }
-  }, [mounted, resolvedTheme, locale])
+  }, [mounted, resolvedTheme, locale, isLocalhost])
 
   return (
     <section className="container mx-auto px-4 py-12 max-w-5xl 2xl:max-w-7xl">
@@ -105,7 +113,7 @@ export function CommentSection() {
           <h2 className="text-xl font-bold">{t("post.comments") as string}</h2>
         </div>
 
-        {(!mounted || loading) && hasGiscusConfig ? (
+        {(!mounted || loading) && hasGiscusConfig && !isLocalhost ? (
           <div className="space-y-3 animate-pulse">
             <div className="h-4 bg-muted rounded w-1/3" />
             <div className="h-24 bg-muted rounded" />
@@ -113,7 +121,11 @@ export function CommentSection() {
           </div>
         ) : null}
 
-        {mounted && !hasGiscusConfig ? (
+        {mounted && isLocalhost ? (
+          <p className="rounded-xl border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+            {t("post.commentsDisabledDev") as string}
+          </p>
+        ) : mounted && !hasGiscusConfig ? (
           <div className="rounded-xl border bg-muted/30 p-8 text-center text-sm text-muted-foreground">
             <p className="font-medium mb-2">
               {t("post.commentsNotConfigured") as string}
