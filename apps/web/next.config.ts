@@ -16,6 +16,11 @@ const nextConfig: NextConfig = {
   // detach from them — changes to packages/database went unnoticed until
   // the dev server was restarted).
   transpilePackages: ["@zlog/database", "@zlog/core", "@zlog/auth"],
+  // sharp ships a native .node binary — keep it as a runtime require in
+  // serverless (Vercel) builds instead of bundling it into the server
+  // chunks, where the platform binary can fail to load and every
+  // request to a sharp-importing route 500s (e.g. /api/upload).
+  serverExternalPackages: ["sharp"],
   // Pin the Turbopack root to the pnpm workspace root. The auto-detector
   // walks up for a lockfile and can pick a stray one above the repo
   // (e.g. ~/package-lock.json), setting a root that excludes

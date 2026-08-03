@@ -73,6 +73,9 @@ function AdminPostsContent() {
       if (res.ok) {
         const data = await res.json()
         setPosts(data.posts || [])
+      } else {
+        // A failed list fetch used to render an empty table — surface it.
+        toast.error(t("admin.loadFailed") as string)
       }
     } catch (error) {
       console.error("Failed to fetch posts:", error)

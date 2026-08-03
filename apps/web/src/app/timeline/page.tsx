@@ -35,9 +35,7 @@ export default async function TimelinePage() {
         breadcrumb={[{ href: "/", label: <Trans k="site.home" /> }]}
         icon={<History size={22} className="text-primary" />}
         title={<Trans k="timeline.title" />}
-        description={
-          (t(defaultLocale, "timeline.total") as (n: number) => string)(posts.length)
-        }
+        description={<Trans k="timeline.total" args={[posts.length]} />}
       />
 
       {/* Timeline */}
@@ -79,7 +77,7 @@ export default async function TimelinePage() {
           {grouped.length === 0 && (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <h2 className="text-2xl font-semibold mb-2">
-                {t(defaultLocale, "timeline.empty") as string}
+                <Trans k="timeline.empty" />
               </h2>
             </div>
           )}

@@ -10,6 +10,7 @@ import { CardSkeleton, ListSkeleton } from "@/components/ui/loading"
 import { Skeleton } from "@/components/ui/skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useT } from "@/components/layout/trans"
+import { toast } from "sonner"
 import { apiFetch } from "@/lib/api-client"
 import { cn } from "@/lib/utils"
 import { FileText, PenLine, Clock, Tag } from "lucide-react"
@@ -27,14 +28,18 @@ export default function AdminDashboardPage() {
         if (res.ok) {
           const data = await res.json()
           setPosts(data.posts || [])
+        } else {
+          toast.error(t("admin.loadFailed") as string)
         }
       } catch (error) {
         console.error("Failed to fetch posts:", error)
+        toast.error(t("admin.loadFailed") as string)
       } finally {
         setLoading(false)
       }
     }
     fetchPosts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-once fetch; adding `t` (new identity per render) would refetch on every render
   }, [])
 
   const published = posts.filter((p) => !p.draft)

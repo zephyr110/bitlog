@@ -24,7 +24,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip"
 import { toast } from "sonner"
-import { ImageIcon, Upload, Copy, FileCode, Trash2, LayoutGrid, List, X, Search } from "lucide-react"
+import { ImageIcon, Upload, Copy, FileCode, Trash2, LayoutGrid, List, X, Search, TriangleAlert } from "lucide-react"
 import { useLocale } from "@/components/layout/i18n-provider"
 import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { IconButton } from "@/components/ui/icon-button"
@@ -75,6 +75,12 @@ export default function AdminMediaPage() {
   // Debounced query — the fetch below keys on this, so typing only hits
   // the API after a pause.
   const [searchQuery, setSearchQuery] = useState("")
+  // API unreachable (static deployment, server error, network) — was
+  // previously swallowed silently, leaving an empty library with no
+  // explanation and a dead-feeling upload button. Boolean so the fetch
+  // callback doesn't depend on `t` (whose identity changes every render
+  // and would refetch on each keystroke).
+  const [apiError, setApiError] = useState(false)
   // Stale-response guard: rapid page changes only let the newest fetch win.
   const fetchSeq = useRef(0)
   // Refetch indicator (page/filter changes) — distinct from `loading`,
@@ -116,10 +122,15 @@ export default function AdminMediaPage() {
           setFiles(data.images || [])
           setTotal(data.total ?? 0)
           setTotalPages(data.totalPages ?? 1)
+          setApiError(false)
         }
+      } else if (seq === fetchSeq.current) {
+        setApiError(true)
       }
     } catch {
-      // silent
+      if (seq === fetchSeq.current) {
+        setApiError(true)
+      }
     } finally {
       if (seq === fetchSeq.current) {
         setLoading(false)
@@ -199,8 +210,18 @@ export default function AdminMediaPage() {
         }
         toast.success(t("admin.uploadSuccess") as string)
       } else {
-        const err = await res.json()
-        toast.error(err.error || (t("admin.uploadFailed") as string))
+        // Error bodies may not be JSON (a 500 from a static host or a
+        // gateway) — never let the parse throw into the generic catch.
+        let message = t("admin.uploadFailed") as string
+        try {
+          const err = await res.json()
+          if (typeof err?.error === "string" && err.error) message = err.error
+        } catch {
+          // non-JSON error body — keep the generic message
+        }
+        // Upload rejection ≠ list API down — the toast carries the real
+        // error; don't flip the list-level banner for a single upload.
+        toast.error(message)
       }
     } catch {
       toast.error(t("admin.networkError") as string)
@@ -384,9 +405,32 @@ export default function AdminMediaPage() {
         </Button>
       </HeaderActions>
 
+      {/* API failure banner — a failed list fetch used to be swallowed
+          into a silently empty library; the banner surfaces it (with a
+          dismiss, since a later refetch clears it anyway). */}
+      {apiError && (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+        >
+          <TriangleAlert size={15} className="mt-0.5 shrink-0" />
+          <span className="flex-1">{t("admin.mediaApiError") as string}</span>
+          <button
+            type="button"
+            aria-label={t("admin.dismiss") as string}
+            onClick={() => setApiError(false)}
+            className="rounded-md p-0.5 text-destructive/70 transition-colors hover:text-destructive"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Drop zone — only when the library is genuinely empty; a filter
-          with zero matches gets the no-results card below instead. */}
-      {files.length === 0 && !loading && !searchQuery && !dateFrom && !dateTo && (
+          with zero matches gets the no-results card below instead.
+          Suppressed while apiError shows: inviting an upload against a
+          dead API is contradictory. */}
+      {files.length === 0 && !loading && !apiError && !searchQuery && !dateFrom && !dateTo && (
         <div
           onDragEnter={handleDrag}
           onDragOver={handleDrag}

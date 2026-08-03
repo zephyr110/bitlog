@@ -40,7 +40,6 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const subTags = allTags
     .filter((t) => t.startsWith(name + "-"))
     .sort()
-  const label = t(defaultLocale, meta.i18nKey) as string
   const Icon = meta.icon
 
   return (
@@ -54,21 +53,29 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 <Trans k="site.home" />
               </Link>
               <span className="opacity-40">/</span>
-              <span className="text-foreground font-medium">{label}</span>
+              <span className="text-foreground font-medium">
+                <Trans k={meta.i18nKey} />
+              </span>
             </nav>
             <div className="flex items-center gap-4 mb-4">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Icon size={24} />
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{label}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                  <Trans k={meta.i18nKey} />
+                </h1>
                 <p className="text-sm text-muted-foreground mt-1">{meta.desc}</p>
               </div>
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-4">
-              <span>{(t(defaultLocale, "site.postsCount") as (n: number) => string)(posts.length)}</span>
+              <span>
+                <Trans k="site.postsCount" args={[posts.length]} />
+              </span>
               {subTags.length > 0 && (
-                <span>{(t(defaultLocale, "category.tagsCount") as (n: number) => string)(subTags.length)}</span>
+                <span>
+                  <Trans k="category.tagsCount" args={[subTags.length]} />
+                </span>
               )}
             </div>
           </div>
@@ -91,7 +98,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                     : "bg-card text-muted-foreground hover:text-foreground hover:border-primary/25 hover:bg-primary/[0.04]"
                 }`}
               >
-                {t(defaultLocale, cm.i18nKey) as string}
+                <Trans k={cm.i18nKey} />
               </Link>
             )
           })}
@@ -100,7 +107,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         {subTags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[11px] text-muted-foreground/60 mr-1">
-              {t(defaultLocale, "category.tagsLabel") as string}:
+              <Trans k="category.tagsLabel" />
             </span>
             {subTags.map((st) => {
               const short = st.slice(name.length + 1)
@@ -125,10 +132,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               <Icon size={28} className="text-muted-foreground/50" />
             </div>
             <h2 className="text-xl font-semibold mb-2">
-              {t(defaultLocale, "category.empty") as string}
+              <Trans k="category.empty" />
             </h2>
             <p className="text-sm text-muted-foreground max-w-sm">
-              {t(defaultLocale, "category.emptyDesc") as string}
+              <Trans k="category.emptyDesc" />
             </p>
           </div>
         ) : (
