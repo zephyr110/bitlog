@@ -204,21 +204,24 @@ export function Mermaid({ code, className }: { code: string; className?: string 
   }
 
   return (
-    <div className="group/mermaid relative my-8">
-      {/* Copy button: above the frame on small screens (an overlay would
-          cover the diagram); floating top-right from sm up, with a
-          backdrop so it stays readable over dense graphs. */}
-      <div className="max-sm:mb-2 max-sm:flex max-sm:justify-end sm:contents">
+    <div className="group/mermaid relative my-8 overflow-hidden rounded-xl border border-border shadow-sm dark:border-zinc-800">
+      {/* Fixed header bar (same pattern as CodeBlock): keeps the copy
+          button inside the block on every viewport size — no absolute
+          positioning that could drift on small screens. */}
+      <div className="flex items-center justify-between gap-2 border-b border-border bg-muted/50 px-4 py-2 dark:border-zinc-800 dark:bg-zinc-900/80">
+        <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground dark:bg-zinc-800 dark:text-zinc-400">
+          mermaid
+        </span>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => void copy(code)}
           aria-label={t("post.copyCode") as string}
           className={cn(
-            "h-7 px-2 rounded-md text-xs gap-1.5 transition-all sm:absolute sm:right-2 sm:top-2 sm:z-10 sm:border sm:border-border/60 sm:bg-background/85 sm:backdrop-blur-sm",
+            "h-7 px-2 rounded-md text-xs gap-1.5 -mr-1 transition-all",
             copied
               ? "text-emerald-600 dark:text-emerald-400 opacity-100 hover:text-emerald-500 dark:hover:text-emerald-300 hover:bg-emerald-500/10"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted dark:text-zinc-500 dark:hover:text-zinc-200 dark:hover:bg-zinc-800"
           )}
         >
           {copied ? (
@@ -236,7 +239,7 @@ export function Mermaid({ code, className }: { code: string; className?: string 
       </div>
       <div
         className={cn(
-          "overflow-x-auto rounded-xl border border-border/60 p-4 [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full",
+          "overflow-x-auto bg-zinc-50 p-4 [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full dark:bg-zinc-950",
           className
         )}
         // mermaid output is sanitized (securityLevel: "strict") before
