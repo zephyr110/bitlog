@@ -117,6 +117,11 @@ async function getMermaid(scheme: MermaidColorScheme) {
         .edgePath path { stroke-width: 1.25px; }
         .node rect, .node polygon, .node circle { stroke-width: 1px; }
         .cluster rect { stroke-width: 1px; }
+        /* Rounded corners on box nodes to match the site's rounded UI
+           language (rx as CSS geometry property — supported in all
+           modern browsers). Polygons (diamond decisions) have no rx and
+           keep their sharp shape on purpose. */
+        .node rect, .cluster rect, .note rect, .actor { rx: 8px; ry: 8px; }
       `,
     })
     appliedScheme = scheme
