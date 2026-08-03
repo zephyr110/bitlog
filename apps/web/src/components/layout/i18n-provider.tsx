@@ -31,14 +31,21 @@ function getStoredLocale(): Locale | null {
 }
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  // Initialise from localStorage immediately so child effects (e.g.
-  // DocumentTitle) read the correct locale on first render instead of
-  // waiting for this effect's deferred sync. SSR always uses defaultLocale,
-  // so a stored locale different from the default may cause a one-off
-  // hydration mismatch — the wrapper span has suppressHydrationWarning.
-  const [locale, setLocaleState] = useState<Locale>(
-    () => getStoredLocale() ?? defaultLocale,
-  )
+  // Always start with defaultLocale to match the server render, then sync
+  // from localStorage in an effect. Initialising from localStorage in the
+  // useState initializer makes the FIRST client render differ from SSR for
+  // every translated text node whenever the stored locale ≠ default —
+  // a guaranteed hydration failure (React #418) on every page load.
+  // DocumentTitle re-runs on locale change (locale is in its effect deps),
+  // so the deferred sync still corrects document.title.
+  const [locale, setLocaleState] = useState<Locale>(defaultLocale)
+
+  useEffect(() => {
+    const stored = getStoredLocale()
+    if (stored && stored !== defaultLocale) {
+      setLocaleState(stored) // eslint-disable-line react-hooks/set-state-in-effect -- one-time sync from localStorage on mount (unavailable during SSR)
+    }
+  }, [])
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l)
@@ -49,9 +56,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <I18nContext.Provider value={{ locale, setLocale }}>
-      <span suppressHydrationWarning className="contents">
-        {children}
-      </span>
+      {children}
     </I18nContext.Provider>
   )
 }

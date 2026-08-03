@@ -12,7 +12,12 @@ import rehypePrettyCode, { type Options } from "rehype-pretty-code"
 import { rehypeMermaidBlock } from "@/lib/rehype-mermaid-block"
 
 const rehypePrettyCodeOptions: Options = {
-  theme: "github-dark",
+  // Dual themes: every token span gets `--shiki-light`/`--shiki-dark` CSS
+  // variables; globals.css picks one based on `html.dark`.
+  theme: {
+    light: "github-light",
+    dark: "github-dark",
+  },
   keepBackground: false,
   defaultLang: "plaintext",
   grid: true,
