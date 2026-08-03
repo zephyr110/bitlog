@@ -122,13 +122,27 @@ async function getMermaid(scheme: MermaidColorScheme) {
            modern browsers). Polygons (diamond decisions) have no rx and
            keep their sharp shape on purpose. */
         .node rect, .cluster rect, .note rect, .actor { rx: 8px; ry: 8px; }
-        /* Edge-label chips are plain rectangles with no rounding and no
-           padding (an HTML div.labelBkg in html-label mode, a bare
-           <rect class="background"> in text mode) — round them and add
-           breathing room so they match the rounded nodes. Both modes
-           are covered; only one matches at runtime. */
-        .labelBkg { border-radius: 6px; padding: 1px 6px; }
-        .edgeLabel .background, .edgeLabel rect { rx: 6px; ry: 6px; }
+        /* Edge-label chips: mermaid paints TWO background layers on html
+           labels (span.edgeLabel opaque + div.labelBkg at 50% alpha),
+           which renders as a lighter halo around the chip — paint both
+           with the same opaque background so the chip reads as one
+           color. The text-mode rect gets the same treatment (its
+           opacity: 0.5 is reset). Rounding + padding match the rounded
+           node style; only the mode in use matches at runtime. */
+        .edgeLabel, .edgeLabel p {
+          background-color: ${MERMAID_THEME_VARIABLES[scheme].edgeLabelBackground};
+        }
+        .labelBkg {
+          background-color: ${MERMAID_THEME_VARIABLES[scheme].edgeLabelBackground};
+          border-radius: 6px;
+          padding: 1px 6px;
+        }
+        .edgeLabel .background, .edgeLabel rect {
+          rx: 6px;
+          ry: 6px;
+          fill: ${MERMAID_THEME_VARIABLES[scheme].edgeLabelBackground};
+          opacity: 1;
+        }
       `,
     })
     appliedScheme = scheme
