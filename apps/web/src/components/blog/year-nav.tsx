@@ -22,10 +22,10 @@ export function YearNavBar({
   if (years.length < 2) return null
 
   return (
-    <div className="sticky top-16 z-30 -mx-4 mb-6 border-b border-border/60 bg-background/85 px-4 py-2 backdrop-blur-md">
+    <div className="sticky top-16 z-30 mb-8">
       <nav
         aria-label={t("site.yearNav") as string}
-        className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex w-fit max-w-full items-center gap-1 overflow-x-auto rounded-full border border-border/60 bg-background/85 p-1 shadow-sm backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {years.map((year) => (
           <button
@@ -34,7 +34,7 @@ export function YearNavBar({
             onClick={() => onSelect(year)}
             aria-pressed={activeYear === year}
             className={cn(
-              "shrink-0 rounded-full px-3 py-1 text-sm font-medium tabular-nums transition-all duration-200",
+              "inline-flex h-7 shrink-0 items-center rounded-full px-3 text-sm font-medium tabular-nums transition-all duration-200",
               activeYear === year
                 ? "bg-primary text-primary-foreground shadow-sm shadow-primary/10"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"

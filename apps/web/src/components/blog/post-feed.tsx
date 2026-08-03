@@ -8,7 +8,6 @@ import { useT } from "@/components/layout/trans"
 import { FileText, Search, X, ChevronDown } from "lucide-react"
 import { type PostSummary } from "@zlog/database"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { resolveCategory, getCategoryLabel } from "@/lib/categories"
 import { cn } from "@/lib/utils"
 
@@ -247,11 +246,12 @@ export function PostFeed({ posts, allTags }: PostFeedProps) {
   }
 
   return (
-    <div id="post-feed" className="container mx-auto px-4 py-12 max-w-5xl 2xl:max-w-7xl scroll-mt-16">
-      {/* Search & Tags Filter */}
+    <div id="post-feed" className="container mx-auto px-4 py-8 md:py-12 max-w-5xl 2xl:max-w-7xl scroll-mt-16">
+      {/* Search & Topics — one toolbar row, controls share the h-8 height
+          and the pill language of the year-nav below */}
       {allTags.length > 0 && (
-        <div className="mb-8 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="relative max-w-md">
+        <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="relative w-full lg:max-w-xs lg:shrink-0">
             <Search
               size={16}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
@@ -266,7 +266,7 @@ export function PostFeed({ posts, allTags }: PostFeedProps) {
                 syncSearchUrl(e.target.value)
               }}
               placeholder={t("site.searchPosts") as string}
-              className="pl-9"
+              className="pl-9 pr-8"
             />
             {searchQuery && (
               <button
@@ -282,27 +282,30 @@ export function PostFeed({ posts, allTags }: PostFeedProps) {
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground mr-1">
-              {t("site.topics") as string}
-            </span>
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => {
-                  setActiveTag(activeTag === cat ? null : cat)
-                  // Filtering — expand every group so matches are visible.
-                  setCollapsedYears(new Set())
-                }}
-              >
-                <Badge
-                  variant={activeTag === cat ? "default" : "secondary"}
-                  className="cursor-pointer transition-all"
+          <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {categories.map((cat) => {
+              const active = activeTag === cat
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => {
+                    setActiveTag(active ? null : cat)
+                    // Filtering — expand every group so matches are visible.
+                    setCollapsedYears(new Set())
+                  }}
+                  className={cn(
+                    "h-8 shrink-0 rounded-full border px-3.5 text-sm font-medium transition-all",
+                    active
+                      ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/10"
+                      : "border-border/60 bg-background text-muted-foreground hover:border-foreground/25 hover:text-foreground"
+                  )}
                 >
                   {getCategoryLabel(cat, t)}
-                </Badge>
-              </button>
-            ))}
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
@@ -368,7 +371,7 @@ export function PostFeed({ posts, allTags }: PostFeedProps) {
                 }}
                 className="scroll-mt-28"
               >
-                <h2 className="mb-5 border-b border-border/60 animate-in fade-in duration-500">
+                <h2 className="mb-6 animate-in fade-in duration-500">
                   <button
                     type="button"
                     onClick={() => toggleYear(year)}
@@ -379,8 +382,12 @@ export function PostFeed({ posts, allTags }: PostFeedProps) {
                         ? t("site.yearCollapse")
                         : t("site.yearExpand")) as string
                     } ${year}`}
-                    className="group flex w-full items-center gap-3 rounded-md pb-2 text-left -mx-1 px-1 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="group flex w-full items-center gap-3 rounded-md -mx-1 px-1 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
+                    <span
+                      aria-hidden
+                      className="h-7 w-1 shrink-0 rounded-full bg-gradient-to-b from-primary/70 to-primary/20"
+                    />
                     <span className="text-2xl font-bold tracking-tight tabular-nums">
                       {year}
                     </span>
@@ -393,8 +400,10 @@ export function PostFeed({ posts, allTags }: PostFeedProps) {
                       size={16}
                       aria-hidden
                       className={cn(
-                        "ml-auto text-muted-foreground transition-transform duration-300 group-hover:text-foreground motion-reduce:transition-none",
-                        expanded ? "rotate-180" : ""
+                        "ml-auto transition-all duration-300 motion-reduce:transition-none",
+                        expanded
+                          ? "rotate-180 text-muted-foreground/50 group-hover:text-foreground"
+                          : "text-foreground/70 group-hover:text-foreground"
                       )}
                     />
                   </button>
@@ -414,7 +423,7 @@ export function PostFeed({ posts, allTags }: PostFeedProps) {
                     {mountedYears.has(year) && (
                       <div
                         className={cn(
-                          "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 [&>div]:h-full transition-opacity duration-200 motion-reduce:transition-none",
+                          "grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 [&>div]:h-full transition-opacity duration-200 motion-reduce:transition-none",
                           expanded ? "opacity-100" : "opacity-0"
                         )}
                       >

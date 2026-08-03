@@ -98,7 +98,7 @@ export function HeroSection({ postCount }: { postCount: number }) {
 
           {/* Title */}
           <h1
-            className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.05] animate-in fade-in slide-in-from-bottom-4 duration-700"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.05] animate-in fade-in slide-in-from-bottom-4 duration-700"
             style={{ animationFillMode: "both", animationDelay: "100ms" }}
           >
             {t("site.heroTitleLine1") as string}

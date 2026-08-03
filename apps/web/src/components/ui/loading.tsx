@@ -29,18 +29,27 @@ export function PostCardSkeleton() {
 
 export function PostFeedSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="container mx-auto px-4 py-12 max-w-5xl 2xl:max-w-7xl">
-      {/* Search bar skeleton */}
-      <div className="mb-8 space-y-4">
-        <Skeleton className="h-10 max-w-md rounded-lg" />
-        <div className="flex gap-2">
+    <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl 2xl:max-w-7xl">
+      {/* Toolbar skeleton — search + topic pills, same row/height as live */}
+      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center">
+        <Skeleton className="h-8 w-full lg:max-w-xs rounded-lg" />
+        <div className="flex gap-1.5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-6 w-16 rounded-full" />
+            <Skeleton key={i} className="h-8 w-16 rounded-full" />
           ))}
         </div>
       </div>
+      {/* Year-nav pill skeleton (left-aligned, floating pill) */}
+      <Skeleton className="mb-8 h-9 w-44 rounded-full" />
+      {/* Year header skeleton — accent bar + year + count + chevron */}
+      <div className="mb-6 flex items-center gap-3">
+        <Skeleton className="h-7 w-1 rounded-full" />
+        <Skeleton className="h-8 w-20" />
+        <Skeleton className="h-4 w-12" />
+        <Skeleton className="ml-auto size-4 rounded" />
+      </div>
       {/* Card grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 [&>div]:h-full">
+      <div className="grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 [&>div]:h-full">
         {Array.from({ length: count }).map((_, i) => (
           <PostCardSkeleton key={i} />
         ))}

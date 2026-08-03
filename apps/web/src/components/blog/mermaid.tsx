@@ -205,6 +205,35 @@ export function Mermaid({ code, className }: { code: string; className?: string 
 
   return (
     <div className="group/mermaid relative my-8">
+      {/* Copy button: above the frame on small screens (an overlay would
+          cover the diagram); floating top-right from sm up, with a
+          backdrop so it stays readable over dense graphs. */}
+      <div className="max-sm:mb-2 max-sm:flex max-sm:justify-end sm:contents">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => void copy(code)}
+          aria-label={t("post.copyCode") as string}
+          className={cn(
+            "h-7 px-2 rounded-md text-xs gap-1.5 transition-all sm:absolute sm:right-2 sm:top-2 sm:z-10 sm:border sm:border-border/60 sm:bg-background/85 sm:backdrop-blur-sm",
+            copied
+              ? "text-emerald-600 dark:text-emerald-400 opacity-100 hover:text-emerald-500 dark:hover:text-emerald-300 hover:bg-emerald-500/10"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          )}
+        >
+          {copied ? (
+            <>
+              <Check size={13} />
+              {t("post.codeCopied") as string}
+            </>
+          ) : (
+            <>
+              <Copy size={13} />
+              {t("post.copyCode") as string}
+            </>
+          )}
+        </Button>
+      </div>
       <div
         className={cn(
           "overflow-x-auto rounded-xl border border-border/60 p-4 [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full",
@@ -214,30 +243,6 @@ export function Mermaid({ code, className }: { code: string; className?: string 
         // it reaches this point.
         dangerouslySetInnerHTML={{ __html: visibleSvg }}
       />
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => void copy(code)}
-        aria-label={t("post.copyCode") as string}
-        className={cn(
-          "absolute right-2 top-2 h-7 px-2 rounded-md text-xs gap-1.5 transition-all",
-          copied
-            ? "text-emerald-600 dark:text-emerald-400 opacity-100 hover:text-emerald-500 dark:hover:text-emerald-300 hover:bg-emerald-500/10"
-            : "text-muted-foreground hover:text-foreground hover:bg-muted"
-        )}
-      >
-        {copied ? (
-          <>
-            <Check size={13} />
-            {t("post.codeCopied") as string}
-          </>
-        ) : (
-          <>
-            <Copy size={13} />
-            {t("post.copyCode") as string}
-          </>
-        )}
-      </Button>
     </div>
   )
 }
