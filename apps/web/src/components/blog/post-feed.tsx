@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { PostCard } from "@/components/blog/post-card"
+import { YearNavBar, BackToTopButton } from "@/components/blog/year-nav"
 import { useT } from "@/components/layout/trans"
 import { FileText, Search, X } from "lucide-react"
 import { type PostSummary } from "@zlog/database"
@@ -62,6 +63,63 @@ export function PostFeed({ posts, allTags }: PostFeedProps) {
     }
     return result
   }, [posts, activeTag, searchQuery])
+
+  // Year groups (newest first) — the sticky YearNavBar jumps between
+  // them, and an IntersectionObserver keeps the bar's highlight on the
+  // section currently in view.
+  const grouped = useMemo(() => {
+    const map = new Map<number, PostSummary[]>()
+    for (const post of filteredPosts) {
+      const year = new Date(post.date).getFullYear()
+      if (!Number.isFinite(year)) continue
+      if (!map.has(year)) map.set(year, [])
+      map.get(year)!.push(post)
+    }
+    return Array.from(map.entries())
+  }, [filteredPosts])
+
+  const years = grouped.map(([year]) => year)
+  const [activeYear, setActiveYear] = useState<number | null>(null)
+  // Derived fallback instead of a state write: after a filter/search the
+  // stored year may not exist anymore — highlight the first visible group.
+  const currentYear =
+    activeYear !== null && years.includes(activeYear)
+      ? activeYear
+      : (years[0] ?? null)
+  const sectionRefs = useRef(new Map<number, HTMLElement>())
+
+  useEffect(() => {
+    if (grouped.length < 2) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let best: Element | null = null
+        let bestTop = Infinity
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.boundingClientRect.top < bestTop) {
+            bestTop = entry.boundingClientRect.top
+            best = entry.target
+          }
+        }
+        if (best) {
+          setActiveYear(Number((best as HTMLElement).dataset.year))
+        }
+      },
+      // Detection band just below the site header + sticky year bar;
+      // the bottom -70% keeps it narrow so only one section is active.
+      { rootMargin: "-108px 0px -70% 0px", threshold: 0 }
+    )
+    sectionRefs.current.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [grouped])
+
+  function jumpToYear(year: number) {
+    const reduce =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    document
+      .getElementById(`year-${year}`)
+      ?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" })
+  }
 
   return (
     <div id="post-feed" className="container mx-auto px-4 py-12 max-w-5xl 2xl:max-w-7xl scroll-mt-16">
@@ -139,7 +197,10 @@ export function PostFeed({ posts, allTags }: PostFeedProps) {
         </div>
       )}
 
-      {/* Posts Grid */}
+      {/* Sticky year-jump bar — hidden until there are 2+ year groups */}
+      <YearNavBar years={years} activeYear={currentYear} onSelect={jumpToYear} />
+
+      {/* Posts Grid — grouped by year */}
       {filteredPosts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center animate-in fade-in duration-500">
           <div className="flex size-20 items-center justify-center rounded-full bg-muted mb-6">
@@ -159,22 +220,49 @@ export function PostFeed({ posts, allTags }: PostFeedProps) {
           </p>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 [&>div]:h-full">
-          {filteredPosts.map((post, index) => (
-            <div
-              key={post.slug}
-              className="h-full animate-in fade-in slide-in-from-bottom-4"
-              style={{
-                animationDuration: "500ms",
-                animationDelay: `${index * 80}ms`,
-                animationFillMode: "both",
+        <div className="space-y-12">
+          {grouped.map(([year, yearPosts]) => (
+            <section
+              key={year}
+              id={`year-${year}`}
+              data-year={year}
+              ref={(el) => {
+                if (el) sectionRefs.current.set(year, el)
+                else sectionRefs.current.delete(year)
               }}
+              className="scroll-mt-28"
             >
-              <PostCard post={post} />
-            </div>
+              <h2 className="mb-5 flex items-baseline gap-3 border-b border-border/60 pb-2 animate-in fade-in duration-500">
+                <span className="text-2xl font-bold tracking-tight tabular-nums">
+                  {year}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {(t("site.yearPosts") as (n: number) => string)(
+                    yearPosts.length
+                  )}
+                </span>
+              </h2>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 [&>div]:h-full">
+                {yearPosts.map((post, index) => (
+                  <div
+                    key={post.slug}
+                    className="h-full animate-in fade-in slide-in-from-bottom-4"
+                    style={{
+                      animationDuration: "500ms",
+                      animationDelay: `${index * 80}ms`,
+                      animationFillMode: "both",
+                    }}
+                  >
+                    <PostCard post={post} />
+                  </div>
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}
+
+      <BackToTopButton />
     </div>
   )
 }
