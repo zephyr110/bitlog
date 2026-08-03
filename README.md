@@ -52,7 +52,7 @@ pnpm create-admin --username admin --password "your-password"
 pnpm export      # static export to apps/web/out
 ```
 
-Push to `main` → GitHub Actions builds and deploys to GitHub Pages automatically. For Vercel/Node hosting, use `pnpm build` instead — the admin CMS then runs server-side.
+Push to `main` → GitHub Actions builds and deploys to GitHub Pages automatically. For Vercel/Node hosting, use `pnpm build` instead — the admin CMS then runs server-side. See the [deployment guide](https://zephyr110.vercel.app/posts/zlog-deployment-guide) for step-by-step instructions.
 
 ## License
 

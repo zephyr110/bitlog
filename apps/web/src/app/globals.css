@@ -190,7 +190,24 @@
     padding: 0 !important;
     font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-size: 13px;
+    color: #3f3f46;
+  }
+  .dark .code-block > code {
     color: #e4e4e7;
+  }
+  /* Dual-theme shiki tokens: rehype-pretty-code emits --shiki-light and
+     --shiki-dark on every span; pick per site theme. */
+  .code-block code span {
+    color: var(--shiki-light, inherit);
+    font-style: var(--shiki-light-font-style, inherit);
+    font-weight: var(--shiki-light-font-weight, inherit);
+    text-decoration: var(--shiki-light-text-decoration, inherit);
+  }
+  .dark .code-block code span {
+    color: var(--shiki-dark, inherit);
+    font-style: var(--shiki-dark-font-style, inherit);
+    font-weight: var(--shiki-dark-font-weight, inherit);
+    text-decoration: var(--shiki-dark-text-decoration, inherit);
   }
   .code-block [data-line] {
     position: relative;
@@ -207,7 +224,7 @@
     width: 2rem;
     text-align: right;
     font-size: 11px;
-    color: #52525b;
+    color: #a1a1aa;
     user-select: none;
   }
   .code-block [data-highlighted-line] {

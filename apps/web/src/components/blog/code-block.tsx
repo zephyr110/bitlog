@@ -32,16 +32,16 @@ export function CodeBlock({
   }, [copy])
 
   return (
-    <div className="group/code relative my-8 rounded-xl border border-zinc-800 overflow-hidden shadow-sm">
+    <div className="group/code relative my-8 rounded-xl border border-border dark:border-zinc-800 overflow-hidden shadow-sm">
       {/* Header bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-800 bg-zinc-900/80">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/50 dark:border-zinc-800 dark:bg-zinc-900/80">
         <div className="flex items-center gap-2 min-w-0">
           {title ? (
-            <span className="text-xs text-zinc-400 font-medium truncate">
+            <span className="text-xs text-muted-foreground dark:text-zinc-400 font-medium truncate">
               {title}
             </span>
           ) : lang ? (
-            <span className="inline-flex items-center rounded-md bg-zinc-800 px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400">
+            <span className="inline-flex items-center rounded-md bg-muted dark:bg-zinc-800 px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground dark:text-zinc-400">
               {lang}
             </span>
           ) : null}
@@ -54,8 +54,8 @@ export function CodeBlock({
           className={cn(
             "h-7 px-2 rounded-md text-xs gap-1.5 -mr-1 transition-all",
             copied
-              ? "text-emerald-400 opacity-100 hover:text-emerald-300 hover:bg-emerald-500/10"
-              : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800"
+              ? "text-emerald-600 dark:text-emerald-400 opacity-100 hover:text-emerald-500 dark:hover:text-emerald-300 hover:bg-emerald-500/10"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted dark:text-zinc-500 dark:hover:text-zinc-200 dark:hover:bg-zinc-800"
           )}
         >
           {copied ? (
@@ -73,7 +73,7 @@ export function CodeBlock({
       </div>
 
       {/* Code content */}
-      <div className="relative bg-zinc-950 dark:bg-zinc-950">
+      <div className="relative bg-zinc-50 dark:bg-zinc-950">
         <pre
           ref={preRef}
           className={cn(
