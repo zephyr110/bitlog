@@ -422,7 +422,13 @@ export function AdminSidebarTrigger({
     <Tooltip>
       <TooltipTrigger
         render={
-          <IconButton size="sm" onClick={onToggle} aria-label={label}>
+          <IconButton
+            size="sm"
+            onClick={onToggle}
+            aria-label={label}
+            // Always-on muted background block; deepens on hover.
+            className="bg-muted/70 hover:bg-muted"
+          >
             <PanelLeft size={16} />
           </IconButton>
         }
