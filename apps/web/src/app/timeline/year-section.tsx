@@ -105,7 +105,6 @@ export function YearSection({ year, posts, defaultOpen = false }: Props) {
                 >
                   {/* Connector tick from the timeline rail */}
                   <span className="absolute -left-3 md:-left-4 top-1/2 w-3 md:w-4 h-px bg-border/70 transition-colors duration-200 group-hover/link:bg-primary/40" />
-                  <span className="shrink-0 size-1.5 rounded-full bg-primary/25 group-hover/link:bg-primary group-hover/link:scale-125 transition-all duration-200" />
                   <time className="shrink-0 w-[3.25rem] text-xs text-muted-foreground/55 font-mono tabular-nums group-hover/link:text-muted-foreground transition-colors">
                     {post.date.slice(5)}
                   </time>

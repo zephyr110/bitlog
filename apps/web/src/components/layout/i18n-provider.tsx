@@ -31,17 +31,14 @@ function getStoredLocale(): Locale | null {
 }
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  // Start with the default locale to match the server render. We then sync
-  // from localStorage on mount to avoid a hydration mismatch.
-  const [locale, setLocaleState] = useState<Locale>(defaultLocale)
-
-  useEffect(() => {
-    const stored = getStoredLocale()
-    if (stored && stored !== locale) {
-      setLocaleState(stored) // eslint-disable-line react-hooks/set-state-in-effect
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Initialise from localStorage immediately so child effects (e.g.
+  // DocumentTitle) read the correct locale on first render instead of
+  // waiting for this effect's deferred sync. SSR always uses defaultLocale,
+  // so a stored locale different from the default may cause a one-off
+  // hydration mismatch — the wrapper span has suppressHydrationWarning.
+  const [locale, setLocaleState] = useState<Locale>(
+    () => getStoredLocale() ?? defaultLocale,
+  )
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l)

@@ -117,15 +117,14 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  // Dynamic imports keep sharp (native binary) out of the GET cold-start path.
-  // Without this, a sharp load failure on Vercel's serverless runtime 500s
-  // every /api/upload request — including the GET that lists images.
-  const [{ compressImage }, { uploadToGithub }] = await Promise.all([
-    import("@/lib/image-compress"),
-    import("@/lib/github-image"),
-  ])
-
   try {
+    // Dynamic imports keep sharp (native binary) out of the GET cold-start
+    // path. Without this, a sharp load failure on Vercel's serverless runtime
+    // 500s every /api/upload request — including the GET that lists images.
+    const [{ compressImage }, { uploadToGithub }] = await Promise.all([
+      import("@/lib/image-compress"),
+      import("@/lib/github-image"),
+    ])
     const user = await requireAuth(request)
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -230,10 +229,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  // Dynamic import — deleteFromGithub is only needed for DELETE requests.
-  const { deleteFromGithub } = await import("@/lib/github-image")
-
   try {
+    // Dynamic import — deleteFromGithub is only needed for DELETE requests.
+    const { deleteFromGithub } = await import("@/lib/github-image")
     const user = await requireAuth(request)
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
