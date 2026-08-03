@@ -1,14 +1,10 @@
 "use client"
 
-import { useEffect, useId, useRef, useState } from "react"
+import { useEffect, useId, useRef, useState, type ReactNode } from "react"
 import { useTheme } from "next-themes"
-import { Check, Copy } from "lucide-react"
-import { CodeBlock } from "@/components/blog/code-block"
+import { CopyButton } from "@/components/blog/copy-button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Button } from "@/components/ui/button"
 import { useT } from "@/components/layout/trans"
-import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
-import { cn } from "@/lib/utils"
 
 interface RenderResult {
   code: string
@@ -110,7 +106,7 @@ async function getMermaid(scheme: MermaidColorScheme) {
       fontFamily: FONT_FAMILY,
       themeVariables: MERMAID_THEME_VARIABLES[scheme],
       themeCSS: `
-        .marker, .marker path, .marker cross, .marker circle {
+        .marker, .marker path, .marker circle {
           fill: ${ARROW_ACCENT[scheme]} !important;
           stroke: ${ARROW_ACCENT[scheme]} !important;
         }
@@ -122,26 +118,17 @@ async function getMermaid(scheme: MermaidColorScheme) {
            modern browsers). Polygons (diamond decisions) have no rx and
            keep their sharp shape on purpose. */
         .node rect, .cluster rect, .note rect, .actor { rx: 8px; ry: 8px; }
-        /* Edge-label chips: mermaid paints TWO background layers on html
-           labels (span.edgeLabel opaque + div.labelBkg at 50% alpha),
-           which renders as a lighter halo around the chip — paint both
-           with the same opaque background so the chip reads as one
-           color. The text-mode rect gets the same treatment (its
-           opacity: 0.5 is reset). Rounding + padding match the rounded
-           node style; only the mode in use matches at runtime. */
-        .edgeLabel, .edgeLabel p {
-          background-color: ${MERMAID_THEME_VARIABLES[scheme].edgeLabelBackground};
-        }
+        /* Edge-label chips (html mode: div.labelBkg over the opaque
+           span.edgeLabel). mermaid's flowchart stylesheet paints the
+           labelBkg layer at 50% alpha, which renders as a lighter halo
+           around the chip — repaint it opaque, round it, pad it, and
+           give it a hairline border (the white chip would otherwise be
+           invisible on the zinc-50 panel in light mode). */
         .labelBkg {
           background-color: ${MERMAID_THEME_VARIABLES[scheme].edgeLabelBackground};
+          border: 1px solid ${MERMAID_THEME_VARIABLES[scheme].clusterBorder};
           border-radius: 6px;
           padding: 1px 6px;
-        }
-        .edgeLabel .background, .edgeLabel rect {
-          rx: 6px;
-          ry: 6px;
-          fill: ${MERMAID_THEME_VARIABLES[scheme].edgeLabelBackground};
-          opacity: 1;
         }
       `,
     })
@@ -164,40 +151,65 @@ async function getMermaid(scheme: MermaidColorScheme) {
  *  - The diagram re-renders when the site theme flips; the SVG has a
  *    transparent background inside a thin bordered, rounded frame,
  *    so it blends into both light and dark mode. */
-export function Mermaid({ code, className }: { code: string; className?: string }) {
+export function Mermaid({ code }: { code: string }) {
   const { t } = useT()
   const { resolvedTheme } = useTheme()
   const scheme: MermaidColorScheme = resolvedTheme === "dark" ? "dark" : "light"
   const baseId = useId().replace(/[^a-zA-Z0-9_-]/g, "")
   const runRef = useRef(0)
   const [result, setResult] = useState<RenderResult | null>(null)
-  const { copied, copy } = useCopyToClipboard()
 
   useEffect(() => {
     if (!code.trim()) return
+    let disposed = false
 
     const timer = setTimeout(() => {
       const run = ++runRef.current
       getMermaid(scheme)
         .then(async (mermaid) => {
           const { svg } = await mermaid.render(`${baseId}-${run}`, code)
-          if (run === runRef.current) setResult({ code, svg, failed: false })
+          if (!disposed && run === runRef.current) {
+            setResult({ code, svg, failed: false })
+          }
         })
         .catch((err) => {
           console.error("Mermaid render failed:", err)
-          if (run === runRef.current) setResult({ code, svg: "", failed: true })
+          if (!disposed && run === runRef.current) {
+            setResult({ code, svg: "", failed: true })
+          }
         })
     }, 350)
 
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      // Drop any render still in flight after unmount or a code/scheme
+      // re-run (the promise may resolve later; the run guard alone
+      // would still pass on a plain unmount).
+      disposed = true
+    }
   }, [code, baseId, scheme])
+
+  // Fixed frame (same pattern as CodeBlock): header bar + content panel.
+  // Rendered for every state (loading, empty fence, failure, success) so
+  // the block height is stable and the copy button never drifts.
+  const frame = (content: ReactNode) => (
+    <div className="my-8 overflow-hidden rounded-xl border border-border shadow-sm dark:border-zinc-800">
+      <div className="flex items-center justify-between gap-2 border-b border-border bg-muted/50 px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-900/80">
+        <span className="inline-flex items-center rounded-md border border-border/60 bg-muted px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+          mermaid
+        </span>
+        <CopyButton text={code} />
+      </div>
+      <div className="bg-zinc-50 dark:bg-zinc-950">{content}</div>
+    </div>
+  )
 
   if (!code.trim()) {
     // Empty fence while drafting — neutral placeholder, no error UI.
-    return (
+    return frame(
       <div
         aria-hidden
-        className="my-8 h-24 rounded-xl border border-dashed border-border/60"
+        className="m-4 h-24 rounded-lg border border-dashed border-border/60"
       />
     )
   }
@@ -205,73 +217,36 @@ export function Mermaid({ code, className }: { code: string; className?: string 
   const current = result && result.code === code ? result : null
   // While a new render is in flight, keep the previous SVG on screen
   // (flicker-free); only the very first load shows the skeleton.
-  const visibleSvg =
-    current && !current.failed
-      ? current.svg
-      : !current && result && !result.failed
-        ? result.svg
-        : null
+  // current is never failed here — the failed path returns above.
+  const visibleSvg = current
+    ? current.svg
+    : result && !result.failed
+      ? result.svg
+      : null
 
   if (current?.failed) {
-    return (
-      <div className="my-8">
+    return frame(
+      <div className="p-4">
         <p className="mb-2 text-xs text-muted-foreground">
           {t("post.mermaidError") as string}
         </p>
-        <CodeBlock data-language="mermaid">
+        <pre className="code-block line-numbers overflow-x-auto p-4 text-sm leading-relaxed">
           <code>{code}</code>
-        </CodeBlock>
+        </pre>
       </div>
     )
   }
 
   if (!visibleSvg) {
-    return <Skeleton aria-hidden className="my-8 h-40 rounded-xl" />
+    return frame(<Skeleton aria-hidden className="m-4 h-40 rounded-lg" />)
   }
 
-  return (
-    <div className="group/mermaid relative my-8 overflow-hidden rounded-xl border border-border shadow-sm dark:border-zinc-800">
-      {/* Fixed header bar (same pattern as CodeBlock): keeps the copy
-          button inside the block on every viewport size — no absolute
-          positioning that could drift on small screens. */}
-      <div className="flex items-center justify-between gap-2 border-b border-border bg-muted/50 px-4 py-2 dark:border-zinc-800 dark:bg-zinc-900/80">
-        <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground dark:bg-zinc-800 dark:text-zinc-400">
-          mermaid
-        </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => void copy(code)}
-          aria-label={t("post.copyCode") as string}
-          className={cn(
-            "h-7 px-2 rounded-md text-xs gap-1.5 -mr-1 transition-all",
-            copied
-              ? "text-emerald-600 dark:text-emerald-400 opacity-100 hover:text-emerald-500 dark:hover:text-emerald-300 hover:bg-emerald-500/10"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted dark:text-zinc-500 dark:hover:text-zinc-200 dark:hover:bg-zinc-800"
-          )}
-        >
-          {copied ? (
-            <>
-              <Check size={13} />
-              {t("post.codeCopied") as string}
-            </>
-          ) : (
-            <>
-              <Copy size={13} />
-              {t("post.copyCode") as string}
-            </>
-          )}
-        </Button>
-      </div>
-      <div
-        className={cn(
-          "overflow-x-auto bg-zinc-50 p-4 [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full dark:bg-zinc-950",
-          className
-        )}
-        // mermaid output is sanitized (securityLevel: "strict") before
-        // it reaches this point.
-        dangerouslySetInnerHTML={{ __html: visibleSvg }}
-      />
-    </div>
+  return frame(
+    <div
+      className="overflow-x-auto p-4 [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full"
+      // mermaid output is sanitized (securityLevel: "strict") before
+      // it reaches this point.
+      dangerouslySetInnerHTML={{ __html: visibleSvg }}
+    />
   )
 }
