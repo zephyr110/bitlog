@@ -52,7 +52,7 @@ pnpm create-admin --username admin --password "your-password"
 pnpm export      # 静态导出到 apps/web/out
 ```
 
-推送 `main` 分支 → GitHub Actions 自动构建并部署到 GitHub Pages。Vercel/Node 托管改用 `pnpm build` —— 后台 CMS 可在服务端运行。
+推送 `main` 分支 → GitHub Actions 自动构建并部署到 GitHub Pages。Vercel/Node 托管改用 `pnpm build` —— 后台 CMS 可在服务端运行。详细步骤请参考[部署指南](https://zephyr110.vercel.app/posts/zlog-deployment-guide)。
 
 ## License
 
