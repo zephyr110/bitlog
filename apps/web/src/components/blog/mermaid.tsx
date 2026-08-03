@@ -122,6 +122,13 @@ async function getMermaid(scheme: MermaidColorScheme) {
            modern browsers). Polygons (diamond decisions) have no rx and
            keep their sharp shape on purpose. */
         .node rect, .cluster rect, .note rect, .actor { rx: 8px; ry: 8px; }
+        /* Edge-label chips are plain rectangles with no rounding and no
+           padding (an HTML div.labelBkg in html-label mode, a bare
+           <rect class="background"> in text mode) — round them and add
+           breathing room so they match the rounded nodes. Both modes
+           are covered; only one matches at runtime. */
+        .labelBkg { border-radius: 6px; padding: 1px 6px; }
+        .edgeLabel .background, .edgeLabel rect { rx: 6px; ry: 6px; }
       `,
     })
     appliedScheme = scheme
