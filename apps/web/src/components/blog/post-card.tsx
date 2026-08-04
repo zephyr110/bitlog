@@ -36,7 +36,10 @@ function formatRelativeDate(
   return (t("post.shortDate") as (d: Date) => string)(date)
 }
 
-const gradientPairs = [
+/** Cover-less posts get a deterministic gradient picked from the title —
+ *  shared by PostCard and FeaturedPostCard so the same post renders the
+ *  same gradient everywhere. */
+export const gradientPairs = [
   "from-rose-500 to-orange-400",
   "from-violet-500 to-purple-400",
   "from-cyan-500 to-blue-400",

@@ -5,7 +5,7 @@ import { ArrowUp } from "lucide-react"
 import { useT } from "@/components/layout/trans"
 import { cn } from "@/lib/utils"
 
-/** Sticky year-jump bar for the home feed — sits under the site header
+/** Sticky year-jump bar for the archive feed — sits under the site header
  *  (h-16) while scrolling, highlights the section currently in view, and
  *  jumps to a year section on click. Rendered only when there are 2+
  *  year groups (a single year needs no navigation). */

@@ -4,6 +4,7 @@ import { about } from "./i18n/about"
 import { a11y } from "./i18n/a11y"
 import { cat } from "./i18n/cat"
 import { timeline } from "./i18n/timeline"
+import { archive } from "./i18n/archive"
 import { category } from "./i18n/category"
 import { admin } from "./i18n/admin"
 
@@ -26,6 +27,7 @@ export const translations = {
     a11y: a11y.zh,
     cat: cat.zh,
     timeline: timeline.zh,
+    archive: archive.zh,
     category: category.zh,
     admin: admin.zh,
   },
@@ -36,6 +38,7 @@ export const translations = {
     a11y: a11y.en,
     cat: cat.en,
     timeline: timeline.en,
+    archive: archive.en,
     category: category.en,
     admin: admin.en,
   },
