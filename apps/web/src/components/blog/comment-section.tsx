@@ -1,10 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTheme } from "next-themes"
 import { useT } from "@/components/layout/trans"
 import { useLocale } from "@/components/layout/i18n-provider"
 import { MessageSquare } from "lucide-react"
+
+const GISCUS_ORIGIN = "https://giscus.app"
 
 const GISCUS_ENV = {
   repo: process.env.NEXT_PUBLIC_GISCUS_REPO,
@@ -23,21 +25,25 @@ export function CommentSection() {
   const ref = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(hasGiscusConfig)
-  const [isLocal, setIsLocal] = useState(false)
+  // giscus maps discussions by pathname and logs a "Discussion not found"
+  // warning for every uncommented post — noisy in dev, so the widget is
+  // skipped on localhost entirely (production unaffected).
+  const [isLocalhost, setIsLocalhost] = useState(false)
 
   useEffect(() => {
     setMounted(true) // eslint-disable-line react-hooks/set-state-in-effect
-    // giscus maps discussions by pathname and logs a "Discussion not
-    // found" warning for every uncommented post — noisy in dev, so the
-    // widget is skipped on localhost entirely (production unaffected).
-    // Non-https origins are skipped too: the giscus iframe would fetch
-    // the theme stylesheet as mixed content and render unthemed.
-    setIsLocal(
+    setIsLocalhost(
       window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1" ||
-        window.location.protocol !== "https:"
+        window.location.hostname === "127.0.0.1"
     )
   }, [])
+
+  // Derived during render — `mounted` short-circuits the window access,
+  // so this is SSR-safe. isLocalhost drives the dev notice; non-https
+  // origins additionally disable the widget: the giscus iframe would
+  // fetch the theme stylesheet as mixed content and render unthemed.
+  const isLocal =
+    isLocalhost || (mounted && window.location.protocol !== "https:")
 
   // Themed via self-hosted stylesheets (public/giscus-{light,dark}.css)
   // so the widget matches the site's neutral palette instead of GitHub's
@@ -51,18 +57,6 @@ export function CommentSection() {
       }.css`
     : ""
   const lang = locale === "zh" ? "zh-CN" : "en"
-
-  // Recreated when theme/lang change, so the effects below re-run on
-  // toggle instead of capturing a stale config.
-  const syncTheme = useCallback(() => {
-    const iframe =
-      ref.current?.querySelector<HTMLIFrameElement>("iframe.giscus-frame")
-    if (!iframe?.contentWindow) return
-    iframe.contentWindow.postMessage(
-      { giscus: { setConfig: { theme: themeUrl, lang } } },
-      "https://giscus.app"
-    )
-  }, [themeUrl, lang])
 
   // Create the widget once per mount with the current theme baked into
   // data-theme; later theme/lang changes are pushed via postMessage
@@ -78,7 +72,7 @@ export function CommentSection() {
     container.innerHTML = ""
 
     const script = document.createElement("script")
-    script.src = "https://giscus.app/client.js"
+    script.src = `${GISCUS_ORIGIN}/client.js`
     script.setAttribute("data-repo", GISCUS_ENV.repo!)
     script.setAttribute("data-repo-id", GISCUS_ENV.repoId!)
     script.setAttribute("data-category", GISCUS_ENV.category)
@@ -108,32 +102,58 @@ export function CommentSection() {
     })
     observer.observe(container, { childList: true, subtree: true })
 
+    // If the iframe never reaches load (offline, CSP frame-src, outage),
+    // stop pulsing after a grace period instead of an eternal skeleton.
+    const timeout = window.setTimeout(() => setLoading(false), 10_000)
+
     return () => {
       observer.disconnect()
+      window.clearTimeout(timeout)
       container.innerHTML = ""
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- widget is created once; theme/lang changes go through syncTheme below
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- widget is created once; theme/lang changes go through the sync effect below
   }, [mounted, isLocal])
 
-  // Push theme/lang changes into the running widget.
+  // Push theme/lang changes into the running widget. The widget registers
+  // its setConfig listener only after the giscus app hydrates — a config
+  // posted before that is dropped — so the first message from the iframe
+  // (it emits height updates / errors once listening) re-syncs the
+  // current config. After that, posts happen only when the config
+  // actually changed: re-posting on every message would re-apply the
+  // theme and re-fetch the stylesheet on each keystroke or expand.
   useEffect(() => {
     if (!mounted || !hasGiscusConfig || isLocal) return
-    syncTheme()
-  }, [mounted, isLocal, syncTheme])
+    let ready = false
+    let lastSentKey = ""
 
-  // Handshake: the widget registers its setConfig listener only after
-  // the giscus app hydrates — a config sent before that is dropped (a
-  // theme toggle in the first seconds would silently not apply). Any
-  // message from the iframe means it is listening, so re-send on each.
-  useEffect(() => {
-    if (!mounted || !hasGiscusConfig || isLocal) return
-    function onMessage(e: MessageEvent) {
-      if (e.origin !== "https://giscus.app") return
-      syncTheme()
+    function post() {
+      const iframe = ref.current?.querySelector<HTMLIFrameElement>(
+        "iframe.giscus-frame"
+      )
+      if (!iframe?.contentWindow) return
+      iframe.contentWindow.postMessage(
+        { giscus: { setConfig: { theme: themeUrl, lang } } },
+        GISCUS_ORIGIN
+      )
+      lastSentKey = `${themeUrl}\n${lang}`
     }
+
+    function onMessage(e: MessageEvent) {
+      if (e.origin !== GISCUS_ORIGIN) return
+      if (!ready) {
+        // The widget is listening now — send the current config so any
+        // change that landed before hydration isn't lost.
+        ready = true
+        post()
+      } else if (`${themeUrl}\n${lang}` !== lastSentKey) {
+        post()
+      }
+    }
+
+    post()
     window.addEventListener("message", onMessage)
     return () => window.removeEventListener("message", onMessage)
-  }, [mounted, isLocal, syncTheme])
+  }, [mounted, isLocal, themeUrl, lang])
 
   return (
     <section className="container mx-auto px-4 py-12 max-w-5xl 2xl:max-w-7xl">
@@ -153,9 +173,13 @@ export function CommentSection() {
           </div>
         ) : null}
 
-        {mounted && isLocal ? (
+        {mounted && isLocalhost ? (
           <p className="rounded-xl border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
             {t("post.commentsDisabledDev") as string}
+          </p>
+        ) : mounted && isLocal ? (
+          <p className="rounded-xl border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+            {t("post.commentsDisabledInsecure") as string}
           </p>
         ) : mounted && !hasGiscusConfig ? (
           <div className="rounded-xl border bg-muted/30 p-8 text-center text-sm text-muted-foreground">
@@ -172,7 +196,7 @@ NEXT_PUBLIC_GISCUS_CATEGORY_ID=your-category-id`}
             <p className="mt-3 text-xs">
               {t("post.getValuesAt") as string}{" "}
               <a
-                href="https://giscus.app"
+                href={GISCUS_ORIGIN}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary underline"
