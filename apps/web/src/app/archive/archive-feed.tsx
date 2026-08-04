@@ -56,6 +56,7 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
   // Sync from URL changes (header search, browser back/forward).
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing external URL state
     setSearchQuery(urlQuery)
   }, [urlQuery])
 
@@ -75,6 +76,7 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
 
   function onSearchChange(value: string) {
     if (debounceRef.current) clearTimeout(debounceRef.current)
+    // eslint-disable-next-line react-hooks/immutability
     debounceRef.current = setTimeout(() => {
       setSearchQuery(value)
       syncSearchUrl(value)

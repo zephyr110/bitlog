@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { TagBadge } from "@/components/blog/tag-badge"
 import { useT } from "@/components/layout/trans"
@@ -53,7 +54,10 @@ export const gradientPairs = [
 export function PostCard({ post }: { post: PostSummary }) {
   const { t } = useT()
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true)
+  }, [])
   const haveCover = !!post.cover
   // SSR always renders the absolute date; after hydration the relative
   // form takes over so the clock is the viewer's, not the build machine's.

@@ -154,6 +154,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (file.size === 0) {
+      return NextResponse.json(
+        { error: "Empty file" },
+        { status: 400 }
+      )
+    }
+
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
@@ -221,8 +228,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: cdnUrl(filename), filename }, { status: 201 })
   } catch (error) {
     console.error("Upload error:", error)
+    const message = error instanceof Error ? error.message : "Internal server error"
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: process.env.NODE_ENV === "development" ? message : "Internal server error" },
       { status: 500 }
     )
   }
