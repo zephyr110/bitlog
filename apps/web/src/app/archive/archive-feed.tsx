@@ -300,15 +300,14 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
         </div>
       )}
 
-      {/* Sticky year-jump bar — hidden until there are 2+ year groups */}
-      <YearNavBar years={years} activeYear={currentYear} onSelect={jumpToYear} />
-
-      {/* Collapse / expand all — only when there are 2+ year groups */}
-      {years.length >= 2 && !(filteredPosts.length === 0) && (
-        <div className="mb-4 flex justify-end">
+      {/* Sticky year-jump bar — hidden until there are 2+ year groups.
+          The collapse-all toggle rides on the same row: it stays fixed
+          (shrink-0) while the year pills scroll on narrow screens. */}
+      <YearNavBar years={years} activeYear={currentYear} onSelect={jumpToYear}>
+        {years.length >= 2 && filteredPosts.length > 0 && (
           <button
             onClick={toggleAll}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
           >
             <svg
               className={`size-3 transition-transform duration-300 ${allCollapsed ? "" : "rotate-180"}`}
@@ -325,8 +324,8 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
               ? (t("site.yearExpandAll") as string)
               : (t("site.yearCollapseAll") as string)}
           </button>
-        </div>
-      )}
+        )}
+      </YearNavBar>
 
       {/* Dense year-grouped index */}
       {filteredPosts.length === 0 ? (

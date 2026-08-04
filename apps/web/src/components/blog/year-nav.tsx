@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { ArrowUp } from "lucide-react"
 import { useT } from "@/components/layout/trans"
 import { cn } from "@/lib/utils"
@@ -8,42 +8,49 @@ import { cn } from "@/lib/utils"
 /** Sticky year-jump bar for the archive feed — sits under the site header
  *  (h-16) while scrolling, highlights the section currently in view, and
  *  jumps to a year section on click. Rendered only when there are 2+
- *  year groups (a single year needs no navigation). */
+ *  year groups (a single year needs no navigation). Extra actions
+ *  (e.g. collapse-all on the archive page) ride on the same row via
+ *  children; the pill strip shrinks and scrolls, the action stays fixed. */
 export function YearNavBar({
   years,
   activeYear,
   onSelect,
+  children,
 }: {
   years: number[]
   activeYear: number | null
   onSelect: (year: number) => void
+  children?: ReactNode
 }) {
   const { t } = useT()
   if (years.length < 2) return null
 
   return (
     <div className="sticky top-16 z-30 mb-8">
-      <nav
-        aria-label={t("site.yearNav") as string}
-        className="flex w-fit max-w-full items-center gap-1 overflow-x-auto rounded-full border border-border/60 bg-background/85 p-1 shadow-sm backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {years.map((year) => (
-          <button
-            key={year}
-            type="button"
-            onClick={() => onSelect(year)}
-            aria-pressed={activeYear === year}
-            className={cn(
-              "inline-flex h-7 shrink-0 items-center rounded-full px-3 text-sm font-medium tabular-nums transition-all duration-200",
-              activeYear === year
-                ? "bg-primary text-primary-foreground shadow-sm shadow-primary/10"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            {year}
-          </button>
-        ))}
-      </nav>
+      <div className="flex w-fit max-w-full items-center gap-2">
+        <nav
+          aria-label={t("site.yearNav") as string}
+          className="flex min-w-0 max-w-full items-center gap-1 overflow-x-auto rounded-full border border-border/60 bg-background/85 p-1 shadow-sm backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {years.map((year) => (
+            <button
+              key={year}
+              type="button"
+              onClick={() => onSelect(year)}
+              aria-pressed={activeYear === year}
+              className={cn(
+                "inline-flex h-7 shrink-0 items-center rounded-full px-3 text-sm font-medium tabular-nums transition-all duration-200",
+                activeYear === year
+                  ? "bg-primary text-primary-foreground shadow-sm shadow-primary/10"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              {year}
+            </button>
+          ))}
+        </nav>
+        {children}
+      </div>
     </div>
   )
 }
