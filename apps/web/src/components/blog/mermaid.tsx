@@ -131,10 +131,16 @@ async function getMermaid(scheme: MermaidColorScheme) {
           padding: 1px 6px;
         }
         /* Unlabeled edges still get an empty label slot from the layout
-           engine — hide it, or the chip border above renders as a
-           stray 4px hairline box on every label-less edge. */
+           engine, and mermaid paints it with inline styles (display:
+           table-cell, …) that beat any plain declaration — a plain
+           display: none is silently ignored. So kill the chip border
+           outright (the visible artifact) and drop the empty slot with
+           !important, the only way past the inline display. */
         .labelBkg:has(.edgeLabel:empty) {
-          display: none;
+          display: none !important;
+          border: none;
+          background-color: transparent;
+          padding: 0;
         }
       `,
     })
