@@ -2,12 +2,15 @@
 
 A minimal, fast, and bilingual personal blog with a local admin CMS. Built with [Next.js](https://nextjs.org) 16 (App Router), [Tailwind CSS](https://tailwindcss.com) 4, [shadcn/ui](https://ui.shadcn.com), [MDX](https://mdxjs.com), and [Turso](https://turso.tech) (libSQL). Deploys as a fully static site.
 
+Live: [zephyr110.vercel.app](https://zephyr110.vercel.app) · Static mirror: [zephyr110.github.io](https://zephyr110.github.io)
+
 ## Features
 
 - **Static blog** — pre-rendered pages for performance and SEO; sitemap, RSS, and Open Graph built in
 - **Local admin CMS** — write, edit, publish, and delete posts from `/admin`
 - **Hardened auth** — bcrypt (cost 12) + JWT, login-failure lockout, recovery key
 - **Media library** — auto WebP compression, Turso storage + GitHub/jsdelivr CDN dual-write
+- **Custom logo & favicon** — upload your own logo in Site Settings; the favicon follows it automatically
 - **Bilingual & themable** — zh/en switching, light/dark/system themes
 - **Giscus comments** — GitHub Discussions powered (optional)
 
@@ -20,9 +23,9 @@ pnpm workspace monorepo:
 | `apps/web` | Next.js app — static blog pages + client-side admin panel |
 | `packages/database` | Turso (libSQL) access — posts, media, settings, users, auth lockout |
 | `packages/auth` | Credential verification, JWT sessions, login lockout |
-| `packages/core` | Shared domain logic |
+| `packages/core` | Shared domain logic — MDX utilities, types |
 
-The blog renders fully statically (`output: export`); CI deploys it to GitHub Pages on every push to `main`. The admin CMS runs locally with `pnpm dev` (API routes are excluded from static exports).
+The blog renders fully statically (`output: export`); CI deploys it to GitHub Pages on every push to `main`. The admin CMS runs locally with `pnpm dev` (API routes are excluded from static exports). On Vercel the same codebase serves the admin CMS server-side.
 
 ## Getting Started
 
