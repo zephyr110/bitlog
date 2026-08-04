@@ -8,7 +8,7 @@ import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { LanguageSwitcher } from "@/components/layout/language-switcher"
 import { IconButton } from "@/components/ui/icon-button"
 import { useSiteConfig } from "@/components/layout/site-config-provider"
-import { siteLogoSrc } from "@/lib/site-config"
+import { siteLogoSrc, defaultSiteConfig } from "@/lib/site-config"
 import { SiteLogo } from "@/components/layout/site-logo"
 import { useT } from "@/components/layout/trans"
 import {
@@ -17,9 +17,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { Menu, X } from "lucide-react"
+import { Menu, X, ChevronDown } from "lucide-react"
 import { GithubIcon } from "@/components/ui/brand-icons"
-import { ChevronDown } from "@/components/ui/chevron-down"
 import { categoryMeta } from "@/lib/categories"
 import { SearchInput } from "@/components/layout/search-input"
 import { MobileNav } from "@/components/layout/mobile-nav"
@@ -34,6 +33,7 @@ export function Header({ categories }: { categories: NavCategory[] }) {
   const [mobileTopicsOpen, setMobileTopicsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const logoSrc = siteLogoSrc(site)
+  const githubUrl = site.social.github || defaultSiteConfig.social.github
 
   useEffect(() => {
     function handleScroll() {
@@ -104,7 +104,7 @@ export function Header({ categories }: { categories: NavCategory[] }) {
                 )}
               >
                 <span>{t("site.topics") as string}</span>
-                <ChevronDown />
+                <ChevronDown aria-hidden className="size-3 opacity-50" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" sideOffset={12} className="w-64 p-2">
                 {categories.length === 0 ? (
@@ -171,7 +171,7 @@ export function Header({ categories }: { categories: NavCategory[] }) {
 
             {/* GitHub */}
             <a
-              href="https://github.com/zephyr110/zlog"
+              href={githubUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground"

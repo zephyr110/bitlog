@@ -17,15 +17,21 @@
  * themes; the font vars are set on `html` because the font-family chain
  * resolves there (the stock themes' `:host, html` selector is inert in
  * a plain linked stylesheet).
+ *
+ * The Geist @import below is progressive enhancement only: next/font
+ * can't share its faces cross-iframe, so the widget fetches Geist itself.
+ * Unlike the stock theme import, a font failure degrades to the system
+ * fallback stacks — it never unthemes the widget.
  */
 
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap");
+
 html {
-  /* next/font loads Geist in the parent document; the iframe can't
-     share those faces, so mirror the site's system fallback stacks
+  /* Geist first (fetched above), then the site's system fallback stacks
      (globals.css --font-sans / --font-geist-mono). base.css resolves
      --font-family-default from --font-family-sans on the html element,
      and code blocks use --font-family-monospace. */
-  --font-family-sans: -apple-system, "BlinkMacSystemFont", "Segoe UI",
+  --font-family-sans: "Geist", -apple-system, "BlinkMacSystemFont", "Segoe UI",
     "Helvetica", "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   --font-family-monospace: ui-monospace, "SFMono-Regular", "SF Mono", Menlo,
     Consolas, "Liberation Mono", monospace;

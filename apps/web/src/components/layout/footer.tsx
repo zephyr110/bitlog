@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 import { Rss, UserRoundKey, LayoutDashboard } from "lucide-react"
 import { GithubIcon, XIcon } from "@/components/ui/brand-icons"
 import { useSiteConfig } from "@/components/layout/site-config-provider"
-import { siteLogoSrc } from "@/lib/site-config"
+import { siteLogoSrc, defaultSiteConfig } from "@/lib/site-config"
 import { SiteLogo } from "@/components/layout/site-logo"
 import { useT } from "@/components/layout/trans"
 import { Separator } from "@/components/ui/separator"
@@ -31,6 +31,7 @@ export function Footer() {
   const { t } = useT()
   const site = useSiteConfig()
   const logoSrc = siteLogoSrc(site)
+  const githubUrl = site.social.github || defaultSiteConfig.social.github
   const [loggedIn, setLoggedIn] = useState(false)
 
   // The token lives in localStorage, so it can only be read after mount —
@@ -108,7 +109,7 @@ export function Footer() {
               </p>
               <div className="flex items-center gap-1">
                 <FooterIconButton
-                  href="https://github.com/zephyr110/zlog"
+                  href={githubUrl}
                   label="GitHub"
                   icon={<GithubIcon size={18} />}
                 />

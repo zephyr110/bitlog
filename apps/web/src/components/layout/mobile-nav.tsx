@@ -1,22 +1,31 @@
 "use client"
 
+import { useEffect, useId } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { LanguageSwitcher } from "@/components/layout/language-switcher"
 import { GithubIcon } from "@/components/ui/brand-icons"
-import { ChevronDown } from "@/components/ui/chevron-down"
+import { ChevronDown } from "lucide-react"
 import { useT } from "@/components/layout/trans"
+import { useSiteConfig } from "@/components/layout/site-config-provider"
 import { categoryMeta } from "@/lib/categories"
-import { navLinks, type NavCategory } from "@/lib/nav-links"
+import { defaultSiteConfig } from "@/lib/site-config"
+import type { NavCategory } from "@/lib/nav-links"
+
+const navLinks = [
+  { href: "/", i18nKey: "site.home" },
+  { href: "/archive", i18nKey: "site.archive" },
+  { href: "/about", i18nKey: "site.about" },
+]
 
 /**
  * Mobile slide-in menu. The topics row is collapsible — its options slide
  * open under the header (grid-rows 0fr→1fr animates height smoothly),
  * indented left of the header row. The collapse state lives in the header
  * (a prop here) so it survives closing and reopening the menu; the
- * backdrop click and every link call `onClose` to dismiss the whole menu.
+ * backdrop click, Escape, and every link call `onClose` to dismiss it.
  */
 export function MobileNav({
   categories,
@@ -30,11 +39,25 @@ export function MobileNav({
   onClose: () => void
 }) {
   const { t } = useT()
+  const site = useSiteConfig()
   const pathname = usePathname()
+  const topicsId = useId()
+  const githubUrl = site.social.github || defaultSiteConfig.social.github
+
+  // Escape closes the menu (the backdrop is mouse-only; keyboard users
+  // need a way out without tabbing through the whole panel).
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [onClose])
 
   return (
     <>
       <div
+        aria-hidden
         className="fixed inset-0 z-40 bg-black/15 backdrop-blur-[2px] md:hidden"
         onClick={onClose}
       />
@@ -62,17 +85,21 @@ export function MobileNav({
                 type="button"
                 onClick={onTopicsToggle}
                 aria-expanded={topicsOpen}
+                aria-controls={topicsId}
                 className="flex w-full items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-all duration-150"
               >
                 {t("site.topics") as string}
                 <ChevronDown
+                  aria-hidden
                   className={cn(
-                    "transition-transform duration-200",
+                    "size-3 opacity-50 transition-transform duration-200",
                     topicsOpen && "rotate-180"
                   )}
                 />
               </button>
               <div
+                id={topicsId}
+                inert={!topicsOpen}
                 className={cn(
                   "grid transition-[grid-template-rows] duration-300 ease-out",
                   topicsOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
@@ -111,7 +138,7 @@ export function MobileNav({
           )}
           <div className="my-2 mx-3 border-t" />
           <a
-            href="https://github.com/zephyr110/zlog"
+            href={githubUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-150"
