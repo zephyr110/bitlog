@@ -17,10 +17,12 @@ type SiteLogoProps = {
   alt?: string
   /**
    * Render the mark inside an opaque tile (muted background + hairline
-   * ring) that stands off any page background. Rounded PNG logos with
-   * transparent corners otherwise bleed the background through them
-   * (e.g. black corner triangles on a dark footer) and vanish on plain
-   * white surfaces.
+   * ring) that stands off any page background. The mark fills the tile
+   * edge-to-edge and carries its own rounded-lg, so it reads as rounded
+   * in both themes — an opaque square PNG gets rounded corners, and a
+   * rounded/transparent PNG shows the muted tile behind its corners
+   * instead of bleeding the page background through (e.g. black corner
+   * triangles on a dark footer). `className` sizes the tile.
    */
   chip?: boolean
 }
@@ -55,6 +57,11 @@ export function SiteLogo({
   // In dark mode the built-in mark gets a white-glyph variant (crisp vector,
   // no CSS filter needed). If the dark variant itself fails, fall through to
   // the light mark + invert(1) filter instead of a dead recovery loop.
+  // Custom uploaded logos (logoInvertInDark) get invert(1) too — a
+  // transparent PNG with dark glyphs would otherwise vanish on the dark
+  // tile. The filter is safe there: every logo surface (chip tile, preview,
+  // login card) has an opaque backdrop, so the filter's rasterized edge
+  // artifacts land on the tile, not on the page background.
   const isBuiltIn = isBuiltInLogoSrc(effectiveSrc)
   const useDarkVariant = dark && isBuiltIn && failedSrc !== DEFAULT_SITE_LOGO_DARK
   const renderedSrc = useDarkVariant ? DEFAULT_SITE_LOGO_DARK : effectiveSrc
@@ -69,18 +76,34 @@ export function SiteLogo({
       src={renderedSrc}
       alt={alt}
       className={cn("object-contain", className)}
-      style={dark && isBuiltIn && !useDarkVariant ? { filter: "invert(1)" } : undefined}
+      style={dark && !useDarkVariant ? { filter: "invert(1)" } : undefined}
       onError={handleError}
     />
   )
 
   if (!chip) return img
 
-  // overflow-hidden clips the mark to the tile's radius — without it an
-  // opaque square PNG would poke square corners out of the rounded tile.
+  // The tile IS the logo display — the mark fills it edge-to-edge
+  // (object-cover) with no padding (a padded tile leaves gaps around
+  // small uploaded images). The mark carries its own rounded-lg so it
+  // always reads as rounded; the tile's clip is just a safety net, and
+  // transparent mark corners show the muted tile behind them — never
+  // the page background (the black-triangle fix).
   return (
-    <div className="flex shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted p-[3px] shadow-sm ring-1 ring-border/60 dark:ring-white/15">
-      {img}
+    <div
+      className={cn(
+        "flex shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted shadow-sm ring-1 ring-border/60 dark:ring-white/15",
+        className
+      )}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element -- remote/uploaded logos; avoid next/image domain config */}
+      <img
+        src={renderedSrc}
+        alt={alt}
+        className="size-full rounded-lg object-cover"
+        style={dark && !useDarkVariant ? { filter: "invert(1)" } : undefined}
+        onError={handleError}
+      />
     </div>
   )
 }

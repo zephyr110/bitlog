@@ -165,11 +165,15 @@ export default function AdminLoginPage() {
             href="/"
             className="inline-flex items-center gap-3 rounded-xl transition-opacity hover:opacity-80"
           >
-            <span className="flex size-11 items-center justify-center rounded-xl border bg-card shadow-sm">
+            {/* The card IS the logo display — the mark fills it edge-to-edge
+                and the card's clip rounds it (same full-bleed look as the
+                header/footer chip). bg-card is opaque, so a dark-mode
+                inverted transparent PNG rasterizes onto the card. */}
+            <span className="flex size-11 items-center justify-center overflow-hidden rounded-lg border bg-card shadow-sm">
               <SiteLogo
                 src={logoSrc}
                 invertInDark={site.logoInvertInDark ?? true}
-                className="size-6"
+                className="size-full rounded-lg object-cover"
               />
             </span>
             <span className="font-heading text-2xl font-black tracking-tight text-foreground">

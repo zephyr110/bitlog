@@ -9,7 +9,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { useSiteConfig } from "@/components/layout/site-config-provider"
-import { siteLogoSrc, isDefaultSiteLogo } from "@/lib/site-config"
+import { siteLogoSrc } from "@/lib/site-config"
 import { SiteLogo } from "@/components/layout/site-logo"
 import { toast } from "sonner"
 import { ImageIcon, Upload, X } from "lucide-react"
@@ -253,7 +253,6 @@ export function SiteInfoForm({
   }
 
   const previewSrc = siteLogoSrc({ logoUrl: form.logoUrl })
-  const previewDefault = isDefaultSiteLogo({ logoUrl: form.logoUrl })
 
   return (
     <form onSubmit={handleSave} className={cn("space-y-5", className)}>
@@ -261,16 +260,16 @@ export function SiteInfoForm({
       <div className="space-y-2">
         <Label>{t("admin.siteLogo") as string}</Label>
         <div className="flex items-center gap-4">
-          <div
-            className={cn(
-              "relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted/40",
-              previewDefault && "dark:bg-foreground/5"
-            )}
-          >
+          {/* The tile IS the preview — the mark fills it edge-to-edge, so
+              the tile's radius is the mark's visible radius (same
+              full-bleed look as the header/footer chip). Opaque backdrop:
+              a dark-mode inverted transparent PNG must rasterize onto the
+              tile, not onto the dialog background. */}
+          <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted">
             <SiteLogo
               src={previewSrc}
               invertInDark={form.logoInvertInDark}
-              className="size-12"
+              className="size-full rounded-lg object-cover"
             />
           </div>
           <div className="flex flex-col gap-2">
