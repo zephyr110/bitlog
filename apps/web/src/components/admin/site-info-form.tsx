@@ -263,14 +263,17 @@ export function SiteInfoForm({
         <div className="flex items-center gap-4">
           <div
             className={cn(
-              "relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted/40",
+              // rounded-2xl: the preview mark carries its own radius, and
+              // this tile's clip curve must stay outside it so a
+              // square-cornered logo still previews as rounded.
+              "relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border bg-muted/40",
               previewDefault && "dark:bg-foreground/5"
             )}
           >
             <SiteLogo
               src={previewSrc}
               invertInDark={form.logoInvertInDark}
-              className="size-12"
+              className="size-12 rounded-lg"
             />
           </div>
           <div className="flex flex-col gap-2">

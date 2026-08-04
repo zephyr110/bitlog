@@ -169,7 +169,7 @@ export default function AdminLoginPage() {
               <SiteLogo
                 src={logoSrc}
                 invertInDark={site.logoInvertInDark ?? true}
-                className="size-6"
+                className="size-6 rounded-lg"
               />
             </span>
             <span className="font-heading text-2xl font-black tracking-tight text-foreground">

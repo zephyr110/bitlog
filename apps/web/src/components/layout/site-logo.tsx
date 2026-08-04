@@ -68,7 +68,7 @@ export function SiteLogo({
     <img
       src={renderedSrc}
       alt={alt}
-      className={cn("object-contain", className)}
+      className={cn("object-contain", chip && "rounded-lg", className)}
       style={dark && isBuiltIn && !useDarkVariant ? { filter: "invert(1)" } : undefined}
       onError={handleError}
     />
@@ -76,10 +76,15 @@ export function SiteLogo({
 
   if (!chip) return img
 
-  // overflow-hidden clips the mark to the tile's radius — without it an
-  // opaque square PNG would poke square corners out of the rounded tile.
+  // The tile rounds the mark twice: the tile's own radius clips overflow,
+  // and the mark carries its own (slightly smaller) radius as well. A tile
+  // radius alone can't round an inset image — the mark's square corners
+  // sit inside the tile's 3px padding, beyond the tile's clip curve — so
+  // an uploaded square-cornered logo would keep its sharp corners (e.g. a
+  // white corner square popping on the dark footer). Both radii together
+  // guarantee the mark always reads as rounded.
   return (
-    <div className="flex shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted p-[3px] shadow-sm ring-1 ring-border/60 dark:ring-white/15">
+    <div className="flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted p-[3px] shadow-sm ring-1 ring-border/60 dark:ring-white/15">
       {img}
     </div>
   )
