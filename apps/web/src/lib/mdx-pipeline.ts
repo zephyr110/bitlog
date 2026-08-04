@@ -19,15 +19,14 @@ const rehypePrettyCodeOptions: Options = {
     dark: "github-dark",
   },
   keepBackground: false,
-  // Inline code must never reach pretty-code's inline pass. That pass wraps
-  // every backtick span in <span data-rehype-pretty-code-figure><code
-  // data-language="…">, which the shared `code` component reads as block
-  // code and renders unstyled; its --shiki-* token colors have no CSS
-  // consumer outside .code-block; and it silently strips a trailing
-  // `{:[…]}` shape from the displayed text. The code component styles
-  // inline code itself, so bypassInlineCode leaves every backtick span
-  // untouched. Block fences still default to plaintext below.
-  defaultLang: "plaintext",
+  // Backticks must stay out of pretty-code's inline pass: it stamps
+  // data-language (the shared `code` component reads that as block →
+  // unstyled), emits --shiki-* spans that no rule colors outside
+  // .code-block, and strips a trailing `{:[a-zA-Z.-]+}` from the text —
+  // inline `{:lang}` annotations are unsupported here and render
+  // literally. Block fences still default to plaintext; the inline/block
+  // discriminator contract lives in mdx-components.tsx `code`.
+  defaultLang: { block: "plaintext", inline: "" },
   bypassInlineCode: true,
   grid: true,
 }

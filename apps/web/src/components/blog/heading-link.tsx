@@ -49,7 +49,10 @@ export function HeadingLink({ as: Tag, id, children, className, ...props }: Head
 
   return (
     <Tag id={anchor} className={baseStyles} {...props}>
-      <span>{children}</span>
+      {/* min-w-0 lets inline-code chips with overflow-wrap:break-word
+          actually wrap instead of overflowing the heading (flex items
+          default to min-width:auto, which defeats break-word). */}
+      <span className="min-w-0">{children}</span>
       <a
         href={`#${anchor}`}
         className="inline-flex items-center justify-center -ml-1 size-6 rounded opacity-0 group-hover:opacity-100 hover:bg-muted transition-all duration-200 text-muted-foreground hover:text-primary"
