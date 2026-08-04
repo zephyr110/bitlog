@@ -130,6 +130,12 @@ async function getMermaid(scheme: MermaidColorScheme) {
           border-radius: 6px;
           padding: 1px 6px;
         }
+        /* Unlabeled edges still get an empty label slot from the layout
+           engine — hide it, or the chip border above renders as a
+           stray 4px hairline box on every label-less edge. */
+        .labelBkg:has(.edgeLabel:empty) {
+          display: none;
+        }
       `,
     })
     appliedScheme = scheme
