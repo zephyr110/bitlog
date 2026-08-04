@@ -30,10 +30,17 @@ export const defaultSiteConfig: SiteConfig = {
   },
   // Trailing slash stripped so URL concatenation (ogImageUrl, feeds)
   // never produces double slashes regardless of the env value.
-  siteUrl: (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(
-    /\/+$/,
-    ""
-  ),
+  // VERCEL_URL is injected by Vercel builds (production gets
+  // zephyr110.vercel.app, previews a random hash), so it's a safe
+  // fallback when NEXT_PUBLIC_SITE_URL is missing from the project env —
+  // without it the feed and every meta URL silently render as
+  // localhost:3000. Local dev has neither var, and GitHub Actions builds
+  // set NEXT_PUBLIC_SITE_URL explicitly (deploy.yml), so both keep
+  // working.
+  siteUrl: (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+  ).replace(/\/+$/, ""),
   ogImage: process.env.NEXT_PUBLIC_OG_IMAGE || "/images/og-default.jpg",
   logoUrl: "",
   logoInvertInDark: true,
