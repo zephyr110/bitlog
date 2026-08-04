@@ -4,6 +4,9 @@ A minimal, fast, and bilingual personal blog with a local admin CMS. Built with 
 
 Live: [zephyr110.vercel.app](https://zephyr110.vercel.app) · Static mirror: [zephyr110.github.io](https://zephyr110.github.io)
 
+<img width="1440" height="2064" alt="zephyr110 vercel app_ (4)" src="https://github.com/user-attachments/assets/29aa0799-c27d-4785-94d4-0590a13b64b4" />
+<img width="1440" height="2064" alt="zephyr110 vercel app_ (3)" src="https://github.com/user-attachments/assets/dcbc1176-d3c5-41ce-9b1c-b4f5f328da9e" />
+
 ## Features
 
 - **Static blog** — pre-rendered pages for performance and SEO; sitemap, RSS, and Open Graph built in
