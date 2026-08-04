@@ -3,8 +3,8 @@
 export const site = {
   zh: {
 
-heroTitleLine1: "思考、故事",
-heroTitleLine2: "和想法。",
+heroTitleLine1: "思考、想法",
+heroTitleLine2: "和故事。",
 heroSubtitle:
   "一个探索技术、编程和构建 Web 的个人空间。",
 articlesPublished: (n: number) => `${n} 篇文章`,
@@ -45,8 +45,8 @@ yearCollapseAll: "折叠全部",
   en: {
 
 
-heroTitleLine1: "Thoughts, stories",
-heroTitleLine2: "and ideas.",
+heroTitleLine1: "Thoughts, ideas",
+heroTitleLine2: "and stories.",
 heroSubtitle:
   "A personal space for exploring technology, programming, and the craft of building things on the web.",
 articlesPublished: (n: number) =>

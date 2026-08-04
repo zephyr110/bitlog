@@ -47,6 +47,10 @@ export const defaultSiteConfig: SiteConfig = {
 export const siteConfig = defaultSiteConfig
 
 export const DEFAULT_SITE_LOGO = "/logo.svg"
+/** White-glyph variant of the built-in mark, used in dark mode so the
+ *  logo never needs a CSS invert filter (filter forces bitmap
+ *  rasterization, which renders jagged on some engines/HiDPI setups). */
+export const DEFAULT_SITE_LOGO_DARK = "/logo-dark.svg"
 
 export function siteLogoSrc(config: Pick<SiteConfig, "logoUrl">): string {
   return config.logoUrl || DEFAULT_SITE_LOGO

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
-import { DEFAULT_SITE_LOGO } from "@/lib/site-config"
+import { DEFAULT_SITE_LOGO, DEFAULT_SITE_LOGO_DARK } from "@/lib/site-config"
 
 type SiteLogoProps = {
   src: string
@@ -18,8 +18,11 @@ type SiteLogoProps = {
 }
 
 /**
- * Site mark. Uses next-themes `resolvedTheme` + inline `filter` so inversion
- * does not depend on Tailwind `dark:` variants or `html.dark` CSS selectors.
+ * Site mark. Dark mode for the BUILT-IN mark swaps to a white-glyph
+ * variant file (crisp vector in every engine); custom uploaded logos
+ * still use a CSS invert filter, since no dark variant exists for them.
+ * Theme comes from next-themes `resolvedTheme` rather than `dark:`
+ * variants so it also works for the filter fallback.
  */
 export function SiteLogo({
   src,
@@ -35,19 +38,20 @@ export function SiteLogo({
     setMounted(true) // eslint-disable-line react-hooks/set-state-in-effect -- theme is only known client-side
   }, [])
 
-  const invert = invertInDark && mounted && resolvedTheme === "dark"
+  const dark = invertInDark && mounted && resolvedTheme === "dark"
   // A stored logo URL can dangle (e.g. the file was deleted from the media
   // library, which removes it from the CDN but can't clear settings) —
   // fall back to the built-in mark instead of showing a broken image.
   const effectiveSrc = failedSrc === src ? DEFAULT_SITE_LOGO : src
+  const useDarkVariant = dark && effectiveSrc === DEFAULT_SITE_LOGO
 
   return (
     // eslint-disable-next-line @next/next/no-img-element -- remote/uploaded logos; avoid next/image domain config
     <img
-      src={effectiveSrc}
+      src={useDarkVariant ? DEFAULT_SITE_LOGO_DARK : effectiveSrc}
       alt={alt}
       className={cn("object-contain", className)}
-      style={invert ? { filter: "invert(1)" } : undefined}
+      style={dark && !useDarkVariant ? { filter: "invert(1)" } : undefined}
       onError={() => setFailedSrc(src)}
     />
   )
