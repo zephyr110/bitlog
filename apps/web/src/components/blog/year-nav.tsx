@@ -27,7 +27,10 @@ export function YearNavBar({
 
   return (
     <div className="sticky top-16 z-30 mb-8">
-      <div className="flex w-fit max-w-full items-center gap-2">
+      {/* w-fit on mobile keeps the floating pill look; lg:w-full spans the
+          row so trailing actions (collapse-all) can anchor to the far
+          right via ml-auto. */}
+      <div className="flex w-fit max-w-full items-center gap-2 lg:w-full">
         <nav
           aria-label={t("site.yearNav") as string}
           className="flex min-w-0 max-w-full items-center gap-1 overflow-x-auto rounded-full border border-border/60 bg-background/85 p-1 shadow-sm backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
