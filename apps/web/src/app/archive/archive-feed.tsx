@@ -46,6 +46,8 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
   const { t, locale } = useT()
   const searchParams = useSearchParams()
   const [activeTag, setActiveTag] = useState<string | null>(null)
+  // Year collapse state — a year in this Set means it is collapsed.
+  const [collapsedYears, setCollapsedYears] = useState<Set<number>>(new Set())
 
   // The ?q= URL param is the single source of truth for the search term.
   const urlQuery = searchParams?.get("q") ?? ""
@@ -188,6 +190,24 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
       ?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" })
   }
 
+  function toggleYear(year: number) {
+    setCollapsedYears((prev) => {
+      const next = new Set(prev)
+      if (next.has(year)) next.delete(year)
+      else next.add(year)
+      return next
+    })
+  }
+
+  const allCollapsed = collapsedYears.size > 0 && years.every((y) => collapsedYears.has(y))
+  function toggleAll() {
+    if (allCollapsed) {
+      setCollapsedYears(new Set())
+    } else {
+      setCollapsedYears(new Set(years))
+    }
+  }
+
   return (
     <div>
       {/* Search & Topics — one toolbar row, controls share the h-8 height
@@ -266,6 +286,31 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
       {/* Sticky year-jump bar — hidden until there are 2+ year groups */}
       <YearNavBar years={years} activeYear={currentYear} onSelect={jumpToYear} />
 
+      {/* Collapse / expand all — only when there are 2+ year groups */}
+      {years.length >= 2 && !(filteredPosts.length === 0) && (
+        <div className="mb-4 flex justify-end">
+          <button
+            onClick={toggleAll}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
+          >
+            <svg
+              className={`size-3 transition-transform duration-300 ${allCollapsed ? "rotate-180" : ""}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+            {allCollapsed
+              ? (t("site.yearExpandAll") as string)
+              : (t("site.yearCollapseAll") as string)}
+          </button>
+        </div>
+      )}
+
       {/* Dense year-grouped index */}
       {filteredPosts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center animate-in fade-in duration-500">
@@ -288,8 +333,10 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
           </p>
         </div>
       ) : (
-        <div className="space-y-10">
-          {grouped.map(([year, yearPosts]) => (
+        <div className="space-y-12">
+          {grouped.map(([year, yearPosts]) => {
+            const collapsed = collapsedYears.has(year)
+            return (
             <section
               key={year}
               id={`year-${year}`}
@@ -300,7 +347,11 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
               }}
               className="scroll-mt-28"
             >
-              <h2 className="mb-3 flex items-center gap-3 animate-in fade-in duration-500">
+              {/* Year heading with collapse toggle */}
+              <button
+                onClick={() => toggleYear(year)}
+                className="mb-4 flex w-full items-center gap-3 text-left animate-in fade-in duration-500 cursor-pointer group/heading"
+              >
                 <span
                   aria-hidden
                   className="h-7 w-1 shrink-0 rounded-full bg-gradient-to-b from-primary/70 to-primary/20"
@@ -313,37 +364,60 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
                     yearPosts.length
                   )}
                 </span>
-              </h2>
+                {/* Chevron */}
+                <span className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground/60 transition-all duration-300 group-hover/heading:border-border group-hover/heading:text-muted-foreground">
+                  <svg
+                    className={`size-3.5 transition-transform duration-300 ${collapsed ? "" : "rotate-180"}`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </span>
+              </button>
 
-              <ul className="divide-y divide-border/50 border-y border-border/50">
-                {yearPosts.map((post) => (
-                  <li key={post.slug}>
-                    <Link
-                      href={`/posts/${encodeURIComponent(post.slug)}`}
-                      className="group flex items-baseline gap-3 px-2 py-2.5 -mx-2 rounded-md transition-colors hover:bg-muted/50 sm:gap-4"
-                    >
-                      <time
-                        dateTime={post.date}
-                        className="w-14 shrink-0 text-xs tabular-nums text-muted-foreground"
-                      >
-                        {formatMonthDay(post.date, locale)}
-                      </time>
-                      <span className="min-w-0 flex-1 text-sm font-medium leading-snug transition-colors group-hover:text-primary">
-                        {post.title}
-                      </span>
-                      {post.tags.length > 0 && (
-                        <span className="hidden shrink-0 gap-1.5 md:flex">
-                          {post.tags.slice(0, 2).map((tag) => (
-                            <TagBadge key={tag} tag={tag} />
-                          ))}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              {/* Collapsible post list — animated via grid-rows */}
+              <div
+                className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+                  collapsed ? "grid-rows-[0fr]" : "grid-rows-[1fr]"
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <ul className="divide-y divide-border/50 border-y border-border/50">
+                    {yearPosts.map((post) => (
+                      <li key={post.slug}>
+                        <Link
+                          href={`/posts/${encodeURIComponent(post.slug)}`}
+                          className="group flex items-baseline gap-3 px-2 py-3.5 -mx-2 rounded-md transition-colors hover:bg-muted/50 sm:gap-4"
+                        >
+                          <time
+                            dateTime={post.date}
+                            className="w-14 shrink-0 text-xs tabular-nums text-muted-foreground"
+                          >
+                            {formatMonthDay(post.date, locale)}
+                          </time>
+                          <span className="min-w-0 flex-1 text-sm font-medium leading-relaxed transition-colors group-hover:text-primary">
+                            {post.title}
+                          </span>
+                          {post.tags.length > 0 && (
+                            <span className="hidden shrink-0 gap-1.5 md:flex">
+                              {post.tags.slice(0, 2).map((tag) => (
+                                <TagBadge key={tag} tag={tag} />
+                              ))}
+                            </span>
+                          )}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </section>
-          ))}
+          )})}
         </div>
       )}
 

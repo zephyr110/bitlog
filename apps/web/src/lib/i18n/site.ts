@@ -38,6 +38,8 @@ navigate: "导航",
 links: "链接",
 searchPosts: "搜索文章...",
 noTopics: "暂无分类",
+yearExpandAll: "展开全部",
+yearCollapseAll: "折叠全部",
     
   },
   en: {
@@ -80,5 +82,7 @@ links: "Links",
 searchPosts: "Search posts...",
 noTopics: "No topics",
     
+yearExpandAll: "Expand all",
+yearCollapseAll: "Collapse all",
   },
 } as const
