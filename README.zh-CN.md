@@ -2,12 +2,15 @@
 
 一个简约、快速、双语的个人博客，带本地后台管理系统。基于 [Next.js](https://nextjs.org) 16 (App Router)、[Tailwind CSS](https://tailwindcss.com) 4、[shadcn/ui](https://ui.shadcn.com)、[MDX](https://mdxjs.com) 和 [Turso](https://turso.tech) (libSQL) 构建，部署为纯静态站点。
 
+线上体验：[zephyr110.vercel.app](https://zephyr110.vercel.app) · 静态镜像：[zephyr110.github.io](https://zephyr110.github.io)
+
 ## 功能模块
 
 - **静态博客** — 预渲染页面，性能与 SEO 兼顾；内置 sitemap、RSS、Open Graph
 - **本地后台** — 在 `/admin` 撰写、编辑、发布、删除文章
 - **认证安全** — bcrypt (cost 12) + JWT，登录失败锁定、恢复密钥
 - **媒体库** — 自动 WebP 压缩，Turso 存储 + GitHub/jsdelivr CDN 双写
+- **自定义 Logo 与 Favicon** — 在站点设置中上传自己的 Logo，Favicon 自动跟随
 - **双语与主题** — 中/英切换，浅色/深色/跟随系统
 - **Giscus 评论** — 基于 GitHub Discussions（可选）
 
@@ -20,9 +23,9 @@ pnpm monorepo：
 | `apps/web` | Next.js 应用 — 静态博客页面 + 客户端后台面板 |
 | `packages/database` | Turso (libSQL) 数据访问 — 文章、媒体、设置、用户、认证锁定 |
 | `packages/auth` | 凭据校验、JWT 会话、登录锁定 |
-| `packages/core` | 共享领域逻辑 |
+| `packages/core` | 共享领域逻辑 — MDX 工具、类型 |
 
-博客页面完全静态生成（`output: export`），每次推送到 `main` 由 CI 自动部署到 GitHub Pages。后台 CMS 通过 `pnpm dev` 在本地运行（静态导出不包含 API 路由）。
+博客页面完全静态生成（`output: export`），每次推送到 `main` 由 CI 自动部署到 GitHub Pages。后台 CMS 通过 `pnpm dev` 在本地运行（静态导出不包含 API 路由）。在 Vercel 上，同一份代码以服务端方式运行后台 CMS。
 
 ## Getting Started
 
