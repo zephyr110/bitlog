@@ -98,12 +98,17 @@ export const mdxComponents = {
     children,
     ...props
   }: React.HTMLAttributes<HTMLElement>) => {
+    // Block vs inline: pretty-code stamps data-language on the code inside
+    // every fence (even bare fences, via the pipeline's defaultLang
+    // "plaintext"), while bypassInlineCode keeps backtick spans
+    // attribute-free — so data-language presence is the discriminator. The
+    // className half guards raw MDX `<code className="language-x">`.
     const isInline = !className?.includes("language-") &&
       !(props as Record<string, unknown>)["data-language"]
     if (isInline) {
       return (
         <code
-          className="relative rounded-md bg-muted px-[0.35rem] py-[0.15rem] font-mono text-[0.875em] font-medium text-primary/90 dark:text-primary/80"
+          className="relative rounded-md bg-muted px-[0.35rem] py-[0.15rem] font-mono text-[0.875em] font-medium text-primary/90 dark:text-primary/80 break-words"
           {...props}
         >
           {children}
