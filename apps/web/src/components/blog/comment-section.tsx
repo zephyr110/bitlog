@@ -42,7 +42,16 @@ export function CommentSection() {
 
     if (!hasGiscusConfig || isLocalhost) return
 
-    const theme = resolvedTheme === "dark" ? "dark" : "light"
+    // Themed via self-hosted stylesheets (public/giscus-{light,dark}.css)
+    // so the widget matches the site's neutral palette instead of
+    // GitHub's blue-on-white default. The URL must be absolute — the
+    // giscus iframe fetches it from our origin, which works on both the
+    // Vercel and GitHub Pages deployments. ?v= busts the CDN cache when
+    // the theme file changes.
+    const theme =
+      resolvedTheme === "dark"
+        ? `${window.location.origin}/giscus-dark.css?v=1`
+        : `${window.location.origin}/giscus-light.css?v=1`
     const lang = locale === "zh" ? "zh-CN" : "en"
 
     // If already initialized, send a message to the iframe to update theme/lang.

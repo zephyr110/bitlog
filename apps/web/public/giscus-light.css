@@ -1,0 +1,150 @@
+/* Zlog — giscus light theme.
+ *
+ * The site is a strict neutral/zinc palette (near-black primary, hairline
+ * borders, 10-14px radii), so the comment widget gets the same treatment
+ * instead of GitHub's blue-on-white default: surfaces stay white/gray,
+ * the accent is monochrome, radii step up from GitHub's 4-6px.
+ *
+ * Structure: giscus links this file AFTER its base stylesheet
+ * ("prepend ... to make override possible"), so same-specificity rules
+ * here win. Tokens live on `main` like the stock themes; the font var is
+ * set on `:host, html` because `--font-family-default` resolves there.
+ */
+
+@import url("https://giscus.app/themes/light.css");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap");
+
+:host,
+html {
+  --font-family-sans: "Geist", -apple-system, "BlinkMacSystemFont",
+    "Segoe UI", "Helvetica", "Arial", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji";
+}
+
+main {
+  /* Surfaces — white cards, muted wells (site --muted), no tint */
+  --color-canvas-default: #ffffff;
+  --color-canvas-overlay: #ffffff;
+  --color-canvas-inset: #fafafa;
+  --color-canvas-subtle: #f4f4f5;
+
+  /* Text — the site's zinc foreground ramp */
+  --color-fg-default: #18181b;
+  --color-fg-muted: #71717a;
+  --color-fg-subtle: #a1a1aa;
+  --color-fg-on-emphasis: #ffffff;
+
+  /* Hairlines — site --border / border/60 */
+  --color-border-default: #e4e4e7;
+  --color-border-muted: #ececef;
+
+  /* Accent — monochrome like the site's --primary (near-black) */
+  --color-accent-fg: #18181b;
+  --color-accent-emphasis: #18181b;
+  --color-accent-muted: rgb(24 24 27 / 10%);
+  --color-accent-subtle: rgb(24 24 27 / 5%);
+
+  /* Buttons — neutral outline; primary is solid near-black */
+  --color-btn-text: #18181b;
+  --color-btn-bg: #ffffff;
+  --color-btn-border: rgb(24 24 27 / 12%);
+  --color-btn-shadow: 0 1px 2px rgb(24 24 27 / 4%);
+  --color-btn-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 60%);
+  --color-btn-hover-bg: #f4f4f5;
+  --color-btn-hover-border: rgb(24 24 27 / 16%);
+  --color-btn-active-bg: #ececef;
+  --color-btn-active-border: rgb(24 24 27 / 16%);
+  --color-btn-selected-bg: #ececef;
+  --color-btn-primary-text: #ffffff;
+  --color-btn-primary-bg: #18181b;
+  --color-btn-primary-border: #18181b;
+  --color-btn-primary-shadow: 0 1px 2px rgb(24 24 27 / 24%);
+  --color-btn-primary-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 10%);
+  --color-btn-primary-hover-bg: #27272a;
+  --color-btn-primary-hover-border: #27272a;
+  --color-btn-primary-selected-bg: #3f3f46;
+  --color-btn-primary-selected-shadow: inset 0 1px 0 rgb(0 0 0 / 20%);
+  --color-btn-primary-disabled-text: rgb(255 255 255 / 80%);
+  --color-btn-primary-disabled-bg: #a1a1aa;
+  --color-btn-primary-disabled-border: #a1a1aa;
+
+  /* Write/Preview segmented tabs */
+  --color-segmented-control-bg: #f4f4f5;
+  --color-segmented-control-button-bg: #ffffff;
+  --color-segmented-control-button-selected-border: #d4d4d8;
+
+  --color-action-list-item-default-hover-bg: rgb(24 24 27 / 6%);
+  --color-neutral-muted: rgb(24 24 27 / 6%);
+
+  /* Reaction pills */
+  --color-social-reaction-bg-hover: #f4f4f5;
+  --color-social-reaction-bg-reacted-hover: #ececef;
+
+  /* Status — functional hues, kept muted so they sit quietly in the
+     neutral UI (only surfaced by reactions/errors) */
+  --color-success-fg: #15803d;
+  --color-attention-fg: #b45309;
+  --color-attention-muted: rgb(180 83 9 / 25%);
+  --color-attention-subtle: #fef3c7;
+  --color-danger-fg: #dc2626;
+  --color-danger-muted: rgb(220 38 38 / 20%);
+  --color-danger-subtle: #fee2e2;
+
+  --color-primer-shadow-inset: inset 0 1px 0 rgb(228 228 231 / 60%);
+  --color-scale-gray-1: #f4f4f5;
+  --color-scale-blue-1: #ececef;
+}
+
+/* Radius scale — GitHub's 4-6px reads cramped next to the site's
+   rounded-lg/xl cards: comment surfaces 12px, controls 10px, wells 8px,
+   reaction pills keep full roundness. */
+.gsc-comment-box:not(.gsc-comment-box-is-reply),
+.gsc-comment .gsc-comment-box,
+.gsc-reply-box,
+.Box,
+.gsc-pagination-button,
+.flash,
+.gsc-replies,
+.gsc-comment-box-textarea-extras {
+  border-radius: 12px;
+}
+.gsc-comment-box-tabs {
+  border-radius: 12px 12px 0 0;
+}
+.gsc-comment .gsc-comment-box-tabs {
+  border-radius: 0;
+}
+.Box-header {
+  border-radius: 12px 12px 0 0;
+}
+.gsc-comment-content {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+.gsc-comment-content.minimized {
+  border-radius: 0;
+}
+.gsc-comment-box-textarea {
+  border-radius: 12px 12px 0 0;
+}
+.btn,
+.BtnGroup,
+.gsc-pagination-button {
+  border-radius: 10px;
+}
+.BtnGroup-item,
+.BtnGroup-item .btn {
+  border-radius: 8px;
+}
+.markdown pre,
+.markdown .highlight pre {
+  border-radius: 8px;
+}
+
+/* Softer focus — the site's inputs get a faint primary ring, not
+   GitHub's full-opacity accent outline. */
+.gsc-comment-box-write:focus-within,
+.form-control:focus {
+  border-color: var(--color-accent-emphasis);
+  box-shadow: 0 0 0 3px rgb(24 24 27 / 12%);
+}
