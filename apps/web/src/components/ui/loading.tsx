@@ -30,23 +30,25 @@ export function PostCardSkeleton() {
 export function PostFeedSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl 2xl:max-w-7xl">
-      {/* Toolbar skeleton — search + topic pills, same row/height as live */}
-      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center">
-        <Skeleton className="h-8 w-full lg:max-w-xs rounded-lg" />
-        <div className="flex gap-1.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-8 w-16 rounded-full" />
-          ))}
+      {/* Featured card skeleton — wide panel + content column */}
+      <div className="grid overflow-hidden rounded-2xl border bg-card md:grid-cols-2">
+        <Skeleton className="h-56 rounded-none md:h-72" />
+        <div className="flex flex-col justify-center gap-3 p-6 md:p-8">
+          <Skeleton className="h-3 w-28" />
+          <Skeleton className="h-7 w-4/5" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+          <div className="flex gap-1.5 pt-1">
+            <Skeleton className="h-5 w-14 rounded-full" />
+            <Skeleton className="h-5 w-12 rounded-full" />
+          </div>
+          <Skeleton className="mt-3 h-4 w-20" />
         </div>
       </div>
-      {/* Year-nav pill skeleton (left-aligned, floating pill) */}
-      <Skeleton className="mb-8 h-9 w-44 rounded-full" />
-      {/* Year header skeleton — accent bar + year + count + chevron */}
-      <div className="mb-6 flex items-center gap-3">
-        <Skeleton className="h-7 w-1 rounded-full" />
-        <Skeleton className="h-8 w-20" />
-        <Skeleton className="h-4 w-12" />
-        <Skeleton className="ml-auto size-4 rounded" />
+      {/* Section header — title + view-all link */}
+      <div className="mb-6 mt-10 flex items-end justify-between md:mt-14">
+        <Skeleton className="h-7 w-28" />
+        <Skeleton className="h-4 w-20" />
       </div>
       {/* Card grid */}
       <div className="grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 [&>div]:h-full">

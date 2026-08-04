@@ -21,6 +21,7 @@ export async function GET() {
   const urls = [
     { url: siteUrl, changefreq: "weekly", priority: "1.0", lastmod: today },
     { url: `${siteUrl}/about`, changefreq: "monthly", priority: "0.8", lastmod: today },
+    { url: `${siteUrl}/archive`, changefreq: "weekly", priority: "0.8", lastmod: today },
   ]
 
   const postUrls = posts.map((post) => ({

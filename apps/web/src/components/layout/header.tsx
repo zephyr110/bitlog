@@ -22,6 +22,7 @@ import { categoryMeta } from "@/lib/categories"
 
 const navLinks = [
   { href: "/", i18nKey: "site.home" },
+  { href: "/archive", i18nKey: "site.archive" },
   { href: "/about", i18nKey: "site.about" },
 ]
 
@@ -80,7 +81,7 @@ export function Header({ categories }: { categories: Category[] }) {
             <span className="hidden font-black text-lg sm:inline">{site.name}</span>
           </Link>
 
-          {/* Right: Search · 首页 · 分类 · 时间轴 · 关于 · | · 主题 · 语言 · GitHub */}
+          {/* Right: Search · 首页 · 分类 · 归档 · 关于 · | · 主题 · 语言 · GitHub */}
           <div className="flex items-center gap-1">
 
             {/* Search */}
@@ -152,9 +153,9 @@ export function Header({ categories }: { categories: Category[] }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* 时间轴 */}
-            <NavLink href="/timeline" active={pathname === "/timeline"}>
-              {t("site.timeline") as string}
+            {/* 归档 */}
+            <NavLink href="/archive" active={pathname === "/archive"}>
+              {t("site.archive") as string}
             </NavLink>
 
             {/* 关于 */}
@@ -293,7 +294,9 @@ function SearchInput({ t, router }: { t: ReturnType<typeof useT>["t"]; router: R
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const q = value.trim()
-    router.push(q ? `/?q=${encodeURIComponent(q)}` : "/")
+    // Search results live on the archive page — the home feed only shows
+    // the latest handful of posts.
+    router.push(q ? `/archive?q=${encodeURIComponent(q)}` : "/archive")
   }
 
   return (

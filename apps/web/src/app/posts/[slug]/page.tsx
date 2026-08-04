@@ -255,10 +255,10 @@ export default async function PostPage({ params }: PostPageProps) {
           </section>
         )}
 
-        {/* Back to top */}
+        {/* Back to the full article index */}
         <div className="text-center py-8">
           <Link
-            href="/"
+            href="/archive"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <Trans k="site.backToPosts" />

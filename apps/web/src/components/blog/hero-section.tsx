@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useT } from "@/components/layout/trans"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Archive } from "lucide-react"
 import { floatingParticles, blinkingParticles, HeroParticle, HeroPixel } from "./hero-particles"
 
 /* ── Layer: Line grid ── */
@@ -129,10 +129,11 @@ export function HeroSection({ postCount }: { postCount: number }) {
               <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
             <Link
-              href="/about"
+              href="/archive"
               className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-5 py-2.5 text-sm font-medium text-foreground/80 backdrop-blur-sm transition-colors duration-200 hover:bg-muted/60 hover:text-foreground"
             >
-              {t("site.about") as string}
+              <Archive size={15} />
+              {t("site.archive") as string}
             </Link>
           </div>
         </div>
