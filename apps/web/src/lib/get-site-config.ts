@@ -70,21 +70,48 @@ export function toSettingsDto(config: SiteConfig): SiteSettingsDto {
 // DB failure propagates here — the fallback below must NOT be cached, or
 // a transient outage at first fetch would freeze the site identity on
 // defaults for the whole revalidate window.
-async function loadSiteConfig(): Promise<SiteConfig> {
+async function loadCachedConfig(): Promise<
+  Omit<SiteConfig, "siteUrl" | "ogImage">
+> {
   const row = await getSiteSettings()
-  return siteConfigFromRow(row)
+  const config = siteConfigFromRow(row)
+  // Cache only the DB-backed fields — siteUrl/ogImage are env-derived and
+  // must not cross the Data Cache (see getSiteConfig below).
+  return {
+    name: config.name,
+    title: config.title,
+    description: config.description,
+    author: config.author,
+    logoUrl: config.logoUrl,
+    logoInvertInDark: config.logoInvertInDark,
+    social: config.social,
+  }
 }
 
-const cachedLoad = unstable_cache(loadSiteConfig, [SITE_CONFIG_TAG], {
+const cachedLoad = unstable_cache(loadCachedConfig, [SITE_CONFIG_TAG], {
   tags: [SITE_CONFIG_TAG],
   revalidate: 3600,
 })
 
 /** Request-deduped + cross-request cached site config. A DB failure falls
- *  back to compile-time defaults without caching them. */
+ *  back to compile-time defaults without caching them.
+ *
+ * siteUrl and ogImage are env-derived (resolveSiteUrl, NEXT_PUBLIC_OG_IMAGE)
+ * and must NOT go through the cross-request cache: Vercel's Data Cache
+ * persists across deployments and is not refreshed at build time, so a
+ * cached SiteConfig from an older deployment can keep serving a stale
+ * URL (e.g. the localhost placeholder) for the whole revalidate window.
+ * Reading them off defaultSiteConfig here re-resolves the env on every
+ * server process start, so a config/URL change takes effect immediately
+ * after the next deploy. */
 export const getSiteConfig = cache(async (): Promise<SiteConfig> => {
   try {
-    return await cachedLoad()
+    const cached = await cachedLoad()
+    return {
+      ...cached,
+      siteUrl: defaultSiteConfig.siteUrl,
+      ogImage: defaultSiteConfig.ogImage,
+    }
   } catch {
     console.warn("[site-config] DB read failed — using compile-time defaults")
     return { ...defaultSiteConfig }
