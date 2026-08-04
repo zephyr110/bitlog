@@ -118,13 +118,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Dynamic imports keep sharp (native binary) out of the GET cold-start
-    // path. Without this, a sharp load failure on Vercel's serverless runtime
-    // 500s every /api/upload request — including the GET that lists images.
-    const [{ compressImage }, { uploadToGithub }] = await Promise.all([
-      import("@/lib/image-compress"),
-      import("@/lib/github-image"),
-    ])
     const user = await requireAuth(request)
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -180,7 +173,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Compress in memory (jpeg/png → webp; animated gif / svg untouched).
-    const { buffer: optimized, mime, ext } = await compressImage(buffer, file.type)
+    // sharp ships a native binary that can be unavailable on serverless
+    // runtimes (Vercel) — if it fails to load, upload the ORIGINAL bytes
+    // instead of failing the whole upload. Compression is an optimization,
+    // not a requirement.
+    let optimized: Buffer = buffer
+    let mime = file.type
+    let ext = path.extname(sanitizeFilename(file.name)).toLowerCase() || ".bin"
+    try {
+      const { compressImage } = await import("@/lib/image-compress")
+      const result = await compressImage(buffer, file.type)
+      optimized = result.buffer
+      mime = result.mime
+      ext = result.ext
+    } catch (error) {
+      console.warn(
+        "Image compression unavailable — uploading original:",
+        error
+      )
+    }
 
     const timestamp = Date.now()
     const safeName = sanitizeFilename(file.name)
@@ -206,6 +217,7 @@ export async function POST(request: NextRequest) {
     // ② GitHub is the delivery layer — roll the DB row back ONLY if the
     //    push itself fails (otherwise the repo ends up with an orphan file).
     try {
+      const { uploadToGithub } = await import("@/lib/github-image")
       const { sha } = await uploadToGithub(filename, optimized)
       // Best-effort sha backfill: if this fails, deletes still work via the
       // Contents API lookup fallback in deleteFromGithub.
