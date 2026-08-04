@@ -260,11 +260,9 @@ export function SiteInfoForm({
       <div className="space-y-2">
         <Label>{t("admin.siteLogo") as string}</Label>
         <div className="flex items-center gap-4">
-          {/* The tile IS the preview — the mark fills it edge-to-edge, so
-              the tile's radius is the mark's visible radius (same
-              full-bleed look as the header/footer chip). Opaque backdrop:
-              a dark-mode inverted transparent PNG must rasterize onto the
-              tile, not onto the dialog background. */}
+          {/* Full-bleed rounded tile, same recipe as the chip — and opaque,
+              so a dark-mode inverted transparent PNG rasterizes onto it,
+              not onto the dialog background. */}
           <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted">
             <SiteLogo
               src={previewSrc}
