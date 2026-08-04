@@ -269,7 +269,7 @@ export function SiteInfoForm({
             <SiteLogo
               src={previewSrc}
               invertInDark={form.logoInvertInDark}
-              className="size-full object-cover"
+              className="size-full rounded-lg object-cover"
             />
           </div>
           <div className="flex flex-col gap-2">

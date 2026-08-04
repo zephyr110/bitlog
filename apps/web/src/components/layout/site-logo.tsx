@@ -18,11 +18,11 @@ type SiteLogoProps = {
   /**
    * Render the mark inside an opaque tile (muted background + hairline
    * ring) that stands off any page background. The mark fills the tile
-   * edge-to-edge and the tile's rounded clip rounds it in both themes —
-   * an opaque square PNG gets rounded corners, and a rounded/transparent
-   * PNG shows the muted tile behind its corners instead of bleeding the
-   * page background through (e.g. black corner triangles on a dark
-   * footer). `className` sizes the tile.
+   * edge-to-edge and carries its own rounded-lg, so it reads as rounded
+   * in both themes — an opaque square PNG gets rounded corners, and a
+   * rounded/transparent PNG shows the muted tile behind its corners
+   * instead of bleeding the page background through (e.g. black corner
+   * triangles on a dark footer). `className` sizes the tile.
    */
   chip?: boolean
 }
@@ -84,12 +84,11 @@ export function SiteLogo({
   if (!chip) return img
 
   // The tile IS the logo display — the mark fills it edge-to-edge
-  // (object-cover) and the tile's own clip rounds it. No padding and no
-  // extra mark radius: a padded tile leaves gaps around small uploaded
-  // images and can't round their corners anyway (they sit inside the
-  // padding, past the tile's clip curve). Transparent mark corners show
-  // the muted tile behind them — never the page background (the
-  // black-triangle fix).
+  // (object-cover) with no padding (a padded tile leaves gaps around
+  // small uploaded images). The mark carries its own rounded-lg so it
+  // always reads as rounded; the tile's clip is just a safety net, and
+  // transparent mark corners show the muted tile behind them — never
+  // the page background (the black-triangle fix).
   return (
     <div
       className={cn(
@@ -101,7 +100,7 @@ export function SiteLogo({
       <img
         src={renderedSrc}
         alt={alt}
-        className="size-full object-cover"
+        className="size-full rounded-lg object-cover"
         style={dark && !useDarkVariant ? { filter: "invert(1)" } : undefined}
         onError={handleError}
       />
