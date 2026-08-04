@@ -58,6 +58,10 @@ export function SiteInfoForm({
   // two SiteInfoForm instances (settings page + sidebar dialog) editing
   // different fields can't silently overwrite each other's changes.
   const touchedRef = useRef<Set<keyof FormState>>(new Set())
+  // A logo upload/remove persists immediately (no Save click needed). When
+  // true, the last logo action already landed — a later Save click then
+  // confirms success instead of the confusing "nothing to save" message.
+  const autoPersistedRef = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -172,8 +176,9 @@ export function SiteInfoForm({
         logoInvertInDark: s.logoInvertInDark ?? prev.logoInvertInDark,
       }))
       // Already persisted — drop from touched so a later Save doesn't
-      // resubmit it.
+      // resubmit it; remember the action so a Save click confirms it.
       touchedRef.current.delete("logoUrl")
+      autoPersistedRef.current = true
       return true
     } catch {
       toast.error(t("admin.networkError") as string)
@@ -184,7 +189,14 @@ export function SiteInfoForm({
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     if (touchedRef.current.size === 0) {
-      toast.info(t("admin.siteInfoNoChanges") as string)
+      if (autoPersistedRef.current) {
+        // The logo change was already persisted on upload/remove — treat
+        // this Save as the confirmation it is, not as a no-op.
+        autoPersistedRef.current = false
+        toast.success(t("admin.siteInfoSaved") as string)
+      } else {
+        toast.info(t("admin.siteInfoNoChanges") as string)
+      }
       return
     }
     setSaving(true)
@@ -223,6 +235,7 @@ export function SiteInfoForm({
         },
       }))
       touchedRef.current.clear()
+      autoPersistedRef.current = false
       toast.success(t("admin.siteInfoSaved") as string)
     } catch {
       toast.error(t("admin.networkError") as string)
@@ -297,8 +310,12 @@ export function SiteInfoForm({
                   disabled={uploading}
                   onClick={() => {
                     patch("logoUrl", "")
-                    // Remove also persists immediately — consistent with upload.
-                    void persistLogo("")
+                    // Remove also persists immediately — consistent with
+                    // upload; confirm it like the upload does.
+                    void persistLogo("").then((persisted) => {
+                      if (persisted)
+                        toast.success(t("admin.siteInfoSaved") as string)
+                    })
                   }}
                 >
                   <X className="size-3.5" />
