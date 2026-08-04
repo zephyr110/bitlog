@@ -46,25 +46,35 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
   const { t, locale } = useT()
   const searchParams = useSearchParams()
   const [activeTag, setActiveTag] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
 
-  // Keep the search box in sync with ?q= — fires on mount and on any
-  // URL change (e.g. header search submits via router.push).
+  // The ?q= URL param is the single source of truth for the search term.
   const urlQuery = searchParams?.get("q") ?? ""
-  const [lastUrlQuery, setLastUrlQuery] = useState(urlQuery)
-  if (urlQuery !== lastUrlQuery) {
-    setLastUrlQuery(urlQuery)
-    setSearchQuery(urlQuery)
-  }
+  const [searchQuery, setSearchQuery] = useState(urlQuery)
 
-  // Debounce typing: each keystroke would otherwise re-filter the whole
-  // catalog, rebuild the IntersectionObserver and rewrite browser history.
+  // Sync from URL changes (header search, browser back/forward).
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setSearchQuery(urlQuery)
+  }, [urlQuery])
+
+  // Debounce typing: the input is uncontrolled (key held in a local ref)
+  // so keystrokes are never lost by React re-renders; only filtering and
+  // the URL are throttled.
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Clean up the pending debounce on unmount so a stale timer can't
+  // corrupt the URL of whatever page the user navigated to next.
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
+
   function onSearchChange(value: string) {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
       setSearchQuery(value)
-      // Keep the URL shareable without a server round-trip.
       syncSearchUrl(value)
     }, 150)
   }
@@ -72,6 +82,7 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     setSearchQuery("")
     syncSearchUrl("")
+    if (inputRef.current) inputRef.current.value = ""
   }
 
   const categories = useMemo(
@@ -190,7 +201,8 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
           />
           <Input
-            value={searchQuery}
+            ref={inputRef}
+            defaultValue={urlQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={t("site.searchPosts") as string}
             className="pl-9 pr-8"

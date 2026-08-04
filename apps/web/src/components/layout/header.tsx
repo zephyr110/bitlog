@@ -286,13 +286,18 @@ function NavLink({ href, active, children }: { href: string; active: boolean; ch
 function SearchInput({ t, router, pathname }: { t: ReturnType<typeof useT>["t"]; router: ReturnType<typeof useRouter>; pathname: string }) {
   const [value, setValue] = useState("")
 
+  // Sync the header search box from ?q= on mount and on browser
+  // back/forward. Only /archive consumes ?q=, so we don't sync on
+  // other routes (an old /?q=... bookmark is harmless to ignore).
   useEffect(() => {
-    // Only /archive consumes ?q= — syncing elsewhere (e.g. an old
-    // /?q=... bookmark on the home page) would show a query the page
-    // ignores.
     if (pathname !== "/archive") return
-    const params = new URLSearchParams(window.location.search)
-    setValue(params.get("q") || "") // eslint-disable-line react-hooks/set-state-in-effect -- one-time sync from URL on mount (window is unavailable during SSR)
+    const sync = () => {
+      const params = new URLSearchParams(window.location.search)
+      setValue(params.get("q") || "")
+    }
+    sync()
+    window.addEventListener("popstate", sync)
+    return () => window.removeEventListener("popstate", sync)
   }, [pathname])
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

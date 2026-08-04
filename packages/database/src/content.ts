@@ -95,19 +95,6 @@ function toParams(post: Post) {
   }
 }
 
-/** Sort comparator: newest first, invalid dates sink to the end. */
-function sortByDate(posts: Post[]): Post[] {
-  posts.sort((a, b) => {
-    const ta = new Date(a.date).getTime()
-    const tb = new Date(b.date).getTime()
-    if (Number.isNaN(ta) && Number.isNaN(tb)) return 0
-    if (Number.isNaN(ta)) return 1
-    if (Number.isNaN(tb)) return -1
-    return tb - ta
-  })
-  return posts
-}
-
 // ── Public API ──────────────────────────────────────────────────────────
 
 export async function getAllPosts(
@@ -119,8 +106,8 @@ export async function getAllPosts(
 
   let sql = "SELECT * FROM posts"
   if (!includeDrafts) sql += " WHERE draft = 0"
-  // ISO "YYYY-MM-DD" dates sort correctly as text; the JS sortByDate
-  // below re-sorts for NaN tolerance but keeps this order.
+  // ISO "YYYY-MM-DD" dates sort correctly as text in SQLite — no JS
+  // re-sort needed. The TEXT NOT NULL column guarantees a value.
   sql += " ORDER BY date DESC"
   const args: Array<string | number> = []
   if (limit !== undefined) {
@@ -129,7 +116,7 @@ export async function getAllPosts(
   }
 
   const result = await db.execute({ sql, args })
-  return sortByDate(result.rows.map(rowToPost))
+  return result.rows.map(rowToPost)
 }
 
 export async function getPublishedPosts(limit?: number): Promise<PostSummary[]> {

@@ -52,8 +52,14 @@ export const gradientPairs = [
 
 export function PostCard({ post }: { post: PostSummary }) {
   const { t } = useT()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
   const haveCover = !!post.cover
-  const shortDate = formatRelativeDate(post.date, t)
+  // SSR always renders the absolute date; after hydration the relative
+  // form takes over so the clock is the viewer's, not the build machine's.
+  const shortDate = mounted
+    ? formatRelativeDate(post.date, t)
+    : (t("post.shortDate") as (d: Date) => string)(parseUtcDate(post.date))
   const minReadLabel = t("post.minRead") as (n: number) => string
   const gradient = gradientPairs[post.title.length % gradientPairs.length]
 
