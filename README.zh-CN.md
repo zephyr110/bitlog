@@ -2,7 +2,9 @@
 
 一个简约、快速、双语的个人博客，带本地后台管理系统。基于 [Next.js](https://nextjs.org) 16 (App Router)、[Tailwind CSS](https://tailwindcss.com) 4、[shadcn/ui](https://ui.shadcn.com)、[MDX](https://mdxjs.com) 和 [Turso](https://turso.tech) (libSQL) 构建，部署为纯静态站点。
 
-线上体验：[zephyr110.vercel.app](https://zephyr110.vercel.app) · 静态镜像：[zephyr110.github.io](https://zephyr110.github.io)
+线上体验：[zephyr110.vercel.app](https://zephyr110.vercel.app)
+
+静态镜像：[zephyr110.github.io](https://zephyr110.github.io)
 
 <img width="1440" height="2064" alt="zephyr110 vercel app_about (2)" src="https://github.com/user-attachments/assets/00d57a80-7806-4532-92ac-e12751966dd8" />
 <img width="1440" height="2064" alt="zephyr110 vercel app_about (1) (1)" src="https://github.com/user-attachments/assets/954808c2-c12e-47eb-85b5-8023a65791fc" />
