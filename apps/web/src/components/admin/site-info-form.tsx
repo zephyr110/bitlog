@@ -310,8 +310,12 @@ export function SiteInfoForm({
                   disabled={uploading}
                   onClick={() => {
                     patch("logoUrl", "")
-                    // Remove also persists immediately — consistent with upload.
-                    void persistLogo("")
+                    // Remove also persists immediately — consistent with
+                    // upload; confirm it like the upload does.
+                    void persistLogo("").then((persisted) => {
+                      if (persisted)
+                        toast.success(t("admin.siteInfoSaved") as string)
+                    })
                   }}
                 >
                   <X className="size-3.5" />

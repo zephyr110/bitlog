@@ -51,6 +51,8 @@ export const DEFAULT_SITE_LOGO = "/logo.svg"
  *  logo never needs a CSS invert filter (filter forces bitmap
  *  rasterization, which renders jagged on some engines/HiDPI setups). */
 export const DEFAULT_SITE_LOGO_DARK = "/logo-dark.svg"
+/** Built-in favicon mark — also the fallback the /icon route serves. */
+export const DEFAULT_FAVICON = "/favicon.svg"
 
 export function siteLogoSrc(config: Pick<SiteConfig, "logoUrl">): string {
   return config.logoUrl || DEFAULT_SITE_LOGO
@@ -59,7 +61,7 @@ export function siteLogoSrc(config: Pick<SiteConfig, "logoUrl">): string {
 /** True when src is a known built-in mark (not a custom upload). */
 export function isBuiltInLogoSrc(src: string): boolean {
   return src === DEFAULT_SITE_LOGO || src === DEFAULT_SITE_LOGO_DARK ||
-    src === "/spooky.svg" || src === "/favicon.svg" ||
+    src === "/spooky.svg" || src === DEFAULT_FAVICON ||
     src.endsWith("/logo.svg")
 }
 
@@ -73,7 +75,7 @@ export function isDefaultSiteLogo(config: Pick<SiteConfig, "logoUrl">): boolean 
       path === DEFAULT_SITE_LOGO ||
       path === DEFAULT_SITE_LOGO_DARK ||
       path === "/spooky.svg" ||
-      path === "/favicon.svg" ||
+      path === DEFAULT_FAVICON ||
       path.endsWith("/logo.svg")
     )
   } catch {

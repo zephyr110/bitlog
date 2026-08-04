@@ -76,7 +76,7 @@ export function Header({ categories }: { categories: Category[] }) {
             <SiteLogo
               src={logoSrc}
               invertInDark={site.logoInvertInDark ?? true}
-              className="size-9 rounded-lg"
+              className="size-9"
               chip
             />
             <span className="hidden font-black text-lg sm:inline">{site.name}</span>

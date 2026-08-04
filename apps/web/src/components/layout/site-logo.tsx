@@ -76,8 +76,10 @@ export function SiteLogo({
 
   if (!chip) return img
 
+  // overflow-hidden clips the mark to the tile's radius — without it an
+  // opaque square PNG would poke square corners out of the rounded tile.
   return (
-    <div className="flex shrink-0 items-center justify-center rounded-lg bg-muted p-[3px] shadow-sm ring-1 ring-border/60 transition-colors dark:ring-border/80">
+    <div className="flex shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted p-[3px] shadow-sm ring-1 ring-border/60 dark:ring-white/15">
       {img}
     </div>
   )
