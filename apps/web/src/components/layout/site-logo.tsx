@@ -15,6 +15,14 @@ type SiteLogoProps = {
   invertInDark?: boolean
   className?: string
   alt?: string
+  /**
+   * Render the mark inside an opaque tile (muted background + hairline
+   * ring) that stands off any page background. Rounded PNG logos with
+   * transparent corners otherwise bleed the background through them
+   * (e.g. black corner triangles on a dark footer) and vanish on plain
+   * white surfaces.
+   */
+  chip?: boolean
 }
 
 /**
@@ -29,6 +37,7 @@ export function SiteLogo({
   invertInDark = true,
   className,
   alt = "",
+  chip = false,
 }: SiteLogoProps) {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -54,7 +63,7 @@ export function SiteLogo({
     setFailedSrc(renderedSrc)
   }
 
-  return (
+  const img = (
     // eslint-disable-next-line @next/next/no-img-element -- remote/uploaded logos; avoid next/image domain config
     <img
       src={renderedSrc}
@@ -63,5 +72,13 @@ export function SiteLogo({
       style={dark && isBuiltIn && !useDarkVariant ? { filter: "invert(1)" } : undefined}
       onError={handleError}
     />
+  )
+
+  if (!chip) return img
+
+  return (
+    <div className="flex shrink-0 items-center justify-center rounded-lg bg-muted p-[3px] shadow-sm ring-1 ring-border/60 transition-colors dark:ring-border/80">
+      {img}
+    </div>
   )
 }

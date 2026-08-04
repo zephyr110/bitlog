@@ -47,7 +47,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: site.description,
     icons: {
-      icon: "/favicon.svg",
+      // The favicon follows the uploaded site logo — /icon proxies its
+      // bytes; the ?u= query cache-busts so a logo change shows up on
+      // the next page render. No logo → the built-in mark.
+      icon: site.logoUrl
+        ? `/icon?u=${encodeURIComponent(site.logoUrl)}`
+        : "/favicon.svg",
       apple: "/favicon.svg",
     },
     openGraph: {
