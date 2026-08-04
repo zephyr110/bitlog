@@ -1,87 +1,93 @@
 /* Zlog — giscus light theme.
  *
- * The site is a strict neutral/zinc palette (near-black primary, hairline
- * borders, 10-14px radii), so the comment widget gets the same treatment
- * instead of GitHub's blue-on-white default: surfaces stay white/gray,
- * the accent is monochrome, radii step up from GitHub's 4-6px.
+ * Self-contained mirror of the site's light palette: globals.css tokens
+ * inlined as literal oklch() values. No @import — giscus silently drops
+ * theme links that fail to load, and the stock theme's @import chain is
+ * render-blocking, so every dependency is inlined. Host-page custom
+ * properties (--card, --radius-xl, …) can't be referenced either: the
+ * theme runs inside the giscus iframe document, where they resolve to
+ * nothing. The stock syntax-highlight palette (--color-prettylights-*)
+ * is omitted — giscus renders markdown without highlighting, so those
+ * 30 vars are consumed by nothing.
  *
- * Structure: giscus links this file AFTER its base stylesheet
- * ("prepend ... to make override possible"), so same-specificity rules
- * here win. Tokens live on `main` like the stock themes; the font var is
- * set on `:host, html` because `--font-family-default` resolves there.
+ * Cascade: giscus prepends its base stylesheet before this link, so
+ * same-specificity rules here win. Tokens live on `main` like the stock
+ * themes; the font vars are set on `html` because the font-family chain
+ * resolves there (the stock themes' `:host, html` selector is inert in
+ * a plain linked stylesheet).
  */
 
-@import url("https://giscus.app/themes/light.css");
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap");
-
-:host,
 html {
-  --font-family-sans: "Geist", -apple-system, "BlinkMacSystemFont",
-    "Segoe UI", "Helvetica", "Arial", sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji";
+  /* next/font loads Geist in the parent document; the iframe can't
+     share those faces, so mirror the site's system fallback stacks
+     (globals.css --font-sans / --font-geist-mono). base.css resolves
+     --font-family-default from --font-family-sans on the html element,
+     and code blocks use --font-family-monospace. */
+  --font-family-sans: -apple-system, "BlinkMacSystemFont", "Segoe UI",
+    "Helvetica", "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-family-monospace: ui-monospace, "SFMono-Regular", "SF Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
 }
 
 main {
-  /* Surfaces — white cards, muted wells (site --muted), no tint */
-  --color-canvas-default: #ffffff;
-  --color-canvas-overlay: #ffffff;
-  --color-canvas-inset: #fafafa;
-  --color-canvas-subtle: #f4f4f5;
+  /* Surfaces — site --card/--popover are white; wells step down --muted */
+  --color-canvas-default: oklch(1 0 0); /* --card */
+  --color-canvas-overlay: oklch(1 0 0); /* --popover */
+  --color-canvas-inset: #fafafa; /* input well — hand-picked */
+  --color-canvas-subtle: oklch(0.97 0 0); /* --muted — header/code wells */
 
   /* Text — the site's zinc foreground ramp */
-  --color-fg-default: #18181b;
-  --color-fg-muted: #71717a;
-  --color-fg-subtle: #a1a1aa;
-  --color-fg-on-emphasis: #ffffff;
+  --color-fg-default: oklch(0.145 0 0); /* --foreground */
+  --color-fg-muted: oklch(0.556 0 0); /* --muted-foreground */
+  --color-fg-subtle: oklch(0.708 0 0); /* --ring — 4th ramp step */
 
-  /* Hairlines — site --border / border/60 */
-  --color-border-default: #e4e4e7;
-  --color-border-muted: #ececef;
+  /* Hairlines — site --border, dimmed variant at 60% */
+  --color-border-default: oklch(0.922 0 0); /* --border */
+  --color-border-muted: oklch(0.922 0 0 / 60%);
 
   /* Accent — monochrome like the site's --primary (near-black) */
-  --color-accent-fg: #18181b;
-  --color-accent-emphasis: #18181b;
-  --color-accent-muted: rgb(24 24 27 / 10%);
-  --color-accent-subtle: rgb(24 24 27 / 5%);
+  --color-accent-fg: oklch(0.205 0 0); /* --primary */
+  --color-accent-emphasis: oklch(0.205 0 0);
+  --color-accent-muted: oklch(0.205 0 0 / 10%);
+  --color-accent-subtle: oklch(0.205 0 0 / 5%);
 
-  /* Buttons — neutral outline; primary is solid near-black */
-  --color-btn-text: #18181b;
-  --color-btn-bg: #ffffff;
-  --color-btn-border: rgb(24 24 27 / 12%);
-  --color-btn-shadow: 0 1px 2px rgb(24 24 27 / 4%);
+  /* Buttons — neutral outline (card bg + hairline); primary solid */
+  --color-btn-text: oklch(0.145 0 0); /* --foreground */
+  --color-btn-bg: oklch(1 0 0); /* --card */
+  --color-btn-border: oklch(0.205 0 0 / 12%);
+  --color-btn-shadow: 0 1px 2px oklch(0.205 0 0 / 4%);
   --color-btn-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 60%);
-  --color-btn-hover-bg: #f4f4f5;
-  --color-btn-hover-border: rgb(24 24 27 / 16%);
-  --color-btn-active-bg: #ececef;
-  --color-btn-active-border: rgb(24 24 27 / 16%);
-  --color-btn-selected-bg: #ececef;
-  --color-btn-primary-text: #ffffff;
-  --color-btn-primary-bg: #18181b;
-  --color-btn-primary-border: #18181b;
-  --color-btn-primary-shadow: 0 1px 2px rgb(24 24 27 / 24%);
+  --color-btn-hover-bg: oklch(0.97 0 0); /* --muted */
+  --color-btn-hover-border: oklch(0.205 0 0 / 16%);
+  --color-btn-active-bg: oklch(0.922 0 0); /* --border */
+  --color-btn-active-border: oklch(0.205 0 0 / 16%);
+  --color-btn-primary-text: oklch(0.985 0 0); /* --primary-foreground */
+  --color-btn-primary-bg: oklch(0.205 0 0); /* --primary */
+  --color-btn-primary-border: oklch(0.205 0 0);
+  --color-btn-primary-shadow: 0 1px 2px oklch(0.205 0 0 / 24%);
   --color-btn-primary-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 10%);
-  --color-btn-primary-hover-bg: #27272a;
-  --color-btn-primary-hover-border: #27272a;
-  --color-btn-primary-selected-bg: #3f3f46;
+  --color-btn-primary-hover-bg: oklch(0.145 0 0); /* --foreground — darker */
+  --color-btn-primary-hover-border: oklch(0.145 0 0);
+  --color-btn-primary-selected-bg: oklch(0.145 0 0);
   --color-btn-primary-selected-shadow: inset 0 1px 0 rgb(0 0 0 / 20%);
-  --color-btn-primary-disabled-text: rgb(255 255 255 / 80%);
-  --color-btn-primary-disabled-bg: #a1a1aa;
-  --color-btn-primary-disabled-border: #a1a1aa;
+  --color-btn-primary-disabled-text: oklch(0.985 0 0 / 80%);
+  --color-btn-primary-disabled-bg: oklch(0.708 0 0); /* --ring */
+  --color-btn-primary-disabled-border: oklch(0.708 0 0);
 
   /* Write/Preview segmented tabs */
-  --color-segmented-control-bg: #f4f4f5;
-  --color-segmented-control-button-bg: #ffffff;
-  --color-segmented-control-button-selected-border: #d4d4d8;
+  --color-segmented-control-bg: oklch(0.97 0 0); /* --muted */
+  --color-segmented-control-button-bg: oklch(1 0 0); /* --card */
+  --color-segmented-control-button-selected-border: #d4d4d8; /* hand-picked */
 
-  --color-action-list-item-default-hover-bg: rgb(24 24 27 / 6%);
-  --color-neutral-muted: rgb(24 24 27 / 6%);
+  --color-action-list-item-default-hover-bg: oklch(0.205 0 0 / 6%);
+  --color-neutral-muted: oklch(0.205 0 0 / 6%);
 
-  /* Reaction pills */
-  --color-social-reaction-bg-hover: #f4f4f5;
-  --color-social-reaction-bg-reacted-hover: #ececef;
+  /* Reaction pills — hover on --muted, reacted on --border */
+  --color-social-reaction-bg-hover: oklch(0.97 0 0);
+  --color-social-reaction-bg-reacted-hover: oklch(0.922 0 0);
 
-  /* Status — functional hues, kept muted so they sit quietly in the
-     neutral UI (only surfaced by reactions/errors) */
+  /* Status — functional hues, muted so they sit quietly in the neutral
+     UI (only surfaced by reactions/errors) */
   --color-success-fg: #15803d;
   --color-attention-fg: #b45309;
   --color-attention-muted: rgb(180 83 9 / 25%);
@@ -89,43 +95,32 @@ main {
   --color-danger-fg: #dc2626;
   --color-danger-muted: rgb(220 38 38 / 20%);
   --color-danger-subtle: #fee2e2;
-
-  --color-primer-shadow-inset: inset 0 1px 0 rgb(228 228 231 / 60%);
-  --color-scale-gray-1: #f4f4f5;
-  --color-scale-blue-1: #ececef;
 }
 
-/* Radius scale — GitHub's 4-6px reads cramped next to the site's
-   rounded-lg/xl cards: comment surfaces 12px, controls 10px, wells 8px,
-   reaction pills keep full roundness. */
+/* Radius scale — the site's --radius ramp (xl 14px surfaces, lg 10px
+   controls, sm 6px wells); GitHub's 4-6px reads cramped beside them. */
 .gsc-comment-box:not(.gsc-comment-box-is-reply),
 .gsc-comment .gsc-comment-box,
-.gsc-reply-box,
 .Box,
-.gsc-pagination-button,
 .flash,
-.gsc-replies,
-.gsc-comment-box-textarea-extras {
-  border-radius: 12px;
+.gsc-replies {
+  border-radius: 14px;
 }
-.gsc-comment-box-tabs {
-  border-radius: 12px 12px 0 0;
+/* Bottom-attached wells (markdown hint bar, reply button) sit flush
+   under their parent: square top corners, the parent's 14px bottom. */
+.gsc-comment-box-textarea-extras,
+.gsc-reply-box {
+  border-radius: 0 0 14px 14px;
 }
-.gsc-comment .gsc-comment-box-tabs {
-  border-radius: 0;
+.gsc-comment-box-tabs,
+.Box-header,
+.gsc-comment-content,
+.gsc-comment-box-textarea {
+  border-radius: 14px 14px 0 0;
 }
-.Box-header {
-  border-radius: 12px 12px 0 0;
-}
-.gsc-comment-content {
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
+.gsc-comment .gsc-comment-box-tabs,
 .gsc-comment-content.minimized {
   border-radius: 0;
-}
-.gsc-comment-box-textarea {
-  border-radius: 12px 12px 0 0;
 }
 .btn,
 .BtnGroup,
@@ -134,17 +129,30 @@ main {
 }
 .BtnGroup-item,
 .BtnGroup-item .btn {
-  border-radius: 8px;
+  border-radius: 6px;
 }
 .markdown pre,
 .markdown .highlight pre {
-  border-radius: 8px;
+  border-radius: 6px;
+}
+.gsc-social-reaction-summary-item {
+  border-radius: 9999px;
 }
 
-/* Softer focus — the site's inputs get a faint primary ring, not
-   GitHub's full-opacity accent outline. */
+/* Softer focus — faint accent ring instead of GitHub's full-opacity one */
 .gsc-comment-box-write:focus-within,
 .form-control:focus {
   border-color: var(--color-accent-emphasis);
-  box-shadow: 0 0 0 3px rgb(24 24 27 / 12%);
+  box-shadow: 0 0 0 3px oklch(0.205 0 0 / 12%);
+}
+
+/* Neutral loader — the stock theme's blue octocat gif reads branded */
+main .gsc-loading-image {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='12' cy='12' r='9' stroke='%23a1a1aa' stroke-opacity='0.35' stroke-width='2.5'/%3E%3Cpath d='M21 12a9 9 0 0 0-9-9' stroke='%23a1a1aa' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 24px 24px;
+}
+main .pagination-loader-container {
+  background-image: url("https://github.com/images/modules/pulls/progressive-disclosure-line.svg");
 }

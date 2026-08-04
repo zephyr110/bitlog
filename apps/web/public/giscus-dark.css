@@ -1,79 +1,75 @@
 /* Zlog — giscus dark theme.
  *
- * Mirrors giscus-light.css against the site's dark tokens: zinc surfaces
- * (--card ~ #18181b), white/10 hairlines, a near-white monochrome accent
- * (the site's dark --primary). See giscus-light.css for the rationale
- * and cascade notes.
+ * Mirrors giscus-light.css against the site's dark tokens (see that file
+ * for the rationale): zinc surfaces, white/10 hairlines, a near-white
+ * monochrome accent (the site's dark --primary).
  */
 
-@import url("https://giscus.app/themes/dark.css");
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap");
-
-:host,
 html {
-  --font-family-sans: "Geist", -apple-system, "BlinkMacSystemFont",
-    "Segoe UI", "Helvetica", "Arial", sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji";
+  /* See giscus-light.css — the iframe can't share next/font's Geist
+     faces, so mirror the site's system fallback stacks. */
+  --font-family-sans: -apple-system, "BlinkMacSystemFont", "Segoe UI",
+    "Helvetica", "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-family-monospace: ui-monospace, "SFMono-Regular", "SF Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
 }
 
 main {
-  /* Surfaces — card #18181b, textarea well darker, header well lighter */
-  --color-canvas-default: #18181b;
-  --color-canvas-overlay: #18181b;
-  --color-canvas-inset: #0d0d0f;
-  --color-canvas-subtle: #232326;
+  /* Surfaces — site --card, deeper --background well, --muted header */
+  --color-canvas-default: oklch(0.205 0 0); /* --card */
+  --color-canvas-overlay: oklch(0.205 0 0); /* --popover */
+  --color-canvas-inset: oklch(0.145 0 0); /* --background — input well */
+  --color-canvas-subtle: oklch(0.269 0 0); /* --muted — header/code wells */
 
-  /* Text — the site's dark zinc foreground ramp */
-  --color-fg-default: #fafafa;
-  --color-fg-muted: #a1a1aa;
-  --color-fg-subtle: #71717a;
-  --color-fg-on-emphasis: #18181b;
+  /* Text — the site's zinc foreground ramp */
+  --color-fg-default: oklch(0.985 0 0); /* --foreground */
+  --color-fg-muted: oklch(0.708 0 0); /* --muted-foreground */
+  --color-fg-subtle: oklch(0.556 0 0); /* --ring */
 
   /* Hairlines — site dark --border is white/10 */
-  --color-border-default: rgb(255 255 255 / 10%);
-  --color-border-muted: rgb(255 255 255 / 6%);
+  --color-border-default: oklch(1 0 0 / 10%); /* --border */
+  --color-border-muted: oklch(1 0 0 / 6%);
 
   /* Accent — monochrome near-white like the site's dark --primary */
-  --color-accent-fg: #e4e4e7;
-  --color-accent-emphasis: #e4e4e7;
-  --color-accent-muted: rgb(228 228 231 / 16%);
-  --color-accent-subtle: rgb(228 228 231 / 8%);
+  --color-accent-fg: oklch(0.922 0 0); /* --primary */
+  --color-accent-emphasis: oklch(0.922 0 0);
+  --color-accent-muted: oklch(0.922 0 0 / 16%);
+  --color-accent-subtle: oklch(0.922 0 0 / 8%);
 
-  /* Buttons — neutral surface; primary is solid near-white */
-  --color-btn-text: #e4e4e7;
-  --color-btn-bg: #27272a;
-  --color-btn-border: rgb(255 255 255 / 12%);
-  --color-btn-shadow: 0 1px 2px rgb(0 0 0 / 30%);
-  --color-btn-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
-  --color-btn-hover-bg: #2e2e32;
-  --color-btn-hover-border: rgb(255 255 255 / 16%);
-  --color-btn-active-bg: #3a3a3f;
-  --color-btn-active-border: rgb(255 255 255 / 16%);
-  --color-btn-selected-bg: #34343a;
-  --color-btn-primary-text: #18181b;
-  --color-btn-primary-bg: #e4e4e7;
-  --color-btn-primary-border: #e4e4e7;
-  --color-btn-primary-shadow: 0 1px 2px rgb(0 0 0 / 30%);
-  --color-btn-primary-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 30%);
-  --color-btn-primary-hover-bg: #d4d4d8;
+  /* Buttons — neutral --muted surface; primary is solid near-white */
+  --color-btn-text: oklch(0.922 0 0); /* --primary — dimmer than fg */
+  --color-btn-bg: oklch(0.269 0 0); /* --muted */
+  --color-btn-border: oklch(1 0 0 / 12%);
+  --color-btn-shadow: 0 1px 2px oklch(0 0 0 / 30%);
+  --color-btn-inset-shadow: inset 0 1px 0 oklch(1 0 0 / 4%);
+  --color-btn-hover-bg: oklch(1 0 0 / 8%);
+  --color-btn-hover-border: oklch(1 0 0 / 16%);
+  --color-btn-active-bg: oklch(1 0 0 / 14%);
+  --color-btn-active-border: oklch(1 0 0 / 16%);
+  --color-btn-primary-text: oklch(0.205 0 0); /* --primary-foreground */
+  --color-btn-primary-bg: oklch(0.922 0 0); /* --primary */
+  --color-btn-primary-border: oklch(0.922 0 0);
+  --color-btn-primary-shadow: 0 1px 2px oklch(0 0 0 / 30%);
+  --color-btn-primary-inset-shadow: inset 0 1px 0 oklch(1 0 0 / 30%);
+  --color-btn-primary-hover-bg: #d4d4d8; /* hand-picked step */
   --color-btn-primary-hover-border: #d4d4d8;
-  --color-btn-primary-selected-bg: #c4c4c8;
-  --color-btn-primary-selected-shadow: inset 0 1px 0 rgb(0 0 0 / 10%);
-  --color-btn-primary-disabled-text: rgb(24 24 27 / 60%);
-  --color-btn-primary-disabled-bg: #71717a;
-  --color-btn-primary-disabled-border: #71717a;
+  --color-btn-primary-selected-bg: #c4c4c8; /* hand-picked step */
+  --color-btn-primary-selected-shadow: inset 0 1px 0 oklch(0 0 0 / 10%);
+  --color-btn-primary-disabled-text: oklch(0.205 0 0 / 60%);
+  --color-btn-primary-disabled-bg: oklch(0.556 0 0); /* --ring */
+  --color-btn-primary-disabled-border: oklch(0.556 0 0);
 
   /* Write/Preview segmented tabs */
-  --color-segmented-control-bg: #0d0d0f;
-  --color-segmented-control-button-bg: #18181b;
-  --color-segmented-control-button-selected-border: #52525b;
+  --color-segmented-control-bg: oklch(0.145 0 0); /* --background */
+  --color-segmented-control-button-bg: oklch(0.205 0 0); /* --card */
+  --color-segmented-control-button-selected-border: #52525b; /* hand-picked */
 
-  --color-action-list-item-default-hover-bg: rgb(255 255 255 / 6%);
-  --color-neutral-muted: rgb(255 255 255 / 10%);
+  --color-action-list-item-default-hover-bg: oklch(1 0 0 / 6%);
+  --color-neutral-muted: oklch(1 0 0 / 10%);
 
   /* Reaction pills */
-  --color-social-reaction-bg-hover: #2b2b2f;
-  --color-social-reaction-bg-reacted-hover: #3f3f46;
+  --color-social-reaction-bg-hover: oklch(1 0 0 / 8%);
+  --color-social-reaction-bg-reacted-hover: oklch(1 0 0 / 14%);
 
   /* Status — functional hues, muted to sit quietly in the neutral UI */
   --color-success-fg: #4ade80;
@@ -83,41 +79,29 @@ main {
   --color-danger-fg: #f87171;
   --color-danger-muted: rgb(248 113 113 / 20%);
   --color-danger-subtle: rgb(248 113 113 / 10%);
-
-  --color-primer-shadow-inset: inset 0 1px 0 rgb(255 255 255 / 4%);
-  --color-scale-gray-1: #2b2b2f;
-  --color-scale-blue-1: #3f3f46;
 }
 
 /* Radius scale — same as giscus-light.css */
 .gsc-comment-box:not(.gsc-comment-box-is-reply),
 .gsc-comment .gsc-comment-box,
-.gsc-reply-box,
 .Box,
-.gsc-pagination-button,
 .flash,
-.gsc-replies,
-.gsc-comment-box-textarea-extras {
-  border-radius: 12px;
+.gsc-replies {
+  border-radius: 14px;
 }
-.gsc-comment-box-tabs {
-  border-radius: 12px 12px 0 0;
+.gsc-comment-box-textarea-extras,
+.gsc-reply-box {
+  border-radius: 0 0 14px 14px;
 }
-.gsc-comment .gsc-comment-box-tabs {
-  border-radius: 0;
+.gsc-comment-box-tabs,
+.Box-header,
+.gsc-comment-content,
+.gsc-comment-box-textarea {
+  border-radius: 14px 14px 0 0;
 }
-.Box-header {
-  border-radius: 12px 12px 0 0;
-}
-.gsc-comment-content {
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
+.gsc-comment .gsc-comment-box-tabs,
 .gsc-comment-content.minimized {
   border-radius: 0;
-}
-.gsc-comment-box-textarea {
-  border-radius: 12px 12px 0 0;
 }
 .btn,
 .BtnGroup,
@@ -126,16 +110,30 @@ main {
 }
 .BtnGroup-item,
 .BtnGroup-item .btn {
-  border-radius: 8px;
+  border-radius: 6px;
 }
 .markdown pre,
 .markdown .highlight pre {
-  border-radius: 8px;
+  border-radius: 6px;
+}
+.gsc-social-reaction-summary-item {
+  border-radius: 9999px;
 }
 
 /* Softer focus — faint accent ring instead of GitHub's full-opacity one */
 .gsc-comment-box-write:focus-within,
 .form-control:focus {
   border-color: var(--color-accent-emphasis);
-  box-shadow: 0 0 0 3px rgb(228 228 231 / 14%);
+  box-shadow: 0 0 0 3px oklch(0.922 0 0 / 14%);
+}
+
+/* Neutral loader — the stock theme's blue octocat gif reads branded */
+main .gsc-loading-image {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='12' cy='12' r='9' stroke='%23a1a1aa' stroke-opacity='0.35' stroke-width='2.5'/%3E%3Cpath d='M21 12a9 9 0 0 0-9-9' stroke='%23a1a1aa' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 24px 24px;
+}
+main .pagination-loader-container {
+  background-image: url("https://github.com/images/modules/pulls/progressive-disclosure-line-dark.svg");
 }
