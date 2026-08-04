@@ -1,41 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import Link from "next/link"
 import { TagBadge } from "@/components/blog/tag-badge"
 import { useT } from "@/components/layout/trans"
 import { type PostSummary } from "@zlog/database"
 import { parseUtcDate } from "@/lib/date"
-import { Calendar, Clock } from "lucide-react"
-
-function formatRelativeDate(
-  dateStr: string,
-  t: (path: string) => unknown
-): string {
-  // Dates are UTC calendar dates (parseUtcDate), so this math is
-  // timezone-independent — identical on the build machine (SSR) and in
-  // the viewer's browser, no hydration mismatch. Posts dated today (or
-  // ahead, e.g. a UTC+8 author just after local midnight) must never
-  // render as "-1 days ago": clamp negative day diffs to today.
-  const date = parseUtcDate(dateStr)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-  if (diffDays <= 0) return t("post.today") as string
-  if (diffDays === 1) return t("post.yesterday") as string
-  if (diffDays < 7)
-    return (t("post.daysAgo") as (n: number) => string)(diffDays)
-  if (diffDays < 30)
-    return (t("post.weeksAgo") as (n: number) => string)(
-      Math.floor(diffDays / 7)
-    )
-  if (diffDays < 365)
-    return (t("post.monthsAgo") as (n: number) => string)(
-      Math.floor(diffDays / 30)
-    )
-  return (t("post.shortDate") as (d: Date) => string)(date)
-}
+import { Calendar } from "lucide-react"
 
 /** Cover-less posts get a deterministic gradient picked from the title —
  *  shared by PostCard and FeaturedPostCard so the same post renders the
@@ -53,17 +23,10 @@ export const gradientPairs = [
 
 export function PostCard({ post }: { post: PostSummary }) {
   const { t } = useT()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true)
-  }, [])
   const haveCover = !!post.cover
-  // SSR always renders the absolute date; after hydration the relative
-  // form takes over so the clock is the viewer's, not the build machine's.
-  const shortDate = mounted
-    ? formatRelativeDate(post.date, t)
-    : (t("post.shortDate") as (d: Date) => string)(parseUtcDate(post.date))
+  const shortDate = (t("post.shortDate") as (d: Date) => string)(
+    parseUtcDate(post.date)
+  )
   const minReadLabel = t("post.minRead") as (n: number) => string
   const gradient = gradientPairs[post.title.length % gradientPairs.length]
 
@@ -109,13 +72,6 @@ export function PostCard({ post }: { post: PostSummary }) {
             <time dateTime={post.date} className="font-medium">
               {shortDate}
             </time>
-            {post.updated && post.updated !== post.date && (
-              <>
-                <span className="opacity-40">·</span>
-                <Clock size={12} />
-                <span>{t("post.updated") as string}</span>
-              </>
-            )}
           </div>
 
           {/* Title */}
