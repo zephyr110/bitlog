@@ -4,7 +4,8 @@ import { getSiteConfig } from "@/lib/get-site-config"
 import { Trans } from "@/components/layout/trans"
 import { defaultLocale, t } from "@/lib/i18n"
 import { PageHeader } from "@/components/layout/page-header"
-import { GitBranch, MessageCircle, Sparkles, Palette, FileCode, Cloud, Rocket, Database, UserRound } from "lucide-react"
+import { Sparkles, Palette, FileCode, Cloud, Rocket, Database, UserRound } from "lucide-react"
+import { GithubIcon, XIcon } from "@/components/ui/brand-icons"
 
 export const metadata: Metadata = {
   title: t(defaultLocale, "about.title") as string,
@@ -123,7 +124,7 @@ export default async function AboutPage() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border bg-card hover:bg-muted hover:border-primary/20 transition-all text-sm font-medium"
                 >
-                  <GitBranch size={16} />
+                  <GithubIcon size={16} />
                   <Trans k="about.github" />
                 </a>
               ) : null}
@@ -134,7 +135,7 @@ export default async function AboutPage() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border bg-card hover:bg-muted hover:border-primary/20 transition-all text-sm font-medium"
                 >
-                  <MessageCircle size={16} />
+                  <XIcon size={16} />
                   <Trans k="about.twitter" />
                 </a>
               ) : null}

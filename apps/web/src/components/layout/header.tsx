@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { Menu, X, Search } from "lucide-react"
+import { GithubIcon } from "@/components/ui/brand-icons"
 import { categoryMeta } from "@/lib/categories"
 
 const navLinks = [
@@ -34,6 +35,7 @@ export function Header({ categories }: { categories: Category[] }) {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileTopicsOpen, setMobileTopicsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const logoSrc = siteLogoSrc(site)
 
@@ -179,7 +181,7 @@ export function Header({ categories }: { categories: Category[] }) {
               className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground"
               aria-label="GitHub"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+              <GithubIcon size={18} />
             </a>
 
             {/* Mobile menu toggle */}
@@ -218,34 +220,71 @@ export function Header({ categories }: { categories: Category[] }) {
               {categories.length > 0 && (
                 <>
                   <div className="my-2 mx-3 border-t" />
-                  <div className="px-3 py-1 text-xs font-medium text-muted-foreground">
+                  {/* Collapsible topics — the options slide open under the
+                      header (grid-rows 0fr→1fr animates height smoothly),
+                      indented left of the header row. */}
+                  <button
+                    type="button"
+                    onClick={() => setMobileTopicsOpen((v) => !v)}
+                    aria-expanded={mobileTopicsOpen}
+                    className="flex w-full items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-all duration-150"
+                  >
                     {t("site.topics") as string}
+                    <svg
+                      className={cn(
+                        "size-3 opacity-50 transition-transform duration-200",
+                        mobileTopicsOpen && "rotate-180"
+                      )}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div
+                    className={cn(
+                      "grid transition-[grid-template-rows] duration-300 ease-out",
+                      mobileTopicsOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "overflow-hidden transition-opacity duration-300",
+                        mobileTopicsOpen ? "opacity-100" : "opacity-0"
+                      )}
+                    >
+                      <div className="flex flex-col gap-0.5 pt-1 pb-1 pl-4">
+                        {categories.map((cat) => {
+                          const meta = categoryMeta[cat.key as keyof typeof categoryMeta]
+                          if (!meta) return null
+                          return (
+                            <Link
+                              key={cat.key}
+                              href={`/category/${encodeURIComponent(cat.key)}`}
+                              onClick={() => setMobileOpen(false)}
+                              className={cn(
+                                "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
+                                pathname === `/category/${encodeURIComponent(cat.key)}`
+                                  ? "bg-primary/10 text-primary"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                              )}
+                            >
+                              {t(meta.i18nKey as never) as string}
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    </div>
                   </div>
-                  {categories.map((cat) => {
-                    const meta = categoryMeta[cat.key as keyof typeof categoryMeta]
-                    if (!meta) return null
-                    return (
-                      <Link
-                        key={cat.key}
-                        href={`/category/${encodeURIComponent(cat.key)}`}
-                        onClick={() => setMobileOpen(false)}
-                        className={cn(
-                          "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
-                          pathname === `/category/${encodeURIComponent(cat.key)}`
-                            ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                        )}
-                      >
-                        {t(meta.i18nKey as never) as string}
-                      </Link>
-                    )
-                  })}
                 </>
               )}
               <div className="my-2 mx-3 border-t" />
               <a href="https://github.com/zephyr110/zlog" target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-150">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                <GithubIcon size={16} />
                 GitHub
               </a>
               <div className="flex items-center justify-between px-3 py-2">
