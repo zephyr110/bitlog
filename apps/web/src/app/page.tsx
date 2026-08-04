@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, FileText } from "lucide-react"
-import { getPublishedPosts } from "@zlog/database"
+import { getPublishedPosts, getPublishedCount } from "@zlog/database"
 import { HeroSection } from "@/components/blog/hero-section"
 import { FeaturedPostCard } from "@/components/blog/featured-post-card"
 import { PostCard } from "@/components/blog/post-card"
@@ -10,13 +10,18 @@ import { Trans } from "@/components/layout/trans"
 const LATEST_GRID_COUNT = 6
 
 export default async function HomePage() {
-  const posts = await getPublishedPosts()
+  // Only the displayed rows are fetched from the DB (the archive page is
+  // the full-catalog surface); the hero count comes from a cheap COUNT.
+  const [posts, postCount] = await Promise.all([
+    getPublishedPosts(LATEST_GRID_COUNT + 1),
+    getPublishedCount(),
+  ])
   const [featured, ...rest] = posts
   const latest = rest.slice(0, LATEST_GRID_COUNT)
 
   return (
     <div className="min-h-[calc(100vh-4rem)]">
-      <HeroSection postCount={posts.length} />
+      <HeroSection postCount={postCount} />
 
       <section
         id="post-feed"

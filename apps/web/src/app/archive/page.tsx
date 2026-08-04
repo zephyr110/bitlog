@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { type Metadata } from "next"
 import { Archive } from "lucide-react"
-import { getPublishedPosts, getAllTags } from "@zlog/database"
+import { getPublishedPosts } from "@zlog/database"
 import { Trans } from "@/components/layout/trans"
 import { defaultLocale, t } from "@/lib/i18n"
 import { PageHeader } from "@/components/layout/page-header"
@@ -16,7 +16,9 @@ export const metadata: Metadata = {
 
 export default async function ArchivePage() {
   const posts = await getPublishedPosts()
-  const allTags = await getAllTags()
+  // Tags derived from the published posts themselves — getAllTags() also
+  // read draft rows, leaking draft-only categories into the filter pills.
+  const allTags = [...new Set(posts.flatMap((p) => p.tags))]
 
   return (
     <div className="min-h-[calc(100vh-4rem)]">

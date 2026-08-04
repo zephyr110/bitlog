@@ -42,16 +42,9 @@ export function ArchiveFeedSkeleton() {
 export default function ArchiveLoading() {
   return (
     <div className="min-h-[calc(100vh-4rem)]">
-      {/* PageHeader skeleton */}
-      <section className="relative border-b bg-gradient-to-b from-muted/40 via-muted/20 to-background">
-        <div className="container mx-auto max-w-5xl px-4 py-16 md:py-20 2xl:max-w-7xl">
-          <Skeleton className="mb-6 h-4 w-24" />
-          <Skeleton className="mb-5 size-12 rounded-2xl" />
-          <Skeleton className="mb-3 h-9 w-40" />
-          <Skeleton className="h-4 w-32" />
-        </div>
-      </section>
       <div className="container mx-auto max-w-5xl px-4 py-8 md:py-12 2xl:max-w-7xl">
+        {/* The PageHeader renders outside the Suspense boundary, so it is
+            already visible — only the feed area needs a skeleton. */}
         <ArchiveFeedSkeleton />
       </div>
     </div>

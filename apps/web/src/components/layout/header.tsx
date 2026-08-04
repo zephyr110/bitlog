@@ -85,7 +85,7 @@ export function Header({ categories }: { categories: Category[] }) {
           <div className="flex items-center gap-1">
 
             {/* Search */}
-            <SearchInput t={t} router={router} />
+            <SearchInput t={t} router={router} pathname={pathname} />
 
             {/* ── Text links with polished active/hover states ── */}
 
@@ -283,13 +283,17 @@ function NavLink({ href, active, children }: { href: string; active: boolean; ch
   )
 }
 
-function SearchInput({ t, router }: { t: ReturnType<typeof useT>["t"]; router: ReturnType<typeof useRouter> }) {
+function SearchInput({ t, router, pathname }: { t: ReturnType<typeof useT>["t"]; router: ReturnType<typeof useRouter>; pathname: string }) {
   const [value, setValue] = useState("")
 
   useEffect(() => {
+    // Only /archive consumes ?q= — syncing elsewhere (e.g. an old
+    // /?q=... bookmark on the home page) would show a query the page
+    // ignores.
+    if (pathname !== "/archive") return
     const params = new URLSearchParams(window.location.search)
     setValue(params.get("q") || "") // eslint-disable-line react-hooks/set-state-in-effect -- one-time sync from URL on mount (window is unavailable during SSR)
-  }, [])
+  }, [pathname])
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()

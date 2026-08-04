@@ -27,6 +27,8 @@ clearFilter: "清除筛选",
 noMatchPosts: "没有匹配的文章",
 noMatchPostsDesc: (tag: string) =>
   `没有标记为「${tag}」的文章，请尝试选择其他主题。`,
+noSearchMatchDesc: (q: string) =>
+  `没有找到匹配「${q}」的文章，换个关键词试试。`,
 postsCount: (n: number) => `${n} 篇文章`,
 postsTagged: (tag: string) => `标签为「${tag}」的文章`,
 postsTaggedDesc: (tag: string) => `所有标记为「${tag}」的博客文章。`,
@@ -36,7 +38,6 @@ navigate: "导航",
 links: "链接",
 searchPosts: "搜索文章...",
 noTopics: "暂无分类",
-timeline: "时间轴",
     
   },
   en: {
@@ -67,6 +68,8 @@ clearFilter: "Clear filter",
 noMatchPosts: "No matching posts",
 noMatchPostsDesc: (tag: string) =>
   `No posts tagged with "${tag}". Try selecting a different topic.`,
+noSearchMatchDesc: (q: string) =>
+  `No articles match "${q}". Try a different keyword.`,
 postsCount: (n: number) => `${n} ${n === 1 ? "post" : "posts"}`,
 postsTagged: (tag: string) => `Posts tagged "${tag}"`,
 postsTaggedDesc: (tag: string) => `All blog posts tagged with "${tag}".`,
@@ -76,7 +79,6 @@ navigate: "Navigate",
 links: "Links",
 searchPosts: "Search posts...",
 noTopics: "No topics",
-timeline: "Timeline",
     
   },
 } as const

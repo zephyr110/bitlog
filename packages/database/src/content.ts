@@ -110,25 +110,40 @@ function sortByDate(posts: Post[]): Post[] {
 
 // ── Public API ──────────────────────────────────────────────────────────
 
-export async function getAllPosts(includeDrafts = false): Promise<Post[]> {
+export async function getAllPosts(
+  includeDrafts = false,
+  limit?: number
+): Promise<Post[]> {
   const db = requireDb()
   await ensureTable(db)
 
-  let rows
-  if (includeDrafts) {
-    const result = await db.execute("SELECT * FROM posts")
-    rows = result.rows
-  } else {
-    const result = await db.execute("SELECT * FROM posts WHERE draft = 0")
-    rows = result.rows
+  let sql = "SELECT * FROM posts"
+  if (!includeDrafts) sql += " WHERE draft = 0"
+  // ISO "YYYY-MM-DD" dates sort correctly as text; the JS sortByDate
+  // below re-sorts for NaN tolerance but keeps this order.
+  sql += " ORDER BY date DESC"
+  const args: Array<string | number> = []
+  if (limit !== undefined) {
+    sql += " LIMIT ?"
+    args.push(limit)
   }
 
-  return sortByDate(rows.map(rowToPost))
+  const result = await db.execute({ sql, args })
+  return sortByDate(result.rows.map(rowToPost))
 }
 
-export async function getPublishedPosts(): Promise<PostSummary[]> {
-  const posts = await getAllPosts(false)
+export async function getPublishedPosts(limit?: number): Promise<PostSummary[]> {
+  const posts = await getAllPosts(false, limit)
   return posts.map(toPostSummary)
+}
+
+export async function getPublishedCount(): Promise<number> {
+  const db = requireDb()
+  await ensureTable(db)
+  const result = await db.execute(
+    "SELECT COUNT(*) AS count FROM posts WHERE draft = 0"
+  )
+  return Number(result.rows[0]?.count ?? 0)
 }
 
 export async function getPostBySlug(

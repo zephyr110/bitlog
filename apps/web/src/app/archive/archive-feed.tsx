@@ -57,6 +57,23 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
     setSearchQuery(urlQuery)
   }
 
+  // Debounce typing: each keystroke would otherwise re-filter the whole
+  // catalog, rebuild the IntersectionObserver and rewrite browser history.
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  function onSearchChange(value: string) {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(value)
+      // Keep the URL shareable without a server round-trip.
+      syncSearchUrl(value)
+    }, 150)
+  }
+  function clearSearch() {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setSearchQuery("")
+    syncSearchUrl("")
+  }
+
   const categories = useMemo(
     () => [...new Set(allTags.map(resolveCategory))],
     [allTags]
@@ -64,7 +81,9 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
 
   const filteredPosts = useMemo(() => {
     let result = posts
-    if (activeTag) {
+    // `!== null` (not truthiness): an empty-string category must still
+    // filter — the pill would otherwise show pressed but filter nothing.
+    if (activeTag !== null) {
       result = result.filter((p) =>
         p.tags.some((tag) => resolveCategory(tag).toLowerCase() === activeTag.toLowerCase())
       )
@@ -83,11 +102,14 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
 
   // Year groups (newest first) — the sticky YearNavBar jumps between
   // them, and an IntersectionObserver keeps the bar's highlight on the
-  // section currently in view.
+  // section currently in view. Dates are UTC calendar dates, so the
+  // group year must use the UTC calendar year (local getFullYear() on a
+  // UTC-midnight date misgroups Dec-31/Jan-1 posts for negative-offset
+  // timezones).
   const grouped = useMemo(() => {
     const map = new Map<number, PostSummary[]>()
     for (const post of filteredPosts) {
-      const year = new Date(post.date).getFullYear()
+      const year = parseUtcDate(post.date).getUTCFullYear()
       if (!Number.isFinite(year)) continue
       if (!map.has(year)) map.set(year, [])
       map.get(year)!.push(post)
@@ -126,53 +148,64 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
       // the bottom -70% keeps it narrow so only one section is active.
       { rootMargin: "-108px 0px -70% 0px", threshold: 0 }
     )
+    const lastYear = grouped[grouped.length - 1]?.[0]
+    // A short final section can never enter the narrow detection band —
+    // at the bottom of the page the last group is the active one.
+    const onScroll = () => {
+      if (
+        lastYear !== undefined &&
+        window.innerHeight + window.scrollY >=
+          document.documentElement.scrollHeight - 8
+      ) {
+        setActiveYear(lastYear)
+      }
+    }
     sectionRefs.current.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      observer.disconnect()
+      window.removeEventListener("scroll", onScroll)
+    }
   }, [grouped])
 
   function jumpToYear(year: number) {
     const reduce =
       typeof window.matchMedia === "function" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    document
-      .getElementById(`year-${year}`)
+    sectionRefs.current
+      .get(year)
       ?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" })
   }
 
   return (
     <div>
       {/* Search & Topics — one toolbar row, controls share the h-8 height
-          and the pill language of the year-nav below */}
-      {allTags.length > 0 && (
-        <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="relative w-full lg:max-w-xs lg:shrink-0">
-            <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-            />
-            <Input
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                // Keep the URL shareable without a server round-trip.
-                syncSearchUrl(e.target.value)
-              }}
-              placeholder={t("site.searchPosts") as string}
-              className="pl-9 pr-8"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => {
-                  setSearchQuery("")
-                  syncSearchUrl("")
-                }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
+          and the pill language of the year-nav below. The search box is
+          independent of the topic pills: a tagless site must still be
+          searchable (the header search routes here too). */}
+      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="relative w-full lg:max-w-xs lg:shrink-0">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+          />
+          <Input
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={t("site.searchPosts") as string}
+            className="pl-9 pr-8"
+          />
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
 
+        {allTags.length > 0 && (
           <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {categories.map((cat) => {
               const active = activeTag === cat
@@ -194,17 +227,16 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
               )
             })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Results count when filtered */}
-      {(activeTag || searchQuery) && (
+      {(activeTag !== null || searchQuery.trim() !== "") && (
         <div className="flex items-center gap-2 mb-6 animate-in fade-in duration-300">
           <button
             onClick={() => {
               setActiveTag(null)
-              setSearchQuery("")
-              syncSearchUrl("")
+              clearSearch()
             }}
             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-xs font-medium text-primary hover:bg-primary/15 transition-all"
           >
@@ -229,16 +261,18 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
             <FileText size={32} className="text-muted-foreground" />
           </div>
           <h2 className="text-2xl font-semibold mb-2">
-            {activeTag || searchQuery
+            {activeTag !== null || searchQuery.trim() !== ""
               ? (t("site.noMatchPosts") as string)
               : (t("site.noPosts") as string)}
           </h2>
           <p className="text-muted-foreground max-w-md">
-            {activeTag || searchQuery
-              ? (t("site.noMatchPostsDesc") as (tag: string) => string)(
-                  activeTag || searchQuery
-                )
-              : (t("site.noPostsDesc") as string)}
+            {activeTag !== null
+              ? (t("site.noMatchPostsDesc") as (tag: string) => string)(activeTag)
+              : searchQuery.trim() !== ""
+                ? (t("site.noSearchMatchDesc") as (q: string) => string)(
+                    searchQuery.trim()
+                  )
+                : (t("site.noPostsDesc") as string)}
           </p>
         </div>
       ) : (

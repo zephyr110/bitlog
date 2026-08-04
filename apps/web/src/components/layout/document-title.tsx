@@ -9,6 +9,7 @@ import { categoryMeta, type CategoryKey } from "@/lib/categories"
 
 /** Exact pathname → i18n key for the page segment of `Brand | Page`. */
 const TITLE_KEYS: Record<string, string> = {
+  "/archive": "archive.title",
   "/timeline": "timeline.title",
   "/about": "about.title",
   "/admin/login": "admin.loginTitle",

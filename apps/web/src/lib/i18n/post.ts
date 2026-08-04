@@ -28,7 +28,14 @@ daysAgo: (n: number) => `${n} 天前`,
 weeksAgo: (n: number) => `${n} 周前`,
 monthsAgo: (n: number) => `${n} 个月前`,
 shortDate: (d: Date) =>
-  d.toLocaleDateString("zh-CN", { year: "numeric", month: "short", day: "numeric" }),
+  d.toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    // UTC calendar date — without this the static-exported HTML (built
+    // in one timezone) would differ from the hydrated client render.
+    timeZone: "UTC",
+  }),
     
   },
   en: {
@@ -58,7 +65,14 @@ daysAgo: (n: number) => `${n} days ago`,
 weeksAgo: (n: number) => `${n} weeks ago`,
 monthsAgo: (n: number) => `${n} months ago`,
 shortDate: (d: Date) =>
-  d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
+  d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    // UTC calendar date — without this the static-exported HTML (built
+    // in one timezone) would differ from the hydrated client render.
+    timeZone: "UTC",
+  }),
     
   },
 } as const

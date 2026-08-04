@@ -1,6 +1,7 @@
 export {
   getAllPosts,
   getPublishedPosts,
+  getPublishedCount,
   getPostBySlug,
   savePost,
   deletePost,
