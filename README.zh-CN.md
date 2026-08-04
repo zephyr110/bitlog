@@ -4,6 +4,9 @@
 
 线上体验：[zephyr110.vercel.app](https://zephyr110.vercel.app) · 静态镜像：[zephyr110.github.io](https://zephyr110.github.io)
 
+<img width="1440" height="2064" alt="zephyr110 vercel app_about (2)" src="https://github.com/user-attachments/assets/00d57a80-7806-4532-92ac-e12751966dd8" />
+<img width="1440" height="2064" alt="zephyr110 vercel app_about (1) (1)" src="https://github.com/user-attachments/assets/954808c2-c12e-47eb-85b5-8023a65791fc" />
+
 ## 功能模块
 
 - **静态博客** — 预渲染页面，性能与 SEO 兼顾；内置 sitemap、RSS、Open Graph
