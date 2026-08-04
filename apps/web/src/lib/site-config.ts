@@ -56,6 +56,13 @@ export function siteLogoSrc(config: Pick<SiteConfig, "logoUrl">): string {
   return config.logoUrl || DEFAULT_SITE_LOGO
 }
 
+/** True when src is a known built-in mark (not a custom upload). */
+export function isBuiltInLogoSrc(src: string): boolean {
+  return src === DEFAULT_SITE_LOGO || src === DEFAULT_SITE_LOGO_DARK ||
+    src === "/spooky.svg" || src === "/favicon.svg" ||
+    src.endsWith("/logo.svg")
+}
+
 /** True for the built-in mark (empty url or a known builtin SVG path). */
 export function isDefaultSiteLogo(config: Pick<SiteConfig, "logoUrl">): boolean {
   const url = config.logoUrl
@@ -64,6 +71,7 @@ export function isDefaultSiteLogo(config: Pick<SiteConfig, "logoUrl">): boolean 
     const path = url.startsWith("http") ? new URL(url).pathname : url.split("?")[0]
     return (
       path === DEFAULT_SITE_LOGO ||
+      path === DEFAULT_SITE_LOGO_DARK ||
       path === "/spooky.svg" ||
       path === "/favicon.svg" ||
       path.endsWith("/logo.svg")

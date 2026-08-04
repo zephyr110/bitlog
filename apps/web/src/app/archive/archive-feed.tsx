@@ -40,8 +40,9 @@ function formatMonthDay(dateStr: string, locale: string): string {
 
 /** The archive feed: a dense, retrieval-oriented index of every post —
  *  filter toolbar on top, sticky year-jump pills, then compact
- *  date + title rows grouped under year headings. No collapsing: this
- *  page exists so readers can scan and search the whole catalog. */
+ *  date + title rows grouped under year headings, each collapsible via
+ *  a toggle button. Collapsed sections are inert and hidden from the
+   *  accessibility tree. */
 export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
   const { t, locale } = useT()
   const searchParams = useSearchParams()
@@ -66,6 +67,13 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Reset collapse state when filters change so search results are never
+  // silently hidden inside collapsed year sections.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset collapse when filters change
+    setCollapsedYears(new Set())
+  }, [searchQuery, activeTag])
+
   // Clean up the pending debounce on unmount so a stale timer can't
   // corrupt the URL of whatever page the user navigated to next.
   useEffect(() => {
@@ -76,7 +84,7 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
 
   function onSearchChange(value: string) {
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    // eslint-disable-next-line react-hooks/immutability
+    // eslint-disable-next-line react-hooks/immutability -- standard debounce ref pattern
     debounceRef.current = setTimeout(() => {
       setSearchQuery(value)
       syncSearchUrl(value)
@@ -184,6 +192,13 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
   }, [grouped])
 
   function jumpToYear(year: number) {
+    // Auto-expand a collapsed year so the user actually sees its content.
+    setCollapsedYears((prev) => {
+      if (!prev.has(year)) return prev
+      const next = new Set(prev)
+      next.delete(year)
+      return next
+    })
     const reduce =
       typeof window.matchMedia === "function" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -296,7 +311,7 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
             className="inline-flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground"
           >
             <svg
-              className={`size-3 transition-transform duration-300 ${allCollapsed ? "rotate-180" : ""}`}
+              className={`size-3 transition-transform duration-300 ${allCollapsed ? "" : "rotate-180"}`}
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -349,46 +364,52 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
               }}
               className="scroll-mt-28"
             >
-              {/* Year heading with collapse toggle */}
-              <button
-                onClick={() => toggleYear(year)}
-                className="mb-4 flex w-full items-center gap-3 text-left animate-in fade-in duration-500 cursor-pointer group/heading"
-              >
-                <span
-                  aria-hidden
-                  className="h-7 w-1 shrink-0 rounded-full bg-gradient-to-b from-primary/70 to-primary/20"
-                />
-                <span className="text-2xl font-bold tracking-tight tabular-nums">
-                  {year}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {(t("site.yearPosts") as (n: number) => string)(
-                    yearPosts.length
-                  )}
-                </span>
-                {/* Chevron */}
-                <span className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground/60 transition-all duration-300 group-hover/heading:border-border group-hover/heading:text-muted-foreground">
-                  <svg
-                    className={`size-3.5 transition-transform duration-300 ${collapsed ? "" : "rotate-180"}`}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </span>
-              </button>
+              {/* Year heading — h2 wraps the collapse toggle so the document
+                   outline is preserved for assistive technology. */}
+              <h2 className="mb-4 animate-in fade-in duration-500">
+                <button
+                  onClick={() => toggleYear(year)}
+                  aria-expanded={!collapsed}
+                  className="flex w-full items-center gap-3 text-left cursor-pointer group/heading"
+                >
+                  <span
+                    aria-hidden
+                    className="h-7 w-1 shrink-0 rounded-full bg-gradient-to-b from-primary/70 to-primary/20"
+                  />
+                  <span className="text-2xl font-bold tracking-tight tabular-nums">
+                    {year}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {(t("site.yearPosts") as (n: number) => string)(
+                      yearPosts.length
+                    )}
+                  </span>
+                  {/* Chevron — down when collapsed, up when expanded */}
+                  <span className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground/60 transition-all duration-300 group-hover/heading:border-border group-hover/heading:text-muted-foreground">
+                    <svg
+                      className={`size-3.5 transition-transform duration-300 ${collapsed ? "" : "rotate-180"}`}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </span>
+                </button>
+              </h2>
 
-              {/* Collapsible post list — animated via grid-rows */}
+              {/* Collapsible post list — animated via grid-rows.
+                   When collapsed the inner wrapper is made inert so keyboard
+                   focus and screen readers skip the hidden links. */}
               <div
                 className={`grid transition-[grid-template-rows] duration-300 ease-out ${
                   collapsed ? "grid-rows-[0fr]" : "grid-rows-[1fr]"
                 }`}
               >
-                <div className="overflow-hidden">
+                <div className="overflow-hidden" inert={collapsed || undefined}>
                   <ul className="divide-y divide-border/50 border-y border-border/50">
                     {yearPosts.map((post) => (
                       <li key={post.slug}>
