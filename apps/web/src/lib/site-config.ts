@@ -64,21 +64,3 @@ export function isBuiltInLogoSrc(src: string): boolean {
     src === "/spooky.svg" || src === DEFAULT_FAVICON ||
     src.endsWith("/logo.svg")
 }
-
-/** True for the built-in mark (empty url or a known builtin SVG path). */
-export function isDefaultSiteLogo(config: Pick<SiteConfig, "logoUrl">): boolean {
-  const url = config.logoUrl
-  if (!url) return true
-  try {
-    const path = url.startsWith("http") ? new URL(url).pathname : url.split("?")[0]
-    return (
-      path === DEFAULT_SITE_LOGO ||
-      path === DEFAULT_SITE_LOGO_DARK ||
-      path === "/spooky.svg" ||
-      path === DEFAULT_FAVICON ||
-      path.endsWith("/logo.svg")
-    )
-  } catch {
-    return false
-  }
-}

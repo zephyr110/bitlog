@@ -165,10 +165,9 @@ export default function AdminLoginPage() {
             href="/"
             className="inline-flex items-center gap-3 rounded-xl transition-opacity hover:opacity-80"
           >
-            {/* The card IS the logo display — the mark fills it edge-to-edge
-                and the card's clip rounds it (same full-bleed look as the
-                header/footer chip). bg-card is opaque, so a dark-mode
-                inverted transparent PNG rasterizes onto the card. */}
+            {/* Full-bleed rounded tile, same recipe as the chip — and
+                bg-card is opaque, so a dark-mode inverted transparent PNG
+                rasterizes onto it, not onto the page background. */}
             <span className="flex size-11 items-center justify-center overflow-hidden rounded-lg border bg-card shadow-sm">
               <SiteLogo
                 src={logoSrc}
