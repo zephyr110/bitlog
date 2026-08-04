@@ -81,7 +81,7 @@ export function Header({ categories }: { categories: Category[] }) {
             <span className="hidden font-black text-lg sm:inline">{site.name}</span>
           </Link>
 
-          {/* Right: Search · 首页 · 分类 · 时间轴 · 关于 · | · 主题 · 语言 · GitHub */}
+          {/* Right: Search · 首页 · 分类 · 归档 · 关于 · | · 主题 · 语言 · GitHub */}
           <div className="flex items-center gap-1">
 
             {/* Search */}
@@ -152,11 +152,6 @@ export function Header({ categories }: { categories: Category[] }) {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* 时间轴 */}
-            <NavLink href="/timeline" active={pathname === "/timeline"}>
-              {t("site.timeline") as string}
-            </NavLink>
 
             {/* 归档 */}
             <NavLink href="/archive" active={pathname === "/archive"}>

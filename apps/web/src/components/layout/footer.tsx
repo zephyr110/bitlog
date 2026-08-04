@@ -92,12 +92,6 @@ export function Footer() {
                 {t("site.archive") as string}
               </Link>
               <Link
-                href="/timeline"
-                className="w-fit text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {t("site.timeline") as string}
-              </Link>
-              <Link
                 href="/about"
                 className="w-fit text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
