@@ -1,11 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="87.7 28.8 1838.7 1856.6" shape-rendering="geometricPrecision">
-  <style>
-    path { fill: #171717; }
-    @media (prefers-color-scheme: dark) {
-      path { fill: #fafafa; }
-    }
-  </style>
-  <g transform="translate(0 2048) scale(0.1 -0.1)">
+  <g transform="translate(0 2048) scale(0.1 -0.1)" fill="#ffffff" stroke="none">
     <path d="M9485 19383 c-1023 -86 -1820 -277 -2700 -648 -954 -401 -1811 -972
 -2554 -1700 -479 -470 -823 -889 -1197 -1455 -162 -246 -289 -468 -454 -795
 -476 -941 -767 -1953 -877 -3045 -26 -259 -26 -1293 0 -1555 47 -467 132 -971
