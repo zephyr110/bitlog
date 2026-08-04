@@ -4,10 +4,19 @@ import { NextRequest } from "next/server"
 import { getSiteConfig } from "@/lib/get-site-config"
 import { DEFAULT_FAVICON } from "@/lib/site-config"
 
-// No `dynamic` export here on purpose: GET route handlers are already
-// dynamic by default (Next ≥ 15), and the static-export deploy
-// (scripts/toggle-force-static.mjs) prepends `force-static` for the
-// GitHub Pages build — declaring it ourselves would duplicate the export.
+// ISR (revalidate 3600) instead of a plain dynamic route: /icon is a
+// metadata route, which Next ≥ 16 keeps static by default — the build
+// would try to prerender it, hit the no-store fetch below, and log a
+// "Dynamic server usage" error. With a route-level revalidate the build
+// prerenders successfully (the proxy fetch runs once at build time and
+// is cached) and the runtime revalidates hourly, so a logo change
+// shows up within an hour — matching the existing browser-level
+// Cache-Control: max-age=3600 anyway.
+//
+// The static-export deploy (scripts/toggle-force-static.mjs) prepends
+// `export const dynamic = "force-static"` for the GitHub Pages build;
+// Next allows revalidate together with force-static, so no conflict.
+export const revalidate = 3600
 
 const MAX_FAVICON_BYTES = 2 * 1024 * 1024
 const FETCH_TIMEOUT_MS = 5_000
@@ -38,7 +47,9 @@ async function defaultFavicon(request: NextRequest): Promise<Response> {
     try {
       const res = await fetch(
         new URL(DEFAULT_FAVICON, request.nextUrl.origin),
-        { cache: "no-store", signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) }
+        // Cached like the proxy below: a no-store fetch would make the
+        // build-time prerender of this route fail.
+        { next: { revalidate: 3600 }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) }
       )
       if (!res.ok) throw new Error(`default favicon fetch failed: ${res.status}`)
       return new Response(await res.arrayBuffer(), { headers })
@@ -125,7 +136,12 @@ export async function GET(request: NextRequest) {
     if (decodedPath === "/icon") throw new Error("self-referential favicon url")
 
     const res = await fetch(url, {
-      cache: "no-store",
+      // Cached for an hour (ISR): this route is prerendered at build
+      // time, so a no-store fetch would fail the prerender with a
+      // "Dynamic server usage" error. The route-level revalidate above
+      // re-runs this fetch hourly at runtime, so a changed logo still
+      // shows up within the hour.
+      next: { revalidate: 3600 },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       // Never follow upstream redirects — a 3xx to an internal host
       // would bypass the URL safety checks above.
