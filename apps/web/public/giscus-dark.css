@@ -1,15 +1,19 @@
 /* Zlog — giscus dark theme.
  *
  * Mirrors giscus-light.css against the site's dark tokens (see that file
- * for the rationale — including why all colors are hex/rgb literals):
+ * for the rationale — including why all colors are hex/rgb literals and
+ * the Geist @import below is progressive enhancement):
  * zinc surfaces, white/10 hairlines, a near-white monochrome accent
  * (the site's dark --primary).
  */
 
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap");
+
 html {
   /* See giscus-light.css — the iframe can't share next/font's Geist
-     faces, so mirror the site's system fallback stacks. */
-  --font-family-sans: -apple-system, "BlinkMacSystemFont", "Segoe UI",
+     faces, so the widget fetches it itself, then falls back to the
+     site's system stacks. */
+  --font-family-sans: "Geist", -apple-system, "BlinkMacSystemFont", "Segoe UI",
     "Helvetica", "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   --font-family-monospace: ui-monospace, "SFMono-Regular", "SF Mono", Menlo,
     Consolas, "Liberation Mono", monospace;
