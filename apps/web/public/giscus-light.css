@@ -114,11 +114,15 @@ main {
 .gsc-replies {
   border-radius: 14px;
 }
-/* Bottom-attached wells (markdown hint bar, reply button) sit flush
-   under their parent: square top corners, the parent's 14px bottom. */
-.gsc-comment-box-textarea-extras,
-.gsc-reply-box {
+/* The markdown hint bar sits flush under its textarea: square top
+   corners, the parent's 14px bottom. */
+.gsc-comment-box-textarea-extras {
   border-radius: 0 0 14px 14px;
+}
+/* "Write a reply" button's parent — rounded-md (6px), a small pill
+   container for the 4px button inside it. */
+.gsc-reply-box {
+  border-radius: 6px;
 }
 .gsc-comment-box-tabs,
 .Box-header,

@@ -94,9 +94,11 @@ main {
 .gsc-replies {
   border-radius: 14px;
 }
-.gsc-comment-box-textarea-extras,
-.gsc-reply-box {
+.gsc-comment-box-textarea-extras {
   border-radius: 0 0 14px 14px;
+}
+.gsc-reply-box {
+  border-radius: 6px;
 }
 .gsc-comment-box-tabs,
 .Box-header,
