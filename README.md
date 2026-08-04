@@ -3,6 +3,7 @@
 A minimal, fast, and bilingual personal blog with a local admin CMS. Built with [Next.js](https://nextjs.org) 16 (App Router), [Tailwind CSS](https://tailwindcss.com) 4, [shadcn/ui](https://ui.shadcn.com), [MDX](https://mdxjs.com), and [Turso](https://turso.tech) (libSQL). Deploys as a fully static site.
 
 Live: [zephyr110.vercel.app](https://zephyr110.vercel.app)
+
 Static mirror: [zephyr110.github.io](https://zephyr110.github.io)
 
 <img width="1440" height="2064" alt="zephyr110 vercel app_about (2)" src="https://github.com/user-attachments/assets/00d57a80-7806-4532-92ac-e12751966dd8" />
