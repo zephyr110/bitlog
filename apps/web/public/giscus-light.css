@@ -1,14 +1,16 @@
 /* Zlog — giscus light theme.
  *
  * Self-contained mirror of the site's light palette: globals.css tokens
- * inlined as literal oklch() values. No @import — giscus silently drops
- * theme links that fail to load, and the stock theme's @import chain is
- * render-blocking, so every dependency is inlined. Host-page custom
- * properties (--card, --radius-xl, …) can't be referenced either: the
- * theme runs inside the giscus iframe document, where they resolve to
- * nothing. The stock syntax-highlight palette (--color-prettylights-*)
- * is omitted — giscus renders markdown without highlighting, so those
- * 30 vars are consumed by nothing.
+ * inlined as hex/rgb literals with the source token in each comment.
+ * Colors deliberately avoid oklch() — the widget runs inside the giscus
+ * iframe, where some WebKit/embedded parsers mishandle oklch() custom
+ * properties, which silently kills the whole token block (white pages,
+ * black borders). Hex equivalents of the site's tokens are stable
+ * everywhere. No @import — giscus silently drops theme links that fail,
+ * and host-page custom properties (--card, --radius-xl, …) never reach
+ * the iframe document anyway. The stock syntax palette
+ * (--color-prettylights-*) is omitted: giscus renders markdown without
+ * highlighting, so those 30 vars are consumed by nothing.
  *
  * Cascade: giscus prepends its base stylesheet before this link, so
  * same-specificity rules here win. Tokens live on `main` like the stock
@@ -31,60 +33,60 @@ html {
 
 main {
   /* Surfaces — site --card/--popover are white; wells step down --muted */
-  --color-canvas-default: oklch(1 0 0); /* --card */
-  --color-canvas-overlay: oklch(1 0 0); /* --popover */
+  --color-canvas-default: #ffffff; /* --card */
+  --color-canvas-overlay: #ffffff; /* --popover */
   --color-canvas-inset: #fafafa; /* input well — hand-picked */
-  --color-canvas-subtle: oklch(0.97 0 0); /* --muted — header/code wells */
+  --color-canvas-subtle: #f4f4f5; /* ~--muted — header/code wells */
 
   /* Text — the site's zinc foreground ramp */
-  --color-fg-default: oklch(0.145 0 0); /* --foreground */
-  --color-fg-muted: oklch(0.556 0 0); /* --muted-foreground */
-  --color-fg-subtle: oklch(0.708 0 0); /* --ring — 4th ramp step */
+  --color-fg-default: #18181b; /* ~--foreground */
+  --color-fg-muted: #71717a; /* ~--muted-foreground */
+  --color-fg-subtle: #a1a1aa; /* ~--ring — 4th ramp step */
 
   /* Hairlines — site --border, dimmed variant at 60% */
-  --color-border-default: oklch(0.922 0 0); /* --border */
-  --color-border-muted: oklch(0.922 0 0 / 60%);
+  --color-border-default: #e4e4e7; /* --border */
+  --color-border-muted: #ececef;
 
   /* Accent — monochrome like the site's --primary (near-black) */
-  --color-accent-fg: oklch(0.205 0 0); /* --primary */
-  --color-accent-emphasis: oklch(0.205 0 0);
-  --color-accent-muted: oklch(0.205 0 0 / 10%);
-  --color-accent-subtle: oklch(0.205 0 0 / 5%);
+  --color-accent-fg: #18181b; /* --primary */
+  --color-accent-emphasis: #18181b;
+  --color-accent-muted: rgb(24 24 27 / 10%);
+  --color-accent-subtle: rgb(24 24 27 / 5%);
 
   /* Buttons — neutral outline (card bg + hairline); primary solid */
-  --color-btn-text: oklch(0.145 0 0); /* --foreground */
-  --color-btn-bg: oklch(1 0 0); /* --card */
-  --color-btn-border: oklch(0.205 0 0 / 12%);
-  --color-btn-shadow: 0 1px 2px oklch(0.205 0 0 / 4%);
+  --color-btn-text: #18181b; /* --foreground */
+  --color-btn-bg: #ffffff; /* --card */
+  --color-btn-border: rgb(24 24 27 / 12%);
+  --color-btn-shadow: 0 1px 2px rgb(24 24 27 / 4%);
   --color-btn-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 60%);
-  --color-btn-hover-bg: oklch(0.97 0 0); /* --muted */
-  --color-btn-hover-border: oklch(0.205 0 0 / 16%);
-  --color-btn-active-bg: oklch(0.922 0 0); /* --border */
-  --color-btn-active-border: oklch(0.205 0 0 / 16%);
-  --color-btn-primary-text: oklch(0.985 0 0); /* --primary-foreground */
-  --color-btn-primary-bg: oklch(0.205 0 0); /* --primary */
-  --color-btn-primary-border: oklch(0.205 0 0);
-  --color-btn-primary-shadow: 0 1px 2px oklch(0.205 0 0 / 24%);
+  --color-btn-hover-bg: #f4f4f5; /* --muted */
+  --color-btn-hover-border: rgb(24 24 27 / 16%);
+  --color-btn-active-bg: #ececef; /* --border */
+  --color-btn-active-border: rgb(24 24 27 / 16%);
+  --color-btn-primary-text: #ffffff; /* --primary-foreground */
+  --color-btn-primary-bg: #18181b; /* --primary */
+  --color-btn-primary-border: #18181b;
+  --color-btn-primary-shadow: 0 1px 2px rgb(24 24 27 / 24%);
   --color-btn-primary-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 10%);
-  --color-btn-primary-hover-bg: oklch(0.145 0 0); /* --foreground — darker */
-  --color-btn-primary-hover-border: oklch(0.145 0 0);
-  --color-btn-primary-selected-bg: oklch(0.145 0 0);
+  --color-btn-primary-hover-bg: #27272a; /* darker hover */
+  --color-btn-primary-hover-border: #27272a;
+  --color-btn-primary-selected-bg: #3f3f46;
   --color-btn-primary-selected-shadow: inset 0 1px 0 rgb(0 0 0 / 20%);
-  --color-btn-primary-disabled-text: oklch(0.985 0 0 / 80%);
-  --color-btn-primary-disabled-bg: oklch(0.708 0 0); /* --ring */
-  --color-btn-primary-disabled-border: oklch(0.708 0 0);
+  --color-btn-primary-disabled-text: rgb(255 255 255 / 80%);
+  --color-btn-primary-disabled-bg: #a1a1aa; /* --ring */
+  --color-btn-primary-disabled-border: #a1a1aa;
 
   /* Write/Preview segmented tabs */
-  --color-segmented-control-bg: oklch(0.97 0 0); /* --muted */
-  --color-segmented-control-button-bg: oklch(1 0 0); /* --card */
+  --color-segmented-control-bg: #f4f4f5; /* --muted */
+  --color-segmented-control-button-bg: #ffffff; /* --card */
   --color-segmented-control-button-selected-border: #d4d4d8; /* hand-picked */
 
-  --color-action-list-item-default-hover-bg: oklch(0.205 0 0 / 6%);
-  --color-neutral-muted: oklch(0.205 0 0 / 6%);
+  --color-action-list-item-default-hover-bg: rgb(24 24 27 / 6%);
+  --color-neutral-muted: rgb(24 24 27 / 6%);
 
   /* Reaction pills — hover on --muted, reacted on --border */
-  --color-social-reaction-bg-hover: oklch(0.97 0 0);
-  --color-social-reaction-bg-reacted-hover: oklch(0.922 0 0);
+  --color-social-reaction-bg-hover: #f4f4f5;
+  --color-social-reaction-bg-reacted-hover: #ececef;
 
   /* Status — functional hues, muted so they sit quietly in the neutral
      UI (only surfaced by reactions/errors) */
@@ -139,11 +141,12 @@ main {
   border-radius: 9999px;
 }
 
-/* Softer focus — faint accent ring instead of GitHub's full-opacity one */
+/* Softer focus — mid-gray border + faint ring, not the near-black
+   accent (which read as harsh outlines in the light theme) */
 .gsc-comment-box-write:focus-within,
 .form-control:focus {
-  border-color: var(--color-accent-emphasis);
-  box-shadow: 0 0 0 3px oklch(0.205 0 0 / 12%);
+  border-color: var(--color-fg-muted);
+  box-shadow: 0 0 0 3px rgb(24 24 27 / 12%);
 }
 
 /* Neutral loader — the stock theme's blue octocat gif reads branded */

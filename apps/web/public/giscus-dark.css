@@ -1,8 +1,9 @@
 /* Zlog — giscus dark theme.
  *
  * Mirrors giscus-light.css against the site's dark tokens (see that file
- * for the rationale): zinc surfaces, white/10 hairlines, a near-white
- * monochrome accent (the site's dark --primary).
+ * for the rationale — including why all colors are hex/rgb literals):
+ * zinc surfaces, white/10 hairlines, a near-white monochrome accent
+ * (the site's dark --primary).
  */
 
 html {
@@ -16,60 +17,60 @@ html {
 
 main {
   /* Surfaces — site --card, deeper --background well, --muted header */
-  --color-canvas-default: oklch(0.205 0 0); /* --card */
-  --color-canvas-overlay: oklch(0.205 0 0); /* --popover */
-  --color-canvas-inset: oklch(0.145 0 0); /* --background — input well */
-  --color-canvas-subtle: oklch(0.269 0 0); /* --muted — header/code wells */
+  --color-canvas-default: #18181b; /* --card */
+  --color-canvas-overlay: #18181b; /* --popover */
+  --color-canvas-inset: #0d0d0f; /* input well — darker than the card */
+  --color-canvas-subtle: #232326; /* ~--muted — header/code wells */
 
   /* Text — the site's zinc foreground ramp */
-  --color-fg-default: oklch(0.985 0 0); /* --foreground */
-  --color-fg-muted: oklch(0.708 0 0); /* --muted-foreground */
-  --color-fg-subtle: oklch(0.556 0 0); /* --ring */
+  --color-fg-default: #fafafa; /* ~--foreground */
+  --color-fg-muted: #a1a1aa; /* ~--muted-foreground */
+  --color-fg-subtle: #71717a; /* ~--ring */
 
   /* Hairlines — site dark --border is white/10 */
-  --color-border-default: oklch(1 0 0 / 10%); /* --border */
-  --color-border-muted: oklch(1 0 0 / 6%);
+  --color-border-default: rgb(255 255 255 / 10%); /* --border */
+  --color-border-muted: rgb(255 255 255 / 6%);
 
   /* Accent — monochrome near-white like the site's dark --primary */
-  --color-accent-fg: oklch(0.922 0 0); /* --primary */
-  --color-accent-emphasis: oklch(0.922 0 0);
-  --color-accent-muted: oklch(0.922 0 0 / 16%);
-  --color-accent-subtle: oklch(0.922 0 0 / 8%);
+  --color-accent-fg: #e4e4e7; /* --primary */
+  --color-accent-emphasis: #e4e4e7;
+  --color-accent-muted: rgb(228 228 231 / 16%);
+  --color-accent-subtle: rgb(228 228 231 / 8%);
 
   /* Buttons — neutral --muted surface; primary is solid near-white */
-  --color-btn-text: oklch(0.922 0 0); /* --primary — dimmer than fg */
-  --color-btn-bg: oklch(0.269 0 0); /* --muted */
-  --color-btn-border: oklch(1 0 0 / 12%);
-  --color-btn-shadow: 0 1px 2px oklch(0 0 0 / 30%);
-  --color-btn-inset-shadow: inset 0 1px 0 oklch(1 0 0 / 4%);
-  --color-btn-hover-bg: oklch(1 0 0 / 8%);
-  --color-btn-hover-border: oklch(1 0 0 / 16%);
-  --color-btn-active-bg: oklch(1 0 0 / 14%);
-  --color-btn-active-border: oklch(1 0 0 / 16%);
-  --color-btn-primary-text: oklch(0.205 0 0); /* --primary-foreground */
-  --color-btn-primary-bg: oklch(0.922 0 0); /* --primary */
-  --color-btn-primary-border: oklch(0.922 0 0);
-  --color-btn-primary-shadow: 0 1px 2px oklch(0 0 0 / 30%);
-  --color-btn-primary-inset-shadow: inset 0 1px 0 oklch(1 0 0 / 30%);
+  --color-btn-text: #e4e4e7; /* --primary — dimmer than fg */
+  --color-btn-bg: #27272a; /* --muted */
+  --color-btn-border: rgb(255 255 255 / 12%);
+  --color-btn-shadow: 0 1px 2px rgb(0 0 0 / 30%);
+  --color-btn-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
+  --color-btn-hover-bg: #2e2e32;
+  --color-btn-hover-border: rgb(255 255 255 / 16%);
+  --color-btn-active-bg: #3a3a3f;
+  --color-btn-active-border: rgb(255 255 255 / 16%);
+  --color-btn-primary-text: #18181b; /* --primary-foreground */
+  --color-btn-primary-bg: #e4e4e7; /* --primary */
+  --color-btn-primary-border: #e4e4e7;
+  --color-btn-primary-shadow: 0 1px 2px rgb(0 0 0 / 30%);
+  --color-btn-primary-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 30%);
   --color-btn-primary-hover-bg: #d4d4d8; /* hand-picked step */
   --color-btn-primary-hover-border: #d4d4d8;
   --color-btn-primary-selected-bg: #c4c4c8; /* hand-picked step */
-  --color-btn-primary-selected-shadow: inset 0 1px 0 oklch(0 0 0 / 10%);
-  --color-btn-primary-disabled-text: oklch(0.205 0 0 / 60%);
-  --color-btn-primary-disabled-bg: oklch(0.556 0 0); /* --ring */
-  --color-btn-primary-disabled-border: oklch(0.556 0 0);
+  --color-btn-primary-selected-shadow: inset 0 1px 0 rgb(0 0 0 / 10%);
+  --color-btn-primary-disabled-text: rgb(24 24 27 / 60%);
+  --color-btn-primary-disabled-bg: #71717a; /* --ring */
+  --color-btn-primary-disabled-border: #71717a;
 
   /* Write/Preview segmented tabs */
-  --color-segmented-control-bg: oklch(0.145 0 0); /* --background */
-  --color-segmented-control-button-bg: oklch(0.205 0 0); /* --card */
+  --color-segmented-control-bg: #0d0d0f; /* --background */
+  --color-segmented-control-button-bg: #18181b; /* --card */
   --color-segmented-control-button-selected-border: #52525b; /* hand-picked */
 
-  --color-action-list-item-default-hover-bg: oklch(1 0 0 / 6%);
-  --color-neutral-muted: oklch(1 0 0 / 10%);
+  --color-action-list-item-default-hover-bg: rgb(255 255 255 / 6%);
+  --color-neutral-muted: rgb(255 255 255 / 10%);
 
   /* Reaction pills */
-  --color-social-reaction-bg-hover: oklch(1 0 0 / 8%);
-  --color-social-reaction-bg-reacted-hover: oklch(1 0 0 / 14%);
+  --color-social-reaction-bg-hover: #2b2b2f;
+  --color-social-reaction-bg-reacted-hover: #3f3f46;
 
   /* Status — functional hues, muted to sit quietly in the neutral UI */
   --color-success-fg: #4ade80;
@@ -120,11 +121,11 @@ main {
   border-radius: 9999px;
 }
 
-/* Softer focus — faint accent ring instead of GitHub's full-opacity one */
+/* Softer focus — mid-gray border + faint ring (mirrors the light theme) */
 .gsc-comment-box-write:focus-within,
 .form-control:focus {
-  border-color: var(--color-accent-emphasis);
-  box-shadow: 0 0 0 3px oklch(0.922 0 0 / 14%);
+  border-color: var(--color-fg-muted);
+  box-shadow: 0 0 0 3px rgb(228 228 231 / 14%);
 }
 
 /* Neutral loader — the stock theme's blue octocat gif reads branded */
