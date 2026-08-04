@@ -107,83 +107,78 @@ export function Footer() {
                 {t("site.links") as string}
               </p>
               <div className="flex items-center gap-1">
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <a
-                        href="https://github.com/zephyr110/zlog"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={iconButtonClass}
-                        aria-label="GitHub"
-                      />
-                    }
-                  >
-                    <GithubIcon size={18} />
-                  </TooltipTrigger>
-                  <TooltipContent>GitHub</TooltipContent>
-                </Tooltip>
+                <FooterIconButton
+                  href="https://github.com/zephyr110/zlog"
+                  label="GitHub"
+                  icon={<GithubIcon size={18} />}
+                />
                 {site.social.twitter ? (
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <a
-                          href={site.social.twitter}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={iconButtonClass}
-                          aria-label="Twitter"
-                        />
-                      }
-                    >
-                      <XIcon size={18} />
-                    </TooltipTrigger>
-                    <TooltipContent>Twitter</TooltipContent>
-                  </Tooltip>
+                  <FooterIconButton
+                    href={site.social.twitter}
+                    label="Twitter"
+                    icon={<XIcon size={18} />}
+                  />
                 ) : null}
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <a
-                        href="/feed.xml"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={iconButtonClass}
-                        aria-label="RSS"
-                      />
-                    }
-                  >
-                    <Rss size={18} />
-                  </TooltipTrigger>
-                  <TooltipContent>RSS</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <Link
-                        href={loggedIn ? "/admin/dashboard" : "/admin/login"}
-                        className={iconButtonClass}
-                        aria-label={
-                          loggedIn
-                            ? (t("admin.dashboard") as string)
-                            : (t("admin.signIn") as string)
-                        }
-                      />
-                    }
-                  >
-                    {loggedIn ? <LayoutDashboard size={18} /> : <UserRoundKey size={18} />}
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {loggedIn
+                <FooterIconButton
+                  href="/feed.xml"
+                  label="RSS"
+                  icon={<Rss size={18} />}
+                />
+                <FooterIconButton
+                  href={loggedIn ? "/admin/dashboard" : "/admin/login"}
+                  label={
+                    loggedIn
                       ? (t("admin.dashboard") as string)
-                      : (t("admin.signIn") as string)}
-                  </TooltipContent>
-                </Tooltip>
+                      : (t("admin.signIn") as string)
+                  }
+                  icon={
+                    loggedIn ? <LayoutDashboard size={18} /> : <UserRoundKey size={18} />
+                  }
+                  internal
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
     </footer>
+  )
+}
+
+/** Icon action wrapped in a tooltip — the four footer icons share this
+ *  chrome. External links open in a new tab; `internal` renders a Next
+ *  Link for client-side navigation. */
+function FooterIconButton({
+  href,
+  label,
+  icon,
+  internal = false,
+}: {
+  href: string
+  label: string
+  icon: React.ReactNode
+  internal?: boolean
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          internal ? (
+            <Link href={href} className={iconButtonClass} aria-label={label} />
+          ) : (
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={iconButtonClass}
+              aria-label={label}
+            />
+          )
+        }
+      >
+        {icon}
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   )
 }

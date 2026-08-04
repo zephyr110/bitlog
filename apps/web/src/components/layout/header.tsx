@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -17,19 +17,15 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { Menu, X, Search } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import { GithubIcon } from "@/components/ui/brand-icons"
+import { ChevronDown } from "@/components/ui/chevron-down"
 import { categoryMeta } from "@/lib/categories"
+import { SearchInput } from "@/components/layout/search-input"
+import { MobileNav } from "@/components/layout/mobile-nav"
+import type { NavCategory } from "@/lib/nav-links"
 
-const navLinks = [
-  { href: "/", i18nKey: "site.home" },
-  { href: "/archive", i18nKey: "site.archive" },
-  { href: "/about", i18nKey: "site.about" },
-]
-
-type Category = { key: string; count: number }
-
-export function Header({ categories }: { categories: Category[] }) {
+export function Header({ categories }: { categories: NavCategory[] }) {
   const { t } = useT()
   const site = useSiteConfig()
   const pathname = usePathname()
@@ -88,7 +84,7 @@ export function Header({ categories }: { categories: Category[] }) {
           <div className="flex items-center gap-1">
 
             {/* Search */}
-            <SearchInput t={t} router={router} pathname={pathname} />
+            <SearchInput />
 
             {/* ── Text links with polished active/hover states ── */}
 
@@ -108,7 +104,7 @@ export function Header({ categories }: { categories: Category[] }) {
                 )}
               >
                 <span>{t("site.topics") as string}</span>
-                <svg className="size-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="m6 9 6 6 6-6" /></svg>
+                <ChevronDown />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" sideOffset={12} className="w-64 p-2">
                 {categories.length === 0 ? (
@@ -198,106 +194,12 @@ export function Header({ categories }: { categories: Category[] }) {
 
       {/* Mobile Navigation */}
       {mobileOpen && (
-        <>
-          <div className="fixed inset-0 z-40 bg-black/15 backdrop-blur-[2px] md:hidden" onClick={() => setMobileOpen(false)} />
-          <div className="fixed inset-x-0 top-16 z-50 md:hidden border-b bg-background/95 backdrop-blur-xl animate-in slide-in-from-top-1 duration-200 shadow-lg shadow-black/5">
-            <nav className="container mx-auto px-4 py-3 space-y-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
-                    pathname === link.href
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  {t(link.i18nKey) as string}
-                </Link>
-              ))}
-              {categories.length > 0 && (
-                <>
-                  <div className="my-2 mx-3 border-t" />
-                  {/* Collapsible topics — the options slide open under the
-                      header (grid-rows 0fr→1fr animates height smoothly),
-                      indented left of the header row. */}
-                  <button
-                    type="button"
-                    onClick={() => setMobileTopicsOpen((v) => !v)}
-                    aria-expanded={mobileTopicsOpen}
-                    className="flex w-full items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-all duration-150"
-                  >
-                    {t("site.topics") as string}
-                    <svg
-                      className={cn(
-                        "size-3 opacity-50 transition-transform duration-200",
-                        mobileTopicsOpen && "rotate-180"
-                      )}
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div
-                    className={cn(
-                      "grid transition-[grid-template-rows] duration-300 ease-out",
-                      mobileTopicsOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "overflow-hidden transition-opacity duration-300",
-                        mobileTopicsOpen ? "opacity-100" : "opacity-0"
-                      )}
-                    >
-                      <div className="flex flex-col gap-0.5 pt-1 pb-1 pl-4">
-                        {categories.map((cat) => {
-                          const meta = categoryMeta[cat.key as keyof typeof categoryMeta]
-                          if (!meta) return null
-                          return (
-                            <Link
-                              key={cat.key}
-                              href={`/category/${encodeURIComponent(cat.key)}`}
-                              onClick={() => setMobileOpen(false)}
-                              className={cn(
-                                "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
-                                pathname === `/category/${encodeURIComponent(cat.key)}`
-                                  ? "bg-primary/10 text-primary"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                              )}
-                            >
-                              {t(meta.i18nKey as never) as string}
-                            </Link>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-              <div className="my-2 mx-3 border-t" />
-              <a href="https://github.com/zephyr110/zlog" target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-150">
-                <GithubIcon size={16} />
-                GitHub
-              </a>
-              <div className="flex items-center justify-between px-3 py-2">
-                <span className="text-sm text-muted-foreground">{t("admin.theme") as string}</span>
-                <ThemeToggle />
-              </div>
-              <div className="flex items-center justify-between px-3 py-2">
-                <span className="text-sm text-muted-foreground">{t("admin.language") as string}</span>
-                <LanguageSwitcher />
-              </div>
-            </nav>
-          </div>
-        </>
+        <MobileNav
+          categories={categories}
+          topicsOpen={mobileTopicsOpen}
+          onTopicsToggle={() => setMobileTopicsOpen((v) => !v)}
+          onClose={() => setMobileOpen(false)}
+        />
       )}
     </>
   )
@@ -320,46 +222,5 @@ function NavLink({ href, active, children }: { href: string; active: boolean; ch
         <span className="absolute -bottom-px left-2 right-2 h-[1.5px] rounded-full bg-primary/70" />
       )}
     </Link>
-  )
-}
-
-function SearchInput({ t, router, pathname }: { t: ReturnType<typeof useT>["t"]; router: ReturnType<typeof useRouter>; pathname: string }) {
-  const [value, setValue] = useState("")
-
-  // Sync the header search box from ?q= on mount and on browser
-  // back/forward. Only /archive consumes ?q=, so we don't sync on
-  // other routes (an old /?q=... bookmark is harmless to ignore).
-  useEffect(() => {
-    if (pathname !== "/archive") return
-    const sync = () => {
-      const params = new URLSearchParams(window.location.search)
-      setValue(params.get("q") || "")
-    }
-    sync()
-    window.addEventListener("popstate", sync)
-    return () => window.removeEventListener("popstate", sync)
-  }, [pathname])
-
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const q = value.trim()
-    // Search results live on the archive page — the home feed only shows
-    // the latest handful of posts.
-    router.push(q ? `/archive?q=${encodeURIComponent(q)}` : "/archive")
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="hidden md:flex items-center mr-2">
-      <div className="relative">
-        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder={t("site.searchPosts") as string}
-          className="w-36 h-8 pl-8 pr-2 text-sm rounded-lg border border-transparent bg-muted/50 text-muted-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/30 focus:bg-background focus:text-foreground focus:w-48 transition-all duration-200"
-        />
-      </div>
-    </form>
   )
 }
