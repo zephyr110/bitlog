@@ -1,0 +1,141 @@
+/* Zlog — giscus dark theme.
+ *
+ * Mirrors giscus-light.css against the site's dark tokens: zinc surfaces
+ * (--card ~ #18181b), white/10 hairlines, a near-white monochrome accent
+ * (the site's dark --primary). See giscus-light.css for the rationale
+ * and cascade notes.
+ */
+
+@import url("https://giscus.app/themes/dark.css");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap");
+
+:host,
+html {
+  --font-family-sans: "Geist", -apple-system, "BlinkMacSystemFont",
+    "Segoe UI", "Helvetica", "Arial", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji";
+}
+
+main {
+  /* Surfaces — card #18181b, textarea well darker, header well lighter */
+  --color-canvas-default: #18181b;
+  --color-canvas-overlay: #18181b;
+  --color-canvas-inset: #0d0d0f;
+  --color-canvas-subtle: #232326;
+
+  /* Text — the site's dark zinc foreground ramp */
+  --color-fg-default: #fafafa;
+  --color-fg-muted: #a1a1aa;
+  --color-fg-subtle: #71717a;
+  --color-fg-on-emphasis: #18181b;
+
+  /* Hairlines — site dark --border is white/10 */
+  --color-border-default: rgb(255 255 255 / 10%);
+  --color-border-muted: rgb(255 255 255 / 6%);
+
+  /* Accent — monochrome near-white like the site's dark --primary */
+  --color-accent-fg: #e4e4e7;
+  --color-accent-emphasis: #e4e4e7;
+  --color-accent-muted: rgb(228 228 231 / 16%);
+  --color-accent-subtle: rgb(228 228 231 / 8%);
+
+  /* Buttons — neutral surface; primary is solid near-white */
+  --color-btn-text: #e4e4e7;
+  --color-btn-bg: #27272a;
+  --color-btn-border: rgb(255 255 255 / 12%);
+  --color-btn-shadow: 0 1px 2px rgb(0 0 0 / 30%);
+  --color-btn-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
+  --color-btn-hover-bg: #2e2e32;
+  --color-btn-hover-border: rgb(255 255 255 / 16%);
+  --color-btn-active-bg: #3a3a3f;
+  --color-btn-active-border: rgb(255 255 255 / 16%);
+  --color-btn-selected-bg: #34343a;
+  --color-btn-primary-text: #18181b;
+  --color-btn-primary-bg: #e4e4e7;
+  --color-btn-primary-border: #e4e4e7;
+  --color-btn-primary-shadow: 0 1px 2px rgb(0 0 0 / 30%);
+  --color-btn-primary-inset-shadow: inset 0 1px 0 rgb(255 255 255 / 30%);
+  --color-btn-primary-hover-bg: #d4d4d8;
+  --color-btn-primary-hover-border: #d4d4d8;
+  --color-btn-primary-selected-bg: #c4c4c8;
+  --color-btn-primary-selected-shadow: inset 0 1px 0 rgb(0 0 0 / 10%);
+  --color-btn-primary-disabled-text: rgb(24 24 27 / 60%);
+  --color-btn-primary-disabled-bg: #71717a;
+  --color-btn-primary-disabled-border: #71717a;
+
+  /* Write/Preview segmented tabs */
+  --color-segmented-control-bg: #0d0d0f;
+  --color-segmented-control-button-bg: #18181b;
+  --color-segmented-control-button-selected-border: #52525b;
+
+  --color-action-list-item-default-hover-bg: rgb(255 255 255 / 6%);
+  --color-neutral-muted: rgb(255 255 255 / 10%);
+
+  /* Reaction pills */
+  --color-social-reaction-bg-hover: #2b2b2f;
+  --color-social-reaction-bg-reacted-hover: #3f3f46;
+
+  /* Status — functional hues, muted to sit quietly in the neutral UI */
+  --color-success-fg: #4ade80;
+  --color-attention-fg: #fbbf24;
+  --color-attention-muted: rgb(251 191 36 / 25%);
+  --color-attention-subtle: rgb(251 191 36 / 12%);
+  --color-danger-fg: #f87171;
+  --color-danger-muted: rgb(248 113 113 / 20%);
+  --color-danger-subtle: rgb(248 113 113 / 10%);
+
+  --color-primer-shadow-inset: inset 0 1px 0 rgb(255 255 255 / 4%);
+  --color-scale-gray-1: #2b2b2f;
+  --color-scale-blue-1: #3f3f46;
+}
+
+/* Radius scale — same as giscus-light.css */
+.gsc-comment-box:not(.gsc-comment-box-is-reply),
+.gsc-comment .gsc-comment-box,
+.gsc-reply-box,
+.Box,
+.gsc-pagination-button,
+.flash,
+.gsc-replies,
+.gsc-comment-box-textarea-extras {
+  border-radius: 12px;
+}
+.gsc-comment-box-tabs {
+  border-radius: 12px 12px 0 0;
+}
+.gsc-comment .gsc-comment-box-tabs {
+  border-radius: 0;
+}
+.Box-header {
+  border-radius: 12px 12px 0 0;
+}
+.gsc-comment-content {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+.gsc-comment-content.minimized {
+  border-radius: 0;
+}
+.gsc-comment-box-textarea {
+  border-radius: 12px 12px 0 0;
+}
+.btn,
+.BtnGroup,
+.gsc-pagination-button {
+  border-radius: 10px;
+}
+.BtnGroup-item,
+.BtnGroup-item .btn {
+  border-radius: 8px;
+}
+.markdown pre,
+.markdown .highlight pre {
+  border-radius: 8px;
+}
+
+/* Softer focus — faint accent ring instead of GitHub's full-opacity one */
+.gsc-comment-box-write:focus-within,
+.form-control:focus {
+  border-color: var(--color-accent-emphasis);
+  box-shadow: 0 0 0 3px rgb(228 228 231 / 14%);
+}
