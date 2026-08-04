@@ -134,12 +134,50 @@ export function SiteInfoForm({
         toast.error(data.error || (t("admin.uploadFailed") as string))
         return
       }
-      patch("logoUrl", data.url as string)
-      toast.success(t("admin.uploadSuccess") as string)
+      const url = data.url as string
+      patch("logoUrl", url)
+      // 上传即保存: the file is already persisted in the media library by
+      // /api/upload, so the logoUrl must be persisted right away too —
+      // otherwise closing the dialog without pressing Save orphans the
+      // file AND leaves the setting untouched.
+      const persisted = await persistLogo(url)
+      if (persisted) toast.success(t("admin.uploadSuccess") as string)
     } catch {
       toast.error(t("admin.networkError") as string)
     } finally {
       setUploading(false)
+    }
+  }
+
+  /** Persist logoUrl to site settings immediately (no Save click needed).
+   *  Returns false on failure so callers can skip the success toast. */
+  async function persistLogo(url: string): Promise<boolean> {
+    try {
+      const res = await apiFetch("/api/site-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logoUrl: url }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || (t("admin.siteInfoSaveFailed") as string))
+        return false
+      }
+      // Refresh the context so every consumer (header, sidebar, other
+      // form instances) sees the new logo immediately.
+      const s = data.settings
+      site.setSiteConfig((prev) => ({
+        ...prev,
+        logoUrl: s.logoUrl,
+        logoInvertInDark: s.logoInvertInDark ?? prev.logoInvertInDark,
+      }))
+      // Already persisted — drop from touched so a later Save doesn't
+      // resubmit it.
+      touchedRef.current.delete("logoUrl")
+      return true
+    } catch {
+      toast.error(t("admin.networkError") as string)
+      return false
     }
   }
 
@@ -256,7 +294,12 @@ export function SiteInfoForm({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => patch("logoUrl", "")}
+                  disabled={uploading}
+                  onClick={() => {
+                    patch("logoUrl", "")
+                    // Remove also persists immediately — consistent with upload.
+                    void persistLogo("")
+                  }}
                 >
                   <X className="size-3.5" />
                   {t("admin.removeLogo") as string}
