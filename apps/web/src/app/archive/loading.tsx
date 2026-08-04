@@ -15,15 +15,21 @@ export function ArchiveFeedSkeleton() {
           ))}
         </div>
       </div>
-      {/* Year-nav pill skeleton (left-aligned, floating pill) */}
-      <Skeleton className="mb-8 h-9 w-44 rounded-full" />
-      {/* Year heading — accent bar + year + count */}
-      <div className="mb-3 flex items-center gap-3">
+      {/* Year-nav bar skeleton — pills on the left, collapse-all button
+          anchored right on desktop (mirrors YearNavBar's lg:w-full +
+          lg:ml-auto layout); w-fit keeps the floating pill on mobile. */}
+      <div className="mb-8 flex w-fit max-w-full items-center gap-2 lg:w-full">
+        <Skeleton className="h-9 w-44 shrink-0 rounded-full" />
+        <Skeleton className="h-7 w-24 shrink-0 rounded-full lg:ml-auto" />
+      </div>
+      {/* Year heading — accent bar + year + count + chevron */}
+      <div className="mb-4 flex items-center gap-3">
         <Skeleton className="h-7 w-1 rounded-full" />
         <Skeleton className="h-8 w-20" />
         <Skeleton className="h-4 w-12" />
+        <Skeleton className="ml-auto size-7 shrink-0 rounded-full" />
       </div>
-      {/* Dense list rows */}
+      {/* Dense list rows — with tag badges on the right (md+, as live) */}
       <div className="divide-y divide-border/50 border-y border-border/50">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="flex items-center gap-4 py-3">
@@ -32,6 +38,7 @@ export function ArchiveFeedSkeleton() {
               className="h-4"
               style={{ width: `${72 - ((i * 13) % 40)}%` }}
             />
+            <Skeleton className="ml-auto hidden h-5 w-16 rounded-full md:block" />
           </div>
         ))}
       </div>
