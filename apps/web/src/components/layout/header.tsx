@@ -31,6 +31,7 @@ export function Header({ categories }: { categories: NavCategory[] }) {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileTopicsOpen, setMobileTopicsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const logoSrc = siteLogoSrc(site)
 
@@ -193,7 +194,12 @@ export function Header({ categories }: { categories: NavCategory[] }) {
 
       {/* Mobile Navigation */}
       {mobileOpen && (
-        <MobileNav categories={categories} onClose={() => setMobileOpen(false)} />
+        <MobileNav
+          categories={categories}
+          topicsOpen={mobileTopicsOpen}
+          onTopicsToggle={() => setMobileTopicsOpen((v) => !v)}
+          onClose={() => setMobileOpen(false)}
+        />
       )}
     </>
   )

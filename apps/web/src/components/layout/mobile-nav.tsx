@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -15,19 +14,23 @@ import { navLinks, type NavCategory } from "@/lib/nav-links"
 /**
  * Mobile slide-in menu. The topics row is collapsible — its options slide
  * open under the header (grid-rows 0fr→1fr animates height smoothly),
- * indented left of the header row. The collapse state is local; the
+ * indented left of the header row. The collapse state lives in the header
+ * (a prop here) so it survives closing and reopening the menu; the
  * backdrop click and every link call `onClose` to dismiss the whole menu.
  */
 export function MobileNav({
   categories,
+  topicsOpen,
+  onTopicsToggle,
   onClose,
 }: {
   categories: NavCategory[]
+  topicsOpen: boolean
+  onTopicsToggle: () => void
   onClose: () => void
 }) {
   const { t } = useT()
   const pathname = usePathname()
-  const [topicsOpen, setTopicsOpen] = useState(false)
 
   return (
     <>
@@ -57,7 +60,7 @@ export function MobileNav({
               <div className="my-2 mx-3 border-t" />
               <button
                 type="button"
-                onClick={() => setTopicsOpen((v) => !v)}
+                onClick={onTopicsToggle}
                 aria-expanded={topicsOpen}
                 className="flex w-full items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-all duration-150"
               >
