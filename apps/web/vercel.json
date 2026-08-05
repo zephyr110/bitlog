@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "rm -rf apps/web/.next/cache && pnpm build",
   "headers": [
     {
       "source": "/((?!_next/|api/|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp|js|css|woff2?|json|txt|xml)).*)",
