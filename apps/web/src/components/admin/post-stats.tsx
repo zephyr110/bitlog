@@ -94,7 +94,10 @@ function formatTimelineTick(value: string): string {
 
 export function PostStats({ posts }: PostStatsProps) {
   const { t } = useT()
-  const [timeRange, setTimeRange] = useState<TimeRange>("all")
+  // Independent ranges: the timeline and topic filters must not share
+  // state — changing one chart's range leaves the other untouched.
+  const [timelineRange, setTimelineRange] = useState<TimeRange>("all")
+  const [topicRange, setTopicRange] = useState<TimeRange>("all")
   const chartConfig = useMemo(
     () => buildChartConfig(t("admin.posts") as string),
     [t]
@@ -112,34 +115,43 @@ export function PostStats({ posts }: PostStatsProps) {
     [t]
   )
 
-  const filteredPosts = useMemo(() => {
-    const days = RANGE_DAYS[timeRange]
-    if (days == null) return publishedPosts
+  function filterByRange(posts: PostSummary[], range: TimeRange) {
+    const days = RANGE_DAYS[range]
+    if (days == null) return posts
     // Exact rolling N×24h timestamp window — post.date is a UTC ISO
     // string, so comparing timestamps (not civil-date strings) keeps the
     // boundary correct in every timezone.
     const cutoff = nowCoarse() - days * 86_400_000
-    return publishedPosts.filter((p) => new Date(p.date).getTime() >= cutoff)
-  }, [publishedPosts, timeRange])
+    return posts.filter((p) => new Date(p.date).getTime() >= cutoff)
+  }
+
+  const timelineFiltered = useMemo(
+    () => filterByRange(publishedPosts, timelineRange),
+    [publishedPosts, timelineRange]
+  )
+  const topicFiltered = useMemo(
+    () => filterByRange(publishedPosts, topicRange),
+    [publishedPosts, topicRange]
+  )
 
   // Posts over time — bucket granularity follows the selected range.
   const timelineData = useMemo(() => {
     const byBucket: Record<string, number> = {}
-    for (const p of filteredPosts) {
-      const key = bucketKey(p.date, timeRange)
+    for (const p of timelineFiltered) {
+      const key = bucketKey(p.date, timelineRange)
       byBucket[key] = (byBucket[key] || 0) + 1
     }
     return Object.entries(byBucket)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, count]) => ({ date, count }))
-  }, [filteredPosts, timeRange])
+  }, [timelineFiltered, timelineRange])
 
   // Posts by topic — tags roll up to their category prefix (e.g.
   // "frontend-react" → "frontend"); a post counts once per topic even if
   // several of its tags resolve to the same one.
   const topicData = useMemo(() => {
     const byTopic: Record<string, number> = {}
-    for (const p of filteredPosts) {
+    for (const p of topicFiltered) {
       const topics = new Set(p.tags.map(resolveCategory))
       for (const topic of topics) {
         byTopic[topic] = (byTopic[topic] || 0) + 1
@@ -153,15 +165,18 @@ export function PostStats({ posts }: PostStatsProps) {
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 8)
-  }, [filteredPosts, t])
+  }, [topicFiltered, t])
 
-  const renderTimeRangeSelect = () => (
+  const renderTimeRangeSelect = (
+    range: TimeRange,
+    onRangeChange: (r: TimeRange) => void
+  ) => (
     <Select
-      value={timeRange}
-      onValueChange={(v) => setTimeRange(v as TimeRange)}
+      value={range}
+      onValueChange={(v) => onRangeChange(v as TimeRange)}
     >
       <SelectTrigger size="sm" className="w-28">
-        <SelectValue>{timeRangeLabels[timeRange]}</SelectValue>
+        <SelectValue>{timeRangeLabels[range]}</SelectValue>
       </SelectTrigger>
       <SelectContent align="end">
         <SelectItem value="7d">{t("admin.days7") as string}</SelectItem>
@@ -178,7 +193,9 @@ export function PostStats({ posts }: PostStatsProps) {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("admin.postsOverTime") as string}</CardTitle>
-          <CardAction>{renderTimeRangeSelect()}</CardAction>
+          <CardAction>
+            {renderTimeRangeSelect(timelineRange, setTimelineRange)}
+          </CardAction>
         </CardHeader>
         <CardContent>
           {timelineData.length === 0 ? (
@@ -247,7 +264,9 @@ export function PostStats({ posts }: PostStatsProps) {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("admin.postsByTopic") as string}</CardTitle>
-          <CardAction>{renderTimeRangeSelect()}</CardAction>
+          <CardAction>
+            {renderTimeRangeSelect(topicRange, setTopicRange)}
+          </CardAction>
         </CardHeader>
         <CardContent>
           {topicData.length === 0 ? (

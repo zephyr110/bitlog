@@ -56,12 +56,12 @@ export function Footer() {
           <div className="flex max-w-xs flex-col gap-3">
             <Link
               href="/"
-              className="inline-flex w-fit items-center gap-2.5 rounded-lg transition-opacity hover:opacity-80"
+              className="inline-flex w-fit items-center gap-2.5 rounded-md transition-opacity hover:opacity-80"
             >
               <SiteLogo
                 src={logoSrc}
                 invertInDark={site.logoInvertInDark ?? true}
-                className="size-6"
+                className="size-6 rounded-md"
                 chip
               />
               <span className="font-heading text-lg font-black tracking-tight">
