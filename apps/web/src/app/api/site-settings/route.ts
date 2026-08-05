@@ -37,6 +37,7 @@ const updateSchema = z.object({
   logoInvertInDark: z.boolean().optional(),
   githubUrl: optionalHttpUrl.optional(),
   twitterUrl: optionalHttpUrl.optional(),
+  commentEnabled: z.boolean().optional(),
 })
 
 /** Public — effective site config (defaults merged). */
@@ -70,6 +71,7 @@ export async function PUT(request: NextRequest) {
     logoInvertDark: patch.logoInvertInDark,
     githubUrl: patch.githubUrl,
     twitterUrl: patch.twitterUrl,
+    commentEnabled: patch.commentEnabled,
   }
 
   // First save with no existing row: fill missing fields from defaults so
@@ -86,6 +88,7 @@ export async function PUT(request: NextRequest) {
         logoInvertDark: patch.logoInvertInDark ?? true,
         githubUrl: patch.githubUrl ?? defaultSiteConfig.social.github,
         twitterUrl: patch.twitterUrl ?? defaultSiteConfig.social.twitter,
+        commentEnabled: patch.commentEnabled ?? defaultSiteConfig.commentEnabled,
       })
 
   revalidateTag(SITE_CONFIG_TAG, { expire: 0 })

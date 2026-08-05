@@ -219,7 +219,7 @@ export default async function PostPage({ params }: PostPageProps) {
         </Container>
 
         {/* Comments */}
-        <CommentSection />
+        <CommentSection slug={post.slug} />
 
         {/* Related Posts */}
         {relatedPosts.length > 0 && (

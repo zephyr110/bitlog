@@ -12,14 +12,16 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
 import { apiFetch } from "@/lib/api-client"
+import { useCommentUnread } from "@/components/admin/comment-unread"
 import { cn } from "@/lib/utils"
-import { FileText, PenLine, Clock, Tag } from "lucide-react"
+import { FileText, PenLine, Clock, Tag, MessageSquare } from "lucide-react"
 import { type PostSummary } from "@zlog/database"
 
 export default function AdminDashboardPage() {
   const { t } = useT()
   const [posts, setPosts] = useState<PostSummary[]>([])
   const [loading, setLoading] = useState(true)
+  const unreadComments = useCommentUnread()
 
   useEffect(() => {
     async function fetchPosts() {
@@ -74,6 +76,13 @@ export default function AdminDashboardPage() {
       icon: Tag,
       tile: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
     },
+    {
+      label: t("admin.unreadComments") as string,
+      value: unreadComments,
+      icon: MessageSquare,
+      tile: "bg-primary/10 text-primary",
+      href: "/admin/comments",
+    },
   ]
 
   if (loading) {
@@ -112,7 +121,7 @@ export default function AdminDashboardPage() {
         <h2 className="text-xl font-semibold">
           {t("admin.statistics") as string}
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {stats.map((stat) => {
             const Icon = stat.icon
             const inner = (
