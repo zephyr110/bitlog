@@ -45,10 +45,12 @@ function encodeBase64Url(data: Uint8Array): string {
 
 function decodeBase64Url(data: string): Uint8Array<ArrayBuffer> {
   const buf = Buffer.from(data, "base64url")
-  // Re-type the underlying buffer: Buffer is Uint8Array<ArrayBufferLike>,
-  // while crypto.subtle wants BufferSource (ArrayBuffer-backed) — TS 5.9
-  // generic arrays make the distinction explicit.
-  return new Uint8Array(buf.buffer as ArrayBuffer)
+  // Copy into an exact-size buffer: `buf.buffer` may be a shared memory
+  // POOL (byteLength >> length for small buffers), and a Uint8Array over
+  // it would feed the pool's garbage bytes into the HMAC check — every
+  // token would fail verification. new Uint8Array(buf) copies precisely
+  // `buf.length` bytes into a fresh ArrayBuffer.
+  return new Uint8Array(buf)
 }
 
 async function sign(payload: string, secret: string): Promise<string> {
