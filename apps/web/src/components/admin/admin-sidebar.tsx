@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { clearToken } from "@/lib/api-client"
 import { useCommentUnread } from "@/components/admin/comment-unread"
 import { SettingsDialog } from "@/components/admin/settings-dialog"
+import { Badge } from "@/components/ui/badge"
 import { IconButton } from "@/components/ui/icon-button"
 import {
   Tooltip,
@@ -244,9 +245,9 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                 <span className="truncate">{t(link.i18nKey) as string}</span>
               )}
               {isCommentsLink && unreadComments > 0 && !collapsed && (
-                <span className="ml-auto rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-semibold leading-none text-destructive-foreground tabular-nums">
+                <Badge variant="destructive" className="ml-auto tabular-nums">
                   {unreadComments > 99 ? "99+" : unreadComments}
-                </span>
+                </Badge>
               )}
             </Link>
           )
