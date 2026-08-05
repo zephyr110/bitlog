@@ -6,7 +6,6 @@ import { Card, CardAction, CardHeader, CardTitle, CardContent } from "@/componen
 import { PostStats } from "@/components/admin/post-stats"
 import { ContributionCalendar } from "@/components/admin/contribution-calendar"
 import { FormattedDate } from "@/components/blog/formatted-date"
-import { CardSkeleton, ListSkeleton } from "@/components/ui/loading"
 import { Skeleton } from "@/components/ui/skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useT } from "@/components/layout/trans"
@@ -86,30 +85,93 @@ export default function AdminDashboardPage() {
   ]
 
   if (loading) {
-    // Mirrors the loaded layout: Statistics (title + stat cards +
-    // calendar card), the two chart cards, then recent posts.
+    // Mirrors the loaded layout 1:1 — Statistics (title + stat cards +
+    // calendar card), the two chart cards, then recent posts — same grid
+    // columns, card chrome, and content heights so the swap to real data
+    // causes no layout shift.
     return (
       <div className="space-y-8">
         <section className="space-y-4">
           <Skeleton className="h-7 w-32" />
-          <CardSkeleton count={5} />
-          <div className="space-y-3 rounded-xl border bg-card p-4">
-            <Skeleton className="h-5 w-24" />
-            <Skeleton className="h-[118px] w-full" />
-            <Skeleton className="h-3 w-40" />
+
+          {/* Stat cards — same 5-up grid as the loaded view */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-xl bg-card ring-1 ring-foreground/10"
+              >
+                <div className="flex items-start justify-between p-4 pb-2">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="size-8 rounded-lg" />
+                </div>
+                <div className="p-4 pt-0">
+                  <Skeleton className="h-9 w-10" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Contribution calendar card */}
+          <div className="rounded-xl bg-card ring-1 ring-foreground/10">
+            <div className="p-4 pb-3">
+              <Skeleton className="h-5 w-28" />
+            </div>
+            <div className="p-4 pt-0">
+              <div className="mb-3 flex justify-end">
+                <Skeleton className="h-8 w-36 rounded-md" />
+              </div>
+              <Skeleton className="h-[118px] w-full" />
+              <div className="mt-2.5 flex items-center justify-end gap-1.5">
+                <Skeleton className="h-2.5 w-8" />
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="size-2.5 rounded-[3px]" />
+                ))}
+                <Skeleton className="h-2.5 w-8" />
+              </div>
+            </div>
           </div>
         </section>
+
+        {/* Charts — same 2-up grid, 240px plot area as the loaded view */}
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-3 rounded-xl border bg-card p-4">
-            <Skeleton className="h-5 w-36" />
-            <Skeleton className="h-48 w-full" />
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className="rounded-xl bg-card ring-1 ring-foreground/10"
+            >
+              <div className="flex items-center justify-between p-4 pb-0">
+                <Skeleton className="h-5 w-36" />
+                <Skeleton className="h-7 w-28 rounded-md" />
+              </div>
+              <div className="p-4">
+                <Skeleton className="h-[240px] w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Recent posts — section header + list */}
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <Skeleton className="h-7 w-32" />
+            <Skeleton className="h-4 w-16" />
           </div>
-          <div className="space-y-3 rounded-xl border bg-card p-4">
-            <Skeleton className="h-5 w-36" />
-            <Skeleton className="h-48 w-full" />
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between rounded-xl bg-card p-4 ring-1 ring-foreground/10"
+              >
+                <div className="min-w-0 space-y-2">
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-3 w-36" />
+                </div>
+                <Skeleton className="h-8 w-14 rounded-lg" />
+              </div>
+            ))}
           </div>
         </div>
-        <ListSkeleton items={5} />
       </div>
     )
   }
