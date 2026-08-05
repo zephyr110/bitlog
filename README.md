@@ -17,7 +17,7 @@ Static mirror: [zephyr110.github.io](https://zephyr110.github.io)
 - **Media library** — auto WebP compression, Turso storage + GitHub/jsdelivr CDN dual-write
 - **Custom logo & favicon** — upload your own logo in Site Settings; the favicon follows it automatically
 - **Bilingual & themable** — zh/en switching, light/dark/system themes
-- **Giscus comments** — GitHub Discussions powered (optional)
+- **Self-hosted comments** — guest comments with no login required; Cloudflare Turnstile + rate limits + content filters against spam; unread-badge inbox in the admin panel
 
 ## Architecture
 
@@ -46,7 +46,7 @@ cd apps/web && cp .env.local.example .env.local   # fill in the values
 pnpm dev          # blog at :3000, admin at /admin/login
 ```
 
-Key env vars: `TURSO_DATABASE_URL` (use `file:./zlog.db` for local dev), `TURSO_AUTH_TOKEN`, `SESSION_SECRET`, `ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH` (seed the admin user on first login), `NEXT_PUBLIC_SITE_URL`, and optional `NEXT_PUBLIC_GISCUS_*` for comments.
+Key env vars: `TURSO_DATABASE_URL` (use `file:./zlog.db` for local dev), `TURSO_AUTH_TOKEN`, `SESSION_SECRET`, `ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH` (seed the admin user on first login), `NEXT_PUBLIC_SITE_URL`, and for guest comments `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` (free Cloudflare Turnstile widget — see `apps/web/.env.local.example` for the local-dev test keys).
 
 Create or reset the admin user without env vars:
 
