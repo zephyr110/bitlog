@@ -17,7 +17,7 @@
 - **媒体库** — 自动 WebP 压缩，Turso 存储 + GitHub/jsdelivr CDN 双写
 - **自定义 Logo 与 Favicon** — 在站点设置中上传自己的 Logo，Favicon 自动跟随
 - **双语与主题** — 中/英切换，浅色/深色/跟随系统
-- **Giscus 评论** — 基于 GitHub Discussions（可选）
+- **自建评论** — 游客免登录评论；Cloudflare Turnstile + 限流 + 内容过滤防垃圾；admin 后台含未读徽标收件箱
 
 ## 核心架构
 
@@ -46,7 +46,7 @@ cd apps/web && cp .env.local.example .env.local   # 填写配置
 pnpm dev          # 博客 :3000，后台 /admin/login
 ```
 
-关键环境变量：`TURSO_DATABASE_URL`（本地开发用 `file:./zlog.db`）、`TURSO_AUTH_TOKEN`、`SESSION_SECRET`、`ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH`（首次登录时播种管理员账号）、`NEXT_PUBLIC_SITE_URL`，以及可选的 `NEXT_PUBLIC_GISCUS_*` 评论配置。
+关键环境变量：`TURSO_DATABASE_URL`（本地开发用 `file:./zlog.db`）、`TURSO_AUTH_TOKEN`、`SESSION_SECRET`、`ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH`（首次登录时播种管理员账号）、`NEXT_PUBLIC_SITE_URL`，以及评论功能所需的 `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY`（免费 Cloudflare Turnstile widget，本地开发测试 key 见 `apps/web/.env.local.example`）。
 
 不依赖环境变量创建/重置管理员：
 

@@ -91,8 +91,8 @@ function rowToComment(row: Record<string, unknown>): CommentRecord {
 // ── Comment CRUD ────────────────────────────────────────────────────────
 
 /** Public list for one post, oldest first (conversation order).
- *  Selects only the public columns — author_email and ip_hash never
- *  leave the DB on the read path. */
+ *  Returns full records — the route strips author_email/ip_hash before
+ *  responding (the guest never sees them). */
 export async function getCommentsByPost(
   postSlug: string
 ): Promise<CommentRecord[]> {
@@ -224,6 +224,13 @@ export async function consumeRateLimit(
     [scope, windowStart]
   )
   const count = Number(result.rows[0]?.count ?? 0)
+  // Sweep expired windows while we're here — the table would otherwise
+  // grow unboundedly (one row per (scope, window) forever). Windows are
+  // at most 1h, so anything older than ~2h is dead weight.
+  await db.execute(
+    `DELETE FROM comment_rate_limit WHERE window_start < ?`,
+    [Date.now() - 2 * 60 * 60 * 1000]
+  )
   return count <= max
 }
 

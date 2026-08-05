@@ -21,7 +21,7 @@ export default function AdminDashboardPage() {
   const { t } = useT()
   const [posts, setPosts] = useState<PostSummary[]>([])
   const [loading, setLoading] = useState(true)
-  const unreadComments = useCommentUnread()
+  const { unread: unreadComments } = useCommentUnread()
 
   useEffect(() => {
     async function fetchPosts() {
@@ -92,7 +92,7 @@ export default function AdminDashboardPage() {
       <div className="space-y-8">
         <section className="space-y-4">
           <Skeleton className="h-7 w-32" />
-          <CardSkeleton count={4} />
+          <CardSkeleton count={5} />
           <div className="space-y-3 rounded-xl border bg-card p-4">
             <Skeleton className="h-5 w-24" />
             <Skeleton className="h-[118px] w-full" />
