@@ -119,7 +119,7 @@ export default function AdminCommentsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="flex min-h-0 flex-1 flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">
           {t("admin.commentsPage") as string}
@@ -134,13 +134,15 @@ export default function AdminCommentsPage() {
       {loading ? (
         <ListSkeleton items={3} />
       ) : comments.length === 0 ? (
-        <EmptyState
-          icon={<MessageSquare size={32} className="text-muted-foreground" />}
-          title={t("admin.commentsEmpty") as string}
-        />
+        <div className="flex min-h-0 flex-1 items-center justify-center">
+          <EmptyState
+            icon={<MessageSquare size={32} className="text-muted-foreground" />}
+            title={t("admin.commentsEmpty") as string}
+          />
+        </div>
       ) : (
         <>
-          <div className="space-y-3">
+          <div className="min-h-0 flex-1 space-y-3">
             {comments.map((comment) => (
               <Card
                 key={comment.id}

@@ -40,7 +40,8 @@ const listQuery = z.object({
 
 const createSchema = z.object({
   postSlug: z.string().min(1).max(100),
-  authorName: z.string().trim().min(1).max(30),
+  // Optional — an empty name becomes "Anonymous_<random>" at insert.
+  authorName: z.string().trim().max(30).optional().or(z.literal("")),
   authorEmail: z.string().trim().max(100).optional().or(z.literal("")),
   content: z.string().trim().min(2).max(1000),
   // Signed session token from GET /api/comments/session.
@@ -51,6 +52,12 @@ const createSchema = z.object({
   // Honeypot — real visitors never see this field.
   website: z.string().max(500).optional(),
 })
+
+/** Anonymous fallback for nameless visitors — Anonymous_ + 8 random
+ *  hex chars (collision odds are negligible at comment volume). */
+function anonymousName(): string {
+  return `Anonymous_${crypto.randomUUID().slice(0, 8)}`
+}
 
 /** Max 2 URLs per comment — link spam is the bulk of automated abuse.
  *  Counts http(s)://, www., and bare domains (example.com). */
@@ -205,10 +212,11 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // 9. Store.
+  // 9. Store. A nameless visitor gets an Anonymous_ name server-side
+  //    (never trust the client to pick one).
   const comment = await createComment({
     postSlug: body.postSlug,
-    authorName: body.authorName,
+    authorName: body.authorName?.trim() || anonymousName(),
     authorEmail: body.authorEmail ?? "",
     content: body.content,
     ipHash,

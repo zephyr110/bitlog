@@ -71,7 +71,6 @@ export function CommentSection({ slug }: { slug: string }) {
     !sessionError &&
     content.trim().length >= 2 &&
     content.trim().length <= 1000 &&
-    authorName.trim().length > 0 &&
     !!turnstileToken
 
   /** Fetch a fresh signed session token; null on any failure. */
@@ -302,7 +301,6 @@ export function CommentSection({ slug }: { slug: string }) {
                 onChange={(e) => setAuthorName(e.target.value)}
                 placeholder={t("post.commentAuthorPlaceholder") as string}
                 maxLength={30}
-                required
                 className="sm:max-w-40"
               />
               <Input
