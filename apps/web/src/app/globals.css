@@ -129,6 +129,13 @@
     scroll-behavior: smooth;
   }
 
+  /* Cloudflare Turnstile mounts a widget div with this vendor-fixed id;
+     hide it so the challenge runs invisibly (the comment form's
+     submit-time verification still validates the token). */
+  #cf-turnstile {
+    display: none;
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
