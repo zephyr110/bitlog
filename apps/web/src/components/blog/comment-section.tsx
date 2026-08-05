@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useTheme } from "next-themes"
 import { Turnstile } from "@marsidev/react-turnstile"
 import { MessageSquare } from "lucide-react"
 import { useT } from "@/components/layout/trans"
@@ -14,6 +15,10 @@ import {
 } from "@/lib/comment-shared"
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+// The GitHub Pages mirror (static export) has no API routes — comments
+// cannot work there. Build-time flag from the CI-injected site URL:
+// deploy.yml sets NEXT_PUBLIC_SITE_URL=https://zephyr110.github.io.
+const STATIC_MIRROR = !!process.env.NEXT_PUBLIC_SITE_URL?.includes("github.io")
 
 /** Guest comments, self-hosted (replaces giscus): no login, immediate
  *  display, spam-gated server-side (signed session token + Turnstile +
@@ -22,6 +27,7 @@ const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 export function CommentSection({ slug }: { slug: string }) {
   const { t } = useT()
   const site = useSiteConfig()
+  const { resolvedTheme } = useTheme()
 
   const [comments, setComments] = useState<PublicComment[]>([])
   const [loading, setLoading] = useState(true)
@@ -116,11 +122,25 @@ export function CommentSection({ slug }: { slug: string }) {
     [slug]
   )
 
+  /** Re-fetch the session and re-arm the form — shown as a Retry
+   *  button when the first attempt failed (sessionError is not a
+   *  terminal state: transient cold-starts/deploys recover). */
+  const retrySession = useCallback(async () => {
+    const token = await fetchSession()
+    if (token) {
+      setSessionToken(token)
+      setSessionError(false)
+      setSessionReady(false)
+      armSessionTimer()
+    }
+  }, [fetchSession])
+
   // List + signed session in parallel on mount (and when the post slug
   // changes via client-side navigation). The controller aborts the
   // in-flight fetches on cleanup so a late response can't clobber the
-  // next post's state.
+  // next post's state. Skipped entirely on the static mirror (no API).
   useEffect(() => {
+    if (STATIC_MIRROR) return
     const controller = new AbortController()
     let cancelled = false
     void loadComments(controller.signal) // eslint-disable-line react-hooks/set-state-in-effect -- async fetch, same pattern as admin/media
@@ -216,9 +236,25 @@ export function CommentSection({ slug }: { slug: string }) {
         case 503:
           setError(t("post.commentErrorClosed") as string)
           break
-        case 400:
-          setError(t("post.commentErrorInvalid") as string)
+        case 400: {
+          // Server distinguishes the failure cause via a machine-
+          // readable code; surface the matching message instead of
+          // lumping verification/time-trap/content failures together.
+          const data = (await res.json().catch(() => null)) as {
+            code?: string
+          } | null
+          switch (data?.code) {
+            case "verification_failed":
+              setError(t("post.commentErrorVerify") as string)
+              break
+            case "too_soon":
+              setError(t("post.commentErrorTooFast") as string)
+              break
+            default:
+              setError(t("post.commentErrorInvalid") as string)
+          }
           break
+        }
         default:
           setError(t("post.commentErrorFailed") as string)
       }
@@ -241,8 +277,13 @@ export function CommentSection({ slug }: { slug: string }) {
           </h2>
         </div>
 
-        {/* List */}
-        {loading ? (
+        {/* List — the static mirror (GitHub Pages) has no API routes,
+            so comments are simply not available there. */}
+        {STATIC_MIRROR ? (
+          <p className="rounded-xl border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+            {t("post.commentMirrorUnavailable") as string}
+          </p>
+        ) : loading ? (
           <div className="space-y-3 animate-pulse">
             <div className="h-4 bg-muted rounded w-1/3" />
             <div className="h-4 bg-muted rounded w-2/3" />
@@ -284,9 +325,17 @@ export function CommentSection({ slug }: { slug: string }) {
             {t("post.commentNotConfigured") as string}
           </p>
         ) : sessionError ? (
-          <p className="mt-6 rounded-xl border border-dashed bg-destructive/10 p-6 text-center text-sm text-destructive">
-            {t("post.commentErrorServiceUnavailable") as string}
-          </p>
+          <div className="mt-6 flex flex-col items-center gap-3 rounded-xl border border-dashed bg-destructive/10 p-6 text-center text-sm text-destructive">
+            <p>{t("post.commentErrorServiceUnavailable") as string}</p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void retrySession()}
+            >
+              {t("post.commentRetry") as string}
+            </Button>
+          </div>
         ) : (
           <form
             className="mt-8 space-y-3"
@@ -335,9 +384,20 @@ export function CommentSection({ slug }: { slug: string }) {
                 key={turnstileRound}
                 siteKey={TURNSTILE_SITE_KEY!}
                 onSuccess={setTurnstileToken}
-                onError={resetTurnstile}
+                // onError must NOT re-mount the widget: a persistent
+                // failure (ad-blocker, unreachable CDN) would loop
+                // mount→error→mount forever. Just drop the stale token;
+                // onExpire (or a successful submit's reset) re-challenges.
+                onError={() => setTurnstileToken(null)}
                 onExpire={resetTurnstile}
-                options={{ theme: "auto" }}
+                options={{
+                  theme:
+                    resolvedTheme === "dark"
+                      ? "dark"
+                      : resolvedTheme === "light"
+                        ? "light"
+                        : "auto",
+                }}
               />
               <Button
                 type="submit"

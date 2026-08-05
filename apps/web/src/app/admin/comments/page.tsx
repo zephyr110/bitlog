@@ -1,9 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { MessageSquare, Trash2, Check } from "lucide-react"
 import { apiFetch } from "@/lib/api-client"
+import { useCommentUnread } from "@/components/admin/comment-unread"
 import { useT } from "@/components/layout/trans"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -43,14 +44,20 @@ export default function AdminCommentsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<number | null>(null)
+  const { refresh: refreshUnread } = useCommentUnread()
+  // Stale-response guard: fast page clicks can interleave fetches; only
+  // the latest request may write state.
+  const loadSeqRef = useRef(0)
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current
     setLoading(true)
     try {
       const res = await apiFetch(
         `/api/admin/comments?page=${page}&pageSize=${pageSize}`
       )
       if (!res.ok) return
+      if (seq !== loadSeqRef.current) return // superseded by a newer load
       const data = (await res.json()) as CommentPage
       setComments(data.items)
       setTotal(data.total)
@@ -64,7 +71,7 @@ export default function AdminCommentsPage() {
         setPage(lastPage)
       }
     } finally {
-      setLoading(false)
+      if (seq === loadSeqRef.current) setLoading(false)
     }
   }, [page, pageSize])
 
@@ -95,6 +102,9 @@ export default function AdminCommentsPage() {
         prev.map((c) => (c.id === id ? { ...c, isRead: true } : c))
       )
       setUnreadCount((n) => Math.max(0, n - 1))
+      // Sidebar badge + dashboard card read the shared provider — tell
+      // it to re-fetch now instead of waiting up to 60 s.
+      refreshUnread()
     } catch {
       toast.error(t("admin.loadFailed") as string)
     } finally {
@@ -115,9 +125,11 @@ export default function AdminCommentsPage() {
       }
       setComments((prev) => prev.filter((c) => c.id !== id))
       setTotal((n) => Math.max(0, n - 1))
-      // Re-clamp the page if the last item on the last page was deleted.
+      refreshUnread()
+      // Re-clamp the page if the last item on the last page was
+      // deleted — setPage re-triggers load(). Otherwise the local
+      // update is enough; no full reload (avoids skeleton flicker).
       if (comments.length === 1 && page > 1) setPage(page - 1)
-      else void load()
     } catch {
       toast.error(t("admin.loadFailed") as string)
     } finally {

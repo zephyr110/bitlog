@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { getSiteConfig } from "@/lib/get-site-config"
 import { getClientIp, hashIp } from "@/lib/comment-ip"
 import {
   verifyCommentSession,
@@ -9,6 +8,8 @@ import {
 import {
   getCommentsByPost,
   createComment,
+  getSiteSettings,
+  getPostBySlug,
   consumeRateLimit,
   ipRateScope,
   postRateScope,
@@ -61,12 +62,18 @@ function anonymousName(): string {
 }
 
 /** Max 2 URLs per comment — link spam is the bulk of automated abuse.
- *  Counts http(s)://, www., and bare domains (example.com). */
+ *  Counts full URLs (scheme or www. prefix) and bare domains, each
+ *  exactly once — a "www.example.com" URL must not count twice, and
+ *  file extensions (package.json) or email domains must not count. */
 function countUrls(content: string): number {
-  return (
-    content.match(/https?:\/\/|www\.|(?:\b[a-z0-9-]+\.(?:[a-z]{2,})\b)/gi) ||
-    []
+  const full = (content.match(/(?:https?:\/\/|www\.)[^\s<>"']+/gi) || []).length
+  // After removing full URLs, count bare domain.tld tokens not preceded
+  // by @ (email) or a word char / dot (path segments).
+  const rest = content.replace(/(?:https?:\/\/|www\.)[^\s<>"']+/gi, " ")
+  const bare = (
+    rest.match(/(?<![@\w.-])\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}\b/gi) || []
   ).length
+  return full + bare
 }
 
 /** A comment made of one repeated character/short loop (aaaa…, 66666…,
@@ -148,9 +155,12 @@ export async function POST(request: NextRequest) {
   const ip = getClientIp(request)
   const ipHash = hashIp(ip)
 
-  // 1. Master switch (settings) — spam kill-switch.
-  const site = await getSiteConfig()
-  if (!site.commentEnabled) {
+  // 1. Master switch (settings) — spam kill-switch. Read straight from
+  //    the DB (not getSiteConfig's 1h cache): a multi-instance self-host
+  //    without a shared cache store would otherwise keep accepting
+  //    comments for up to an hour after the admin flips the switch.
+  const settings = await getSiteSettings()
+  if (settings && !settings.commentEnabled) {
     return NextResponse.json({ error: "Comments are closed" }, { status: 503 })
   }
 
@@ -164,31 +174,60 @@ export async function POST(request: NextRequest) {
   if (session.postSlug !== body.postSlug || session.ipHash !== ipHash) {
     return NextResponse.json({ error: "Session mismatch" }, { status: 401 })
   }
+  // 4. The post must actually exist and be published — comments for
+  //    arbitrary slugs would otherwise land in the admin inbox with a
+  //    404 link (an open channel when Turnstile is unconfigured).
+  {
+    const post = await getPostBySlug(body.postSlug, true)
+    if (!post || post.draft) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 })
+    }
+  }
 
-  // 4. Time-trap — a script that fetched the session and POSTs
+  // 5. Time-trap — a script that fetched the session and POSTs
   //    immediately is rejected; humans take longer than 2 s.
   if (isBeforeMinSubmitDelay(session)) {
     return NextResponse.json(
-      { error: "Comment submitted too quickly" },
+      { error: "Comment submitted too quickly", code: "too_soon" },
       { status: 400 }
     )
   }
 
-  // 5. Honeypot — robots fill hidden fields; silently succeed so the
+  // 6. Honeypot — robots fill hidden fields; silently succeed so the
   //    script gets no feedback, but never store the comment.
   if (body.website) {
     return NextResponse.json({ ok: true })
   }
 
-  // 6. Content sanity — cheap string checks before the paid ones.
+  // 7. Content sanity — cheap string checks before the paid ones.
   if (countUrls(body.content) > 2) {
-    return NextResponse.json({ error: "Too many links" }, { status: 400 })
+    return NextResponse.json(
+      { error: "Too many links", code: "invalid_content" },
+      { status: 400 }
+    )
   }
   if (isRepetitiveNoise(body.content)) {
-    return NextResponse.json({ error: "Invalid comment" }, { status: 400 })
+    return NextResponse.json(
+      { error: "Invalid comment", code: "invalid_content" },
+      { status: 400 }
+    )
   }
 
-  // 7. Rate limits — IP, then per-post, then global (all DB-backed:
+  // 8. Turnstile — BEFORE the rate limits: a siteverify failure (or a
+  //    Cloudflare outage) must not burn the visitor's IP/post/global
+  //    budget, or five transient failures would lock a legit user out
+  //    for 15 minutes. The widget token IS single-use, so the client
+  //    re-challenges on any failed submit (resetTurnstile) — that is
+  //    the trade for keeping the budget intact.
+  //    (Skipped entirely when Turnstile is not configured.)
+  if (!(await verifyTurnstile(body.turnstileToken, ip))) {
+    return NextResponse.json(
+      { error: "Verification failed", code: "verification_failed" },
+      { status: 400 }
+    )
+  }
+
+  // 9. Rate limits — IP, then per-post, then global (all DB-backed:
   //    serverless instances share no memory).
   const limited = [
     [ipRateScope(ipHash), RATE_LIMIT_IP_WINDOW_MS, RATE_LIMIT_IP_MAX, "Too many comments"],
@@ -201,20 +240,8 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 8. Turnstile — LAST, so a rejected request never consumes the
-  //    single-use widget token: a 429/400 above returns without ever
-  //    calling siteverify, and the visitor can retry with the same
-  //    token instead of being locked out until the widget expires.
-  //    (Skipped entirely when Turnstile is not configured.)
-  if (!(await verifyTurnstile(body.turnstileToken, ip))) {
-    return NextResponse.json(
-      { error: "Verification failed" },
-      { status: 400 }
-    )
-  }
-
-  // 9. Store. A nameless visitor gets an Anonymous_ name server-side
-  //    (never trust the client to pick one).
+  // 10. Store. A nameless visitor gets an Anonymous_ name server-side
+  //     (never trust the client to pick one).
   const comment = await createComment({
     postSlug: body.postSlug,
     // zod already trimmed authorName; empty/undefined → anonymous.

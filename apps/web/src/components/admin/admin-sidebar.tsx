@@ -72,7 +72,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
   const currentTheme = (theme as ThemeMode) || "system"
   const [settingsOpen, setSettingsOpen] = useState(false)
   const logoSrc = siteLogoSrc(site)
-  const unreadComments = useCommentUnread()
+  const { unread: unreadComments } = useCommentUnread()
 
   function handleLogout() {
     clearToken()

@@ -15,6 +15,12 @@ const JWT_EXPIRATION = "7d"
 function getJwtSecret(): Uint8Array {
   const secret = process.env.SESSION_SECRET
   if (!secret) {
+    // Only an explicit development build gets the hardcoded dev secret
+    // (mirrors lib/comment-session). Production fails closed — a
+    // missing secret must never mint JWT with a public constant.
+    if (process.env.NODE_ENV === "development") {
+      return new TextEncoder().encode("dev-jwt-secret")
+    }
     throw new Error(
       "SESSION_SECRET environment variable is required for authentication."
     )

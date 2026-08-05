@@ -3,8 +3,10 @@
 // A guest's form must hold a token issued by GET /api/comments/session
 // before POST /api/comments is accepted. This closes the door on plain
 // curl scripts (they cannot forge the HMAC), and the token binds
-// post_slug + IP + a short TTL so each page load can only be spent once
-// per visitor/article — driving up the cost of distributed flooding.
+// post_slug + IP + a short TTL so a stale token can't be replayed after
+// the page sits. Tokens are NOT single-use — replay within the 5 min
+// TTL is bounded by the DB rate limits (IP/post/global buckets), which
+// are the real volume gate.
 //
 // Two extra constraints ride on the token's issuedAt:
 //  - TTL 5 min: a stale token can't be replayed after the page sits.

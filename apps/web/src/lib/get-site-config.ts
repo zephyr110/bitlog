@@ -113,6 +113,10 @@ export const getSiteConfig = cache(async (): Promise<SiteConfig> => {
     const cached = await cachedLoad()
     return {
       ...cached,
+      // ?? default: a pre-commentEnabled cache entry persisted across
+      // deployments has no commentEnabled field — undefined would read
+      // as "comments closed" for the whole revalidate window.
+      commentEnabled: cached.commentEnabled ?? defaultSiteConfig.commentEnabled,
       siteUrl: defaultSiteConfig.siteUrl,
       ogImage: defaultSiteConfig.ogImage,
     }
