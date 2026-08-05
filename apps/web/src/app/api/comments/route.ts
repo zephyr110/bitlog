@@ -40,8 +40,9 @@ const listQuery = z.object({
 
 const createSchema = z.object({
   postSlug: z.string().min(1).max(100),
-  // Optional — an empty name becomes "Anonymous_<random>" at insert.
-  authorName: z.string().trim().max(30).optional().or(z.literal("")),
+  // Optional — an empty/whitespace name becomes "Anonymous_<random>" at
+  // insert (the trim transform already accepts "" and whitespace).
+  authorName: z.string().trim().max(30).optional(),
   authorEmail: z.string().trim().max(100).optional().or(z.literal("")),
   content: z.string().trim().min(2).max(1000),
   // Signed session token from GET /api/comments/session.
@@ -216,7 +217,8 @@ export async function POST(request: NextRequest) {
   //    (never trust the client to pick one).
   const comment = await createComment({
     postSlug: body.postSlug,
-    authorName: body.authorName?.trim() || anonymousName(),
+    // zod already trimmed authorName; empty/undefined → anonymous.
+    authorName: body.authorName || anonymousName(),
     authorEmail: body.authorEmail ?? "",
     content: body.content,
     ipHash,

@@ -245,7 +245,10 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                 <span className="truncate">{t(link.i18nKey) as string}</span>
               )}
               {isCommentsLink && unreadComments > 0 && !collapsed && (
-                <Badge variant="destructive" className="ml-auto tabular-nums">
+                <Badge
+                  variant="destructive"
+                  className="ml-auto tabular-nums bg-destructive text-white [a]:hover:bg-destructive"
+                >
                   {unreadComments > 99 ? "99+" : unreadComments}
                 </Badge>
               )}

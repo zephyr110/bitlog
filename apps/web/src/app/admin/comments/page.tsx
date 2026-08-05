@@ -55,7 +55,14 @@ export default function AdminCommentsPage() {
       setComments(data.items)
       setTotal(data.total)
       setUnreadCount(data.unreadCount)
-      setTotalPages(Math.max(1, Math.ceil(data.total / data.pageSize)))
+      const lastPage = Math.max(1, Math.ceil(data.total / data.pageSize))
+      setTotalPages(lastPage)
+      // Dead-page guard: comments deleted elsewhere (or a pageSize
+      // switch) can leave `page` beyond the last page — an empty list
+      // with total > 0 would strand the admin with no pagination bar.
+      if (data.items.length === 0 && data.total > 0 && page > lastPage) {
+        setPage(lastPage)
+      }
     } finally {
       setLoading(false)
     }
@@ -132,12 +139,15 @@ export default function AdminCommentsPage() {
       </div>
 
       {loading ? (
-        <ListSkeleton items={3} />
+        <div className="min-h-0 flex-1">
+          <ListSkeleton items={3} />
+        </div>
       ) : comments.length === 0 ? (
         <div className="flex min-h-0 flex-1 items-center justify-center">
           <EmptyState
             icon={<MessageSquare size={32} className="text-muted-foreground" />}
             title={t("admin.commentsEmpty") as string}
+            className="py-0"
           />
         </div>
       ) : (
@@ -153,7 +163,9 @@ export default function AdminCommentsPage() {
               >
                 <CardContent className="py-4">
                   <div className="mb-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                    <span className="font-semibold">{comment.authorName}</span>
+                    <span className="font-semibold">
+                      {comment.authorName || "Anonymous"}
+                    </span>
                     <span className="text-xs text-muted-foreground">
                       {new Date(comment.createdAt).toLocaleString()}
                     </span>

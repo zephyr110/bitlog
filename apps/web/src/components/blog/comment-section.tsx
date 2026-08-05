@@ -257,7 +257,7 @@ export function CommentSection({ slug }: { slug: string }) {
               <li key={comment.id} className="rounded-xl border bg-muted/20 p-4">
                 <div className="mb-1 flex items-baseline gap-2">
                   <span className="text-sm font-semibold">
-                    {comment.authorName}
+                    {comment.authorName || "Anonymous"}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {new Date(comment.createdAt).toLocaleDateString(
