@@ -29,6 +29,25 @@ export {
 export type { MediaRecord, MediaMeta } from "./media"
 export { getSiteSettings, upsertSiteSettings } from "./site-settings"
 export type { SiteSettingsRecord, SiteSettingsUpdate } from "./site-settings"
+export {
+  getCommentsByPost,
+  createComment,
+  listAdminComments,
+  countUnreadComments,
+  markCommentRead,
+  deleteComment,
+  consumeRateLimit,
+  ipRateScope,
+  postRateScope,
+  GLOBAL_RATE_SCOPE,
+  RATE_LIMIT_IP_WINDOW_MS,
+  RATE_LIMIT_IP_MAX,
+  RATE_LIMIT_POST_WINDOW_MS,
+  RATE_LIMIT_POST_MAX,
+  RATE_LIMIT_GLOBAL_WINDOW_MS,
+  RATE_LIMIT_GLOBAL_MAX,
+} from "./comments"
+export type { CommentRecord, AdminCommentPage } from "./comments"
 // Re-export domain logic from core for backwards compatibility.
 export { safeSlug, slugify, computeReadingStats, toPostSummary } from "@zlog/core"
 export type { Post, PostSummary, AuthUser } from "@zlog/core"

@@ -17,6 +17,7 @@ export type SiteSettingsDto = {
   logoInvertInDark: boolean
   githubUrl: string
   twitterUrl: string
+  commentEnabled: boolean
 }
 
 /**
@@ -49,6 +50,7 @@ export function siteConfigFromRow(
       github: row.githubUrl,
       twitter: row.twitterUrl,
     },
+    commentEnabled: row.commentEnabled,
     siteUrl: defaultSiteConfig.siteUrl,
     ogImage: defaultSiteConfig.ogImage,
   }
@@ -64,6 +66,7 @@ export function toSettingsDto(config: SiteConfig): SiteSettingsDto {
     logoInvertInDark: config.logoInvertInDark,
     githubUrl: config.social.github,
     twitterUrl: config.social.twitter,
+    commentEnabled: config.commentEnabled,
   }
 }
 
@@ -85,6 +88,7 @@ async function loadCachedConfig(): Promise<
     logoUrl: config.logoUrl,
     logoInvertInDark: config.logoInvertInDark,
     social: config.social,
+    commentEnabled: config.commentEnabled,
   }
 }
 

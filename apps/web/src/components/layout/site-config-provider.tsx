@@ -56,6 +56,10 @@ export function SiteConfigProvider({
           github: s.githubUrl ?? prev.social.github,
           twitter: s.twitterUrl ?? prev.social.twitter,
         },
+        commentEnabled:
+          typeof s.commentEnabled === "boolean"
+            ? s.commentEnabled
+            : prev.commentEnabled,
       }))
     } catch {
       // ignore network errors — keep last known config

@@ -24,6 +24,7 @@ type FormState = {
   logoInvertInDark: boolean
   githubUrl: string
   twitterUrl: string
+  commentEnabled: boolean
 }
 
 const ACCEPT = "image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
@@ -50,6 +51,7 @@ export function SiteInfoForm({
     logoInvertInDark: true,
     githubUrl: "",
     twitterUrl: "",
+    commentEnabled: true,
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -81,6 +83,7 @@ export function SiteInfoForm({
           logoInvertInDark: s.logoInvertInDark ?? true,
           githubUrl: s.githubUrl ?? "",
           twitterUrl: s.twitterUrl ?? "",
+          commentEnabled: s.commentEnabled ?? true,
         })
       } catch {
         if (!cancelled) {
@@ -96,6 +99,7 @@ export function SiteInfoForm({
             logoInvertInDark: site.logoInvertInDark ?? true,
             githubUrl: site.social.github,
             twitterUrl: site.social.twitter,
+            commentEnabled: site.commentEnabled ?? true,
           })
         }
       } finally {
@@ -233,6 +237,7 @@ export function SiteInfoForm({
           github: s.githubUrl,
           twitter: s.twitterUrl,
         },
+        commentEnabled: s.commentEnabled ?? prev.commentEnabled,
       }))
       touchedRef.current.clear()
       autoPersistedRef.current = false
@@ -342,6 +347,17 @@ export function SiteInfoForm({
           </div>
         </div>
       </div>
+
+      {/* Comments master switch — kill-switch when spam hits. */}
+      <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+        <input
+          type="checkbox"
+          checked={form.commentEnabled}
+          onChange={(e) => patch("commentEnabled", e.target.checked)}
+          className="size-3.5 accent-primary"
+        />
+        <span>{t("admin.allowComments") as string}</span>
+      </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">

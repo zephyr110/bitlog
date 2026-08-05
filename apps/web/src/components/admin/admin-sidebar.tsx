@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import { clearToken } from "@/lib/api-client"
+import { useCommentUnread } from "@/components/admin/comment-unread"
 import { SettingsDialog } from "@/components/admin/settings-dialog"
 import { IconButton } from "@/components/ui/icon-button"
 import {
@@ -41,11 +42,13 @@ import {
   ChevronRight,
   PanelLeft,
   SquarePen,
+  MessageSquare,
 } from "lucide-react"
 
 const sidebarLinks = [
   { href: "/admin/dashboard", i18nKey: "admin.dashboard", icon: LayoutDashboard },
   { href: "/admin/posts", i18nKey: "admin.posts", icon: FileText },
+  { href: "/admin/comments", i18nKey: "admin.comments", icon: MessageSquare },
   { href: "/admin/media", i18nKey: "admin.media", icon: Image },
 ]
 
@@ -68,6 +71,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
   const currentTheme = (theme as ThemeMode) || "system"
   const [settingsOpen, setSettingsOpen] = useState(false)
   const logoSrc = siteLogoSrc(site)
+  const unreadComments = useCommentUnread()
 
   function handleLogout() {
     clearToken()
@@ -206,6 +210,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
             pathname === link.href ||
             (link.href !== "/admin/dashboard" && pathname?.startsWith(link.href))
 
+          const isCommentsLink = link.href === "/admin/comments"
           const linkEl = (
             <Link
               key={link.href}
@@ -219,17 +224,29 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                   : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
               )}
             >
-              <Icon
-                size={18}
-                className={cn(
-                  "shrink-0 transition-colors",
-                  isActive
-                    ? "text-sidebar-primary"
-                    : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground"
+              <span className={cn("relative", collapsed && "shrink-0")}>
+                <Icon
+                  size={18}
+                  className={cn(
+                    "shrink-0 transition-colors",
+                    isActive
+                      ? "text-sidebar-primary"
+                      : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground"
+                  )}
+                />
+                {/* Unread badge — collapsed mode shows a dot, expanded a
+                    count pill, both only while there's something new. */}
+                {isCommentsLink && unreadComments > 0 && collapsed && (
+                  <span className="absolute -right-1 -top-1 size-2 rounded-full bg-destructive ring-2 ring-sidebar" />
                 )}
-              />
+              </span>
               {!collapsed && (
                 <span className="truncate">{t(link.i18nKey) as string}</span>
+              )}
+              {isCommentsLink && unreadComments > 0 && !collapsed && (
+                <span className="ml-auto rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-semibold leading-none text-destructive-foreground tabular-nums">
+                  {unreadComments > 99 ? "99+" : unreadComments}
+                </span>
               )}
             </Link>
           )

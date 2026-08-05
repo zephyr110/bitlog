@@ -17,6 +17,8 @@ export type SiteConfig = {
     github: string
     twitter: string
   }
+  /** Guest comments master switch (settings, DB-backed). */
+  commentEnabled: boolean
 }
 
 /**
@@ -69,6 +71,7 @@ export const defaultSiteConfig: SiteConfig = {
     github: "https://github.com/zephyr110/zlog",
     twitter: "https://twitter.com",
   },
+  commentEnabled: true,
 }
 
 /** @deprecated Prefer getSiteConfig() / useSiteConfig() — kept for sync env fields. */

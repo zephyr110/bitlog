@@ -3,6 +3,7 @@
 import { useEffect, useState, createContext } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { AdminSidebar, AdminSidebarTrigger } from "@/components/admin/admin-sidebar"
+import { CommentUnreadProvider } from "@/components/admin/comment-unread"
 import { getToken, apiFetch, clearToken } from "@/lib/api-client"
 import { PageLoader } from "@/components/ui/page-loader"
 import { useT } from "@/components/layout/trans"
@@ -85,7 +86,8 @@ export default function AdminLayout({
   const meta = pathname ? pageMeta[pathname] : undefined
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <CommentUnreadProvider>
+      <div className="min-h-screen bg-muted/30">
       <AdminSidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -127,6 +129,7 @@ export default function AdminLayout({
             bottom via the bar's !mt-auto + sticky. */}
         <div className="flex min-h-[calc(100vh-3.5rem)] flex-col p-4 md:p-8">{children}</div>
       </div>
-    </div>
+      </div>
+    </CommentUnreadProvider>
   )
 }
