@@ -279,7 +279,14 @@ function AdminPostsContent() {
               onValueChange={(v) => { setTopicFilter(v || "all"); setPage(1) }}
             >
               <SelectTrigger className="w-44">
-                <SelectValue placeholder={t("admin.allTopics") as string} />
+                {/* Explicit label: Base UI's SelectValue would otherwise
+                    render the raw value ("all", "frontend"…) instead of
+                    the translated category name. */}
+                <SelectValue>
+                  {topicFilter === "all"
+                    ? (t("admin.allTopics") as string)
+                    : getCategoryLabel(topicFilter, t)}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t("admin.allTopics") as string}</SelectItem>

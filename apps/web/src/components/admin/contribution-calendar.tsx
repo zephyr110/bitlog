@@ -177,7 +177,15 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
           }
         >
           <SelectTrigger size="sm" className="w-36">
-            <SelectValue />
+            {/* Explicit children: Base UI's SelectValue only renders the
+                matched item label when items/itemToStringLabel are given —
+                otherwise it falls back to the raw value string ("recent"
+                instead of the "Past year"/"最近一年" translation). */}
+            <SelectValue>
+              {selectedYear
+                ? String(selectedYear)
+                : (t("admin.calendarRecent") as string)}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="recent">
@@ -200,7 +208,7 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
             return (
               <div
                 key={i}
-                className="flex-1 text-[10px] leading-none text-muted-foreground/70"
+                className="flex-1 text-[11px] font-medium leading-none text-muted-foreground"
               >
                 {label ? (
                   <span className="inline-block h-3.5">{label.text}</span>
