@@ -67,7 +67,7 @@ export function ChangePasswordForm({
         clearToken()
         router.push("/admin/login")
       } else {
-        toast.error(data.error || (t(wrongPasswordKey) as string))
+        toast.error(data.error || t(wrongPasswordKey))
       }
     } catch {
       toast.error(t("admin.networkError"))

@@ -10,7 +10,14 @@ export {
 
 export type UploadResult =
   | { ok: true; url: string; name?: string }
-  | { ok: false; error: string; status?: number }
+  | {
+      ok: false
+      /** Discriminator for i18n — never put localized copy in the helper. */
+      reason: "network" | "failed"
+      /** Server-provided message when present; callers fall back to i18n. */
+      message?: string
+      status?: number
+    }
 
 /** POST a single image to /api/upload with the shared timeout. */
 export async function uploadImageFile(file: File): Promise<UploadResult> {
@@ -30,16 +37,17 @@ export async function uploadImageFile(file: File): Promise<UploadResult> {
     if (!res.ok) {
       return {
         ok: false,
-        error: data.error || "Upload failed",
+        reason: "failed",
+        message: data.error,
         status: res.status,
       }
     }
     if (!data.url) {
-      return { ok: false, error: "Upload failed", status: res.status }
+      return { ok: false, reason: "failed", status: res.status }
     }
     return { ok: true, url: data.url, name: data.name }
   } catch {
-    return { ok: false, error: "Network error" }
+    return { ok: false, reason: "network" }
   }
 }
 

@@ -113,10 +113,10 @@ export function MediaPickerDialog({
             onSelect(result.url)
             onOpenChange(false)
           }
-        } else if (result.error === "Network error") {
+        } else if (result.reason === "network") {
           toast.error(t("admin.networkError"))
         } else {
-          toast.error(result.error || (t("admin.uploadFailed")))
+          toast.error(result.message || t("admin.uploadFailed"))
         }
       } finally {
         setUploading(false)

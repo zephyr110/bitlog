@@ -132,9 +132,9 @@ export function SiteInfoForm({
       const result = await uploadImageFile(file)
       if (!result.ok) {
         toast.error(
-          result.error === "Network error"
-            ? (t("admin.networkError"))
-            : result.error || (t("admin.uploadFailed"))
+          result.reason === "network"
+            ? t("admin.networkError")
+            : result.message || t("admin.uploadFailed")
         )
         return
       }

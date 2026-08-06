@@ -40,7 +40,15 @@ export function ConfirmDeleteDialog({
   const working = busyLabel ?? (t("admin.deleting"))
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        // Keep the dialog locked while the delete request is in flight —
+        // ESC/overlay would otherwise dismiss under a leftover `busy` flag.
+        if (!next && busy) return
+        onOpenChange(next)
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
