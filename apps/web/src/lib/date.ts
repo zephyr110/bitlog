@@ -1,3 +1,16 @@
+/** Local "YYYY-MM-DD" → exact UTC timestamp at the day boundary
+ *  ("YYYY-MM-DD HH:MM:SS", matching created_at's format). Converting the
+ *  local window start/end to UTC keeps the filter exact in any timezone. */
+export function toUtcTimestamp(
+  localDay: string,
+  endOfDay: boolean
+): string | undefined {
+  if (!localDay) return undefined
+  const d = new Date(endOfDay ? `${localDay}T23:59:59` : `${localDay}T00:00:00`)
+  if (Number.isNaN(d.getTime())) return undefined
+  return d.toISOString().replace("T", " ").slice(0, 19)
+}
+
 /** Local "YYYY-MM-DD" from a Date — the shared wire contract for the
  *  admin date filters and the media/post display dates. */
 export function formatLocalDate(d: Date): string {

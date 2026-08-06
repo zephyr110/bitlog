@@ -1,18 +1,12 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef, useDeferredValue, Component, type ReactNode } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { MarkdownHooks } from "react-markdown"
-import remarkGfm from "remark-gfm"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { mdxComponents } from "@/components/blog/mdx-components"
-import { blogRehypePlugins } from "@/lib/mdx-pipeline"
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
@@ -22,85 +16,18 @@ import {
   HeaderActions,
   HeaderTitleExtra,
 } from "@/components/admin/header-actions"
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip"
-import { IconButton } from "@/components/ui/icon-button"
-import {
-  Bold,
-  Italic,
-  Heading2,
-  Link as LinkIcon,
-  Image as ImageIcon,
-  Code,
-  List,
-  ListOrdered,
-  Quote,
-  ExternalLink,
-  ImagePlus,
-  Eye,
-  EyeOff,
-  type LucideIcon,
-} from "lucide-react"
+import { ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { POST_PROSE_CLASSES } from "@/lib/prose"
+import {
+  EditorToolbar,
+  type ToolbarItem,
+} from "@/components/admin/editor-toolbar"
+import { MarkdownPreview } from "@/components/admin/markdown-preview"
+import { PostMetaFields } from "@/components/admin/post-meta-fields"
 
 interface PostEditorProps {
   initialPost?: Post
   isNew?: boolean
-}
-
-interface ToolbarItem {
-  key: string
-  i18nKey: string
-  icon: LucideIcon
-  /** Prefix inserted before selection */
-  prefix: string
-  /** Suffix inserted after selection */
-  suffix?: string
-  /** Wrap selection inline (for links) */
-  inline?: boolean
-}
-
-const TOOLBAR: ToolbarItem[] = [
-  { key: "bold", i18nKey: "admin.bold", icon: Bold, prefix: "**", suffix: "**" },
-  { key: "italic", i18nKey: "admin.italic", icon: Italic, prefix: "*", suffix: "*" },
-  { key: "heading", i18nKey: "admin.heading", icon: Heading2, prefix: "## " },
-  { key: "quote", i18nKey: "admin.quote", icon: Quote, prefix: "> " },
-  { key: "ul", i18nKey: "admin.unorderedList", icon: List, prefix: "- " },
-  { key: "ol", i18nKey: "admin.orderedList", icon: ListOrdered, prefix: "1. " },
-  { key: "code", i18nKey: "admin.codeBlock", icon: Code, prefix: "```\n", suffix: "\n```" },
-  { key: "link", i18nKey: "admin.link", icon: LinkIcon, prefix: "[", suffix: "](https://)", inline: true },
-]
-
-/**
- * MarkdownHooks throws render-time errors (e.g. a highlight failure) —
- * without a boundary that would unmount the whole editor. The resetKey
- * (the deferred content) clears the error on the next keystroke so the
- * preview retries, without remounting the pipeline (a remount would flash
- * the fallback on every keypress).
- */
-class PreviewErrorBoundary extends Component<
-  { resetKey: string; fallback: ReactNode; children: ReactNode },
-  { hasError: boolean; lastKey: string }
-> {
-  state = { hasError: false, lastKey: "" }
-  static getDerivedStateFromProps(
-    props: { resetKey: string },
-    state: { hasError: boolean; lastKey: string }
-  ) {
-    return state.lastKey !== props.resetKey
-      ? { hasError: false, lastKey: props.resetKey }
-      : null
-  }
-  static getDerivedStateFromError() {
-    return { hasError: true }
-  }
-  render() {
-    return this.state.hasError ? this.props.fallback : this.props.children
-  }
 }
 
 export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
@@ -392,49 +319,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     }
   }
 
-  // Deferred so typing stays responsive — the preview re-renders with the
-  // stale content while the new text is being processed in the background.
-  const deferredContent = useDeferredValue(content)
-
-  // Prose classes mirror the public post page (posts/[slug]/page.tsx), and
-  // the component map + rehype pipeline are the same as MDXRenderer, so the
-  // preview matches the published typography, colors, and code blocks.
-  const previewPanel = (
-    <div
-      className={cn(
-        POST_PROSE_CLASSES,
-        "min-h-[400px] lg:min-h-[calc(100vh-24rem)] border rounded-lg p-6 bg-card"
-      )}
-    >
-      {deferredContent.trim() ? (
-        <PreviewErrorBoundary
-          resetKey={deferredContent}
-          fallback={
-            <p className="text-muted-foreground italic">
-              {t("admin.previewError") as string}
-            </p>
-          }
-        >
-          <MarkdownHooks
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={blogRehypePlugins}
-            components={mdxComponents}
-            fallback={
-              <p className="text-muted-foreground italic">
-                {t("admin.previewRendering") as string}
-              </p>
-            }
-          >
-            {deferredContent}
-          </MarkdownHooks>
-        </PreviewErrorBoundary>
-      ) : (
-        <p className="text-muted-foreground italic">
-          {t("admin.previewEmpty") as string}
-        </p>
-      )}
-    </div>
-  )
+  const previewPanel = <MarkdownPreview content={content} />
 
   return (
     <div className="space-y-6">
@@ -476,194 +361,35 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
           <CardTitle>{t("admin.postDetails") as string}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">{t("admin.title") as string}</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={handleTitleChange}
-              placeholder={t("admin.title") as string}
-              className="text-lg"
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="slug">{t("admin.slug") as string}</Label>
-              <Input
-                id="slug"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder={t("admin.slugPlaceholder") as string}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cover">{t("admin.coverImage") as string}</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="cover"
-                  value={cover}
-                  onChange={(e) => setCover(e.target.value)}
-                  placeholder={t("admin.coverPlaceholder") as string}
-                />
-                <Tooltip>
-                  <TooltipTrigger
-                    render={
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="shrink-0"
-                        aria-label={t("admin.pickCoverImage") as string}
-                        onClick={() => setCoverPickerOpen(true)}
-                      >
-                        <ImagePlus size={16} />
-                      </Button>
-                    }
-                  />
-                  <TooltipContent>
-                    {t("admin.pickCoverImage") as string}
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
-          </div>
-
-          {cover && (
-            <div className="relative rounded-lg border overflow-hidden max-h-48 bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={cover}
-                alt=""
-                className="w-full h-48 object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none"
-                }}
-              />
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="description">{t("admin.description") as string}</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t("admin.description") as string}
-              rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>{t("admin.tags") as string}</Label>
-            <div className="flex gap-2">
-              <Input
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={handleTagKeyDown}
-                placeholder={t("admin.addTag") as string}
-                className="flex-1"
-              />
-              <Button variant="outline" onClick={addTag} type="button">
-                {t("admin.addTagButton") as string}
-              </Button>
-            </div>
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="cursor-pointer group/tag hover:bg-destructive/10 hover:text-destructive transition-colors"
-                    onClick={() => removeTag(tag)}
-                  >
-                    {tag}
-                    <span className="ml-1 text-muted-foreground group-hover/tag:text-destructive">×</span>
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
+          <PostMetaFields
+            title={title}
+            onTitleChange={handleTitleChange}
+            slug={slug}
+            onSlugChange={setSlug}
+            cover={cover}
+            onCoverChange={setCover}
+            onPickCover={() => setCoverPickerOpen(true)}
+            description={description}
+            onDescriptionChange={setDescription}
+            tags={tags}
+            tagInput={tagInput}
+            onTagInputChange={setTagInput}
+            onTagKeyDown={handleTagKeyDown}
+            onAddTag={addTag}
+            onRemoveTag={removeTag}
+          />
         </CardContent>
       </Card>
 
       {/* Content Editor — split view on desktop, tabs on mobile */}
       <Card>
         <CardContent className="pt-6">
-          {/* Toolbar */}
-          <div className="flex items-center gap-0.5 mb-3 flex-wrap">
-            {TOOLBAR.map((item) => {
-              const Icon = item.icon
-              return (
-                <Tooltip key={item.key}>
-                  <TooltipTrigger
-                    render={
-                      <IconButton
-                        size="sm"
-                        aria-label={t(item.i18nKey) as string}
-                        onClick={() => applyToolbar(item)}
-                      >
-                        <Icon size={15} />
-                      </IconButton>
-                    }
-                  />
-                  <TooltipContent>
-                    {t(item.i18nKey) as string}
-                  </TooltipContent>
-                </Tooltip>
-              )
-            })}
-            <span className="w-px h-5 bg-border mx-1" />
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <IconButton
-                    size="sm"
-                    aria-label={t("admin.insertImage") as string}
-                    onClick={() => setImagePickerOpen(true)}
-                  >
-                    <ImageIcon size={15} />
-                  </IconButton>
-                }
-              />
-              <TooltipContent>
-                {t("admin.insertImage") as string}
-              </TooltipContent>
-            </Tooltip>
-            <span className="w-px h-5 bg-border mx-1" />
-            {/* Collapse/expand preview (desktop split view) */}
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <IconButton
-                    size="sm"
-                    aria-label={
-                      previewCollapsed
-                        ? (t("admin.expandPreview") as string)
-                        : (t("admin.collapsePreview") as string)
-                    }
-                    onClick={() => setPreviewCollapsed(!previewCollapsed)}
-                    className={
-                      previewCollapsed
-                        ? "text-primary bg-primary/10 hover:bg-primary/15"
-                        : undefined
-                    }
-                  >
-                    {previewCollapsed ? (
-                      <Eye size={15} />
-                    ) : (
-                      <EyeOff size={15} />
-                    )}
-                  </IconButton>
-                }
-              />
-              <TooltipContent>
-                {previewCollapsed
-                  ? (t("admin.expandPreview") as string)
-                  : (t("admin.collapsePreview") as string)}
-              </TooltipContent>
-            </Tooltip>
-          </div>
+          <EditorToolbar
+            onApplyToolbar={applyToolbar}
+            onInsertImage={() => setImagePickerOpen(true)}
+            previewCollapsed={previewCollapsed}
+            onTogglePreview={() => setPreviewCollapsed(!previewCollapsed)}
+          />
 
           {/* Split view (lg+) — preview on the left, editor on the right.
               The preview pane can be collapsed to give the editor full width. */}

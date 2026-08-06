@@ -1,20 +1,16 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useTheme } from "next-themes"
-import { Turnstile } from "@marsidev/react-turnstile"
 import { MessageSquare } from "lucide-react"
 import { useT } from "@/components/layout/trans"
 import { useSiteConfig } from "@/components/layout/site-config-provider"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import {
   COMMENT_MIN_SUBMIT_DELAY_MS,
-  displayName,
   type PublicComment,
 } from "@/lib/comment-shared"
-import { CommentAvatar } from "@/components/blog/comment-avatar"
+import { CommentCard } from "@/components/blog/comment-card"
+import { CommentForm } from "@/components/blog/comment-form"
 import { useStaleRequest } from "@/hooks/use-stale-request"
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
@@ -23,49 +19,6 @@ const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 // deploy.yml sets NEXT_PUBLIC_SITE_URL=https://zephyr110.github.io.
 const STATIC_MIRROR = !!process.env.NEXT_PUBLIC_SITE_URL?.includes("github.io")
 
-/** One comment bubble — #number (display order), avatar, name, date,
- *  content, and (for root comments) the reply action. */
-function CommentCard({
-  comment,
-  no,
-  onReply,
-}: {
-  comment: PublicComment
-  no: number
-  onReply?: (comment: PublicComment) => void
-}) {
-  const { t } = useT()
-  const name = displayName(comment.authorName)
-  return (
-    <div className="rounded-xl border bg-muted/20 p-4">
-      <div className="mb-1 flex items-center gap-2">
-        <span className="font-mono text-xs text-muted-foreground">#{no}</span>
-        <CommentAvatar commentId={comment.id} name={name} />
-        <span className="text-sm font-semibold">{name}</span>
-        <span className="text-xs text-muted-foreground">
-          {new Date(comment.createdAt).toLocaleDateString(undefined, {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })}
-        </span>
-        {onReply && (
-          <button
-            type="button"
-            onClick={() => onReply(comment)}
-            className="ml-auto text-xs text-muted-foreground transition-colors hover:text-primary"
-          >
-            {t("post.commentReply") as string}
-          </button>
-        )}
-      </div>
-      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-        {comment.content}
-      </p>
-    </div>
-  )
-}
-
 /** Guest comments, self-hosted (replaces giscus): no login, immediate
  *  display, spam-gated server-side (signed session token + Turnstile +
  *  rate limits + content filters in /api/comments). The email is stored
@@ -73,7 +26,6 @@ function CommentCard({
 export function CommentSection({ slug }: { slug: string }) {
   const { t } = useT()
   const site = useSiteConfig()
-  const { resolvedTheme } = useTheme()
 
   const [comments, setComments] = useState<PublicComment[]>([])
   const [loading, setLoading] = useState(true)
@@ -473,109 +425,32 @@ export function CommentSection({ slug }: { slug: string }) {
             </Button>
           </div>
         ) : (
-          <form
-            ref={formRef}
-            className="mt-8 space-y-3"
-            onSubmit={(e) => {
-              e.preventDefault()
-              void onSubmit()
+          <CommentForm
+            formRef={formRef}
+            honeypotRef={honeypotRef}
+            replyingTo={replyingTo}
+            onCancelReply={() => {
+              // Cancel abandons the reply draft too — otherwise
+              // the still-enabled submit button would silently
+              // post the text as a top-level comment.
+              setReplyingTo(null)
+              setContent("")
             }}
-          >
-            {replyingTo && (
-              <div className="flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2 text-sm">
-                <span className="text-muted-foreground">
-                  {(t("post.commentReplyingTo") as (n: string) => string)(
-                    displayName(replyingTo.authorName)
-                  )}
-                </span>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="ml-auto"
-                  onClick={() => {
-                    // Cancel abandons the reply draft too — otherwise
-                    // the still-enabled submit button would silently
-                    // post the text as a top-level comment.
-                    setReplyingTo(null)
-                    setContent("")
-                  }}
-                >
-                  {t("post.commentCancelReply") as string}
-                </Button>
-              </div>
-            )}
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Input
-                value={authorName}
-                onChange={(e) => setAuthorName(e.target.value)}
-                placeholder={t("post.commentAuthorPlaceholder") as string}
-                maxLength={30}
-                className="sm:max-w-40"
-              />
-              <Input
-                value={authorEmail}
-                onChange={(e) => setAuthorEmail(e.target.value)}
-                placeholder={t("post.commentEmailPlaceholder") as string}
-                type="email"
-                maxLength={100}
-                className="sm:max-w-56"
-              />
-            </div>
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder={t("post.commentContentPlaceholder") as string}
-              maxLength={1000}
-              rows={4}
-              required
-            />
-            {/* Honeypot — invisible to humans, filled by bots. */}
-            <input
-              ref={honeypotRef}
-              name="website"
-              type="text"
-              tabIndex={-1}
-              autoComplete="off"
-              aria-hidden="true"
-              className="absolute -left-[9999px] h-0 w-0 opacity-0"
-            />
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Turnstile
-                key={turnstileRound}
-                siteKey={TURNSTILE_SITE_KEY!}
-                onSuccess={setTurnstileToken}
-                // onError must NOT re-mount the widget: a persistent
-                // failure (ad-blocker, unreachable CDN) would loop
-                // mount→error→mount forever. Just drop the stale token;
-                // onExpire (or a successful submit's reset) re-challenges.
-                onError={() => setTurnstileToken(null)}
-                onExpire={resetTurnstile}
-                options={{
-                  theme:
-                    resolvedTheme === "dark"
-                      ? "dark"
-                      : resolvedTheme === "light"
-                        ? "light"
-                        : "auto",
-                }}
-              />
-              <Button
-                type="submit"
-                disabled={!canSubmit || submitting}
-                className="sm:ml-auto"
-              >
-                {submitting
-                  ? (t("post.commentSubmitting") as string)
-                  : (t("post.commentSubmit") as string)}
-              </Button>
-            </div>
-            {error && (
-              <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {error}
-              </p>
-            )}
-          </form>
+            authorName={authorName}
+            onAuthorNameChange={setAuthorName}
+            authorEmail={authorEmail}
+            onAuthorEmailChange={setAuthorEmail}
+            content={content}
+            onContentChange={setContent}
+            turnstileRound={turnstileRound}
+            onTurnstileSuccess={setTurnstileToken}
+            onTurnstileError={() => setTurnstileToken(null)}
+            onTurnstileExpire={resetTurnstile}
+            canSubmit={canSubmit}
+            submitting={submitting}
+            error={error}
+            onSubmit={() => void onSubmit()}
+          />
         )}
       </div>
     </section>

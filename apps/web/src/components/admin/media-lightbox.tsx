@@ -10,6 +10,8 @@ import { useT } from "@/components/layout/trans"
 export interface MediaFile {
   name: string
   url: string
+  /** SQLite datetime("now") — UTC "YYYY-MM-DD HH:MM:SS" */
+  createdAt?: string
 }
 
 interface MediaLightboxProps {

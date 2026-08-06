@@ -1,0 +1,138 @@
+"use client"
+
+import {
+  Bold,
+  Italic,
+  Heading2,
+  Link as LinkIcon,
+  Image as ImageIcon,
+  Code,
+  List,
+  ListOrdered,
+  Quote,
+  Eye,
+  EyeOff,
+  type LucideIcon,
+} from "lucide-react"
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip"
+import { IconButton } from "@/components/ui/icon-button"
+import { useT } from "@/components/layout/trans"
+
+export interface ToolbarItem {
+  key: string
+  i18nKey: string
+  icon: LucideIcon
+  /** Prefix inserted before selection */
+  prefix: string
+  /** Suffix inserted after selection */
+  suffix?: string
+  /** Wrap selection inline (for links) */
+  inline?: boolean
+}
+
+export const TOOLBAR: ToolbarItem[] = [
+  { key: "bold", i18nKey: "admin.bold", icon: Bold, prefix: "**", suffix: "**" },
+  { key: "italic", i18nKey: "admin.italic", icon: Italic, prefix: "*", suffix: "*" },
+  { key: "heading", i18nKey: "admin.heading", icon: Heading2, prefix: "## " },
+  { key: "quote", i18nKey: "admin.quote", icon: Quote, prefix: "> " },
+  { key: "ul", i18nKey: "admin.unorderedList", icon: List, prefix: "- " },
+  { key: "ol", i18nKey: "admin.orderedList", icon: ListOrdered, prefix: "1. " },
+  { key: "code", i18nKey: "admin.codeBlock", icon: Code, prefix: "```\n", suffix: "\n```" },
+  { key: "link", i18nKey: "admin.link", icon: LinkIcon, prefix: "[", suffix: "](https://)", inline: true },
+]
+
+interface EditorToolbarProps {
+  onApplyToolbar: (item: ToolbarItem) => void
+  onInsertImage: () => void
+  previewCollapsed: boolean
+  onTogglePreview: () => void
+}
+
+export function EditorToolbar({
+  onApplyToolbar,
+  onInsertImage,
+  previewCollapsed,
+  onTogglePreview,
+}: EditorToolbarProps) {
+  const { t } = useT()
+
+  return (
+    <div className="flex items-center gap-0.5 mb-3 flex-wrap">
+      {TOOLBAR.map((item) => {
+        const Icon = item.icon
+        return (
+          <Tooltip key={item.key}>
+            <TooltipTrigger
+              render={
+                <IconButton
+                  size="sm"
+                  aria-label={t(item.i18nKey) as string}
+                  onClick={() => onApplyToolbar(item)}
+                >
+                  <Icon size={15} />
+                </IconButton>
+              }
+            />
+            <TooltipContent>
+              {t(item.i18nKey) as string}
+            </TooltipContent>
+          </Tooltip>
+        )
+      })}
+      <span className="w-px h-5 bg-border mx-1" />
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <IconButton
+              size="sm"
+              aria-label={t("admin.insertImage") as string}
+              onClick={onInsertImage}
+            >
+              <ImageIcon size={15} />
+            </IconButton>
+          }
+        />
+        <TooltipContent>
+          {t("admin.insertImage") as string}
+        </TooltipContent>
+      </Tooltip>
+      <span className="w-px h-5 bg-border mx-1" />
+      {/* Collapse/expand preview (desktop split view) */}
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <IconButton
+              size="sm"
+              aria-label={
+                previewCollapsed
+                  ? (t("admin.expandPreview") as string)
+                  : (t("admin.collapsePreview") as string)
+              }
+              onClick={onTogglePreview}
+              className={
+                previewCollapsed
+                  ? "text-primary bg-primary/10 hover:bg-primary/15"
+                  : undefined
+              }
+            >
+              {previewCollapsed ? (
+                <Eye size={15} />
+              ) : (
+                <EyeOff size={15} />
+              )}
+            </IconButton>
+          }
+        />
+        <TooltipContent>
+          {previewCollapsed
+            ? (t("admin.expandPreview") as string)
+            : (t("admin.collapsePreview") as string)}
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  )
+}
