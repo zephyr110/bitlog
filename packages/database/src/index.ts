@@ -31,7 +31,9 @@ export { getSiteSettings, upsertSiteSettings } from "./site-settings"
 export type { SiteSettingsRecord, SiteSettingsUpdate } from "./site-settings"
 export {
   getCommentsByPost,
+  getReplyTarget,
   createComment,
+  createReply,
   listAdminComments,
   countUnreadComments,
   markCommentRead,
@@ -47,7 +49,11 @@ export {
   RATE_LIMIT_GLOBAL_WINDOW_MS,
   RATE_LIMIT_GLOBAL_MAX,
 } from "./comments"
-export type { CommentRecord, AdminCommentPage } from "./comments"
+export type {
+  CommentRecord,
+  AdminCommentRecord,
+  AdminCommentPage,
+} from "./comments"
 // Re-export domain logic from core for backwards compatibility.
 export { safeSlug, slugify, computeReadingStats, toPostSummary } from "@zlog/core"
 export type { Post, PostSummary, AuthUser } from "@zlog/core"

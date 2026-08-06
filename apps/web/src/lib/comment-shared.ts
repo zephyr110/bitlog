@@ -9,7 +9,18 @@ export type PublicComment = {
   postSlug: string
   authorName: string
   content: string
+  /** Root comment: null. Reply: the parent comment's id. */
+  parentId: number | null
   createdAt: string
+}
+
+/** Render name for a comment author — the server assigns nameless
+ *  visitors `Anonymous_<hex>`; the suffix reads as noise on the page,
+ *  so any Anonymous_ name displays as plain "Anonymous" (the stored
+ *  value is untouched). Also covers the empty-string fallback. */
+export function displayName(authorName: string): string {
+  if (!authorName || authorName.startsWith("Anonymous_")) return "Anonymous"
+  return authorName
 }
 
 /** Server-side time-trap floor (comment-session.ts). Mirrored on the

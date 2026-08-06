@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { MessageSquare, Trash2, Check } from "lucide-react"
+import { MessageSquare, Reply, FileText, Mail, Trash2, Check } from "lucide-react"
 import { apiFetch } from "@/lib/api-client"
 import { useCommentUnread } from "@/components/admin/comment-unread"
 import { useT } from "@/components/layout/trans"
@@ -11,32 +11,18 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ListSkeleton } from "@/components/ui/loading"
 import { EmptyState } from "@/components/ui/empty-state"
 import { PaginationBar } from "@/components/admin/pagination-bar"
+import { CommentAvatar } from "@/components/blog/comment-avatar"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-
-type AdminComment = {
-  id: number
-  postSlug: string
-  authorName: string
-  authorEmail: string
-  content: string
-  createdAt: string
-  isRead: boolean
-}
-
-type CommentPage = {
-  items: AdminComment[]
-  total: number
-  page: number
-  pageSize: number
-  unreadCount: number
-}
+// The admin API passes the DB result through untouched, so the wire
+// shape IS the package type — no local re-declaration to drift.
+import type { AdminCommentRecord, AdminCommentPage } from "@zlog/database"
 
 /** Comment inbox — new comments land here (unread-first) with the
  *  sidebar badge; spam gets deleted, legit comments marked read. */
 export default function AdminCommentsPage() {
   const { t } = useT()
-  const [comments, setComments] = useState<AdminComment[]>([])
+  const [comments, setComments] = useState<AdminCommentRecord[]>([])
   const [total, setTotal] = useState(0)
   const [unreadCount, setUnreadCount] = useState(0)
   const [page, setPage] = useState(1)
@@ -58,7 +44,7 @@ export default function AdminCommentsPage() {
       )
       if (!res.ok) return
       if (seq !== loadSeqRef.current) return // superseded by a newer load
-      const data = (await res.json()) as CommentPage
+      const data = (await res.json()) as AdminCommentPage
       setComments(data.items)
       setTotal(data.total)
       setUnreadCount(data.unreadCount)
@@ -123,13 +109,24 @@ export default function AdminCommentsPage() {
         toast.error(t("admin.loadFailed") as string)
         return
       }
-      setComments((prev) => prev.filter((c) => c.id !== id))
-      setTotal((n) => Math.max(0, n - 1))
+      // The server cascades a root's replies — mirror that locally:
+      // drop the row and any replies pointing at it on THIS page, and
+      // adjust total/unread by the server-reported counts (which cover
+      // replies on other pages too), so the counts and pagination stay
+      // truthful without a full reload.
+      const data = (await res.json().catch(() => null)) as {
+        removed?: number
+        removedUnread?: number
+      } | null
+      setComments((prev) => prev.filter((c) => c.id !== id && c.parentId !== id))
+      setTotal((n) => Math.max(0, n - (data?.removed ?? 1)))
+      setUnreadCount((n) => Math.max(0, n - (data?.removedUnread ?? 0)))
       refreshUnread()
-      // Re-clamp the page if the last item on the last page was
-      // deleted — setPage re-triggers load(). Otherwise the local
-      // update is enough; no full reload (avoids skeleton flicker).
-      if (comments.length === 1 && page > 1) setPage(page - 1)
+      // Dead-page clamp: if this page emptied out, step back a page —
+      // setPage re-triggers load(). Otherwise the local update is
+      // enough; no full reload (avoids skeleton flicker).
+      const goneOnPage = comments.filter((c) => c.id === id || c.parentId === id)
+      if (goneOnPage.length >= comments.length && page > 1) setPage(page - 1)
     } catch {
       toast.error(t("admin.loadFailed") as string)
     } finally {
@@ -173,31 +170,86 @@ export default function AdminCommentsPage() {
                   !comment.isRead && "border-primary/30 bg-primary/[0.03]"
                 )}
               >
-                <CardContent className="py-4">
-                  <div className="mb-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                    <span className="font-semibold">
-                      {comment.authorName || "Anonymous"}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(comment.createdAt).toLocaleString()}
-                    </span>
+                <CardContent className="p-4">
+                  {/* Author header — avatar, name, unread dot, time */}
+                  <div className="flex items-center gap-3">
+                    <CommentAvatar
+                      commentId={comment.id}
+                      name={comment.authorName || "Anonymous"}
+                      size="default"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "truncate",
+                            comment.isRead
+                              ? "font-semibold text-muted-foreground"
+                              : "font-bold"
+                          )}
+                        >
+                          {/* Raw stored name — the Anonymous_<hex> suffix
+                              is what lets the admin tell nameless
+                              visitors apart; only the public page folds
+                              it to "Anonymous". */}
+                          {comment.authorName || "Anonymous"}
+                        </span>
+                        {!comment.isRead && (
+                          <span
+                            aria-hidden
+                            className="size-1.5 shrink-0 rounded-full bg-primary"
+                          />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(comment.createdAt).toLocaleString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Thread context */}
+                  {comment.parentName != null && (
+                    <div className="mt-2.5 flex items-center gap-1.5 border-l-2 border-foreground/10 pl-2.5 text-xs text-muted-foreground">
+                      <Reply size={12} className="shrink-0" />
+                      <span className="truncate">
+                        {(t("admin.commentReplyingTo") as (n: string) => string)(
+                          comment.parentName
+                        )}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Content */}
+                  <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                    {comment.content}
+                  </p>
+
+                  {/* Source — post link + email */}
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
                     <Link
                       href={`/posts/${encodeURIComponent(comment.postSlug)}`}
-                      className="text-xs text-primary hover:underline truncate"
+                      className="inline-flex min-w-0 items-center gap-1.5 text-primary hover:underline"
                     >
-                      {comment.postSlug}
+                      <FileText size={12} className="shrink-0" />
+                      <span className="truncate">{comment.postSlug}</span>
                     </Link>
                     {comment.authorEmail && (
-                      <span className="text-xs text-muted-foreground/70">
-                        {comment.authorEmail}
+                      <span className="inline-flex min-w-0 items-center gap-1.5 text-muted-foreground/80">
+                        <Mail size={12} className="shrink-0" />
+                        <span className="truncate">{comment.authorEmail}</span>
                       </span>
                     )}
                   </div>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                    {comment.content}
-                  </p>
-                  <div className="mt-2 flex items-center gap-2">
-                    {!comment.isRead && (
+
+                  {/* Actions */}
+                  <div className="mt-3 flex items-center justify-end gap-2 border-t pt-3">
+                    {!comment.isRead ? (
                       <Button
                         size="sm"
                         variant="outline"
@@ -207,11 +259,16 @@ export default function AdminCommentsPage() {
                         <Check size={14} className="mr-1.5" />
                         {t("admin.markRead") as string}
                       </Button>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/70">
+                        <Check size={13} />
+                        {t("admin.commentRead") as string}
+                      </span>
                     )}
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => void remove(comment.id)}
                       disabled={busyId === comment.id}
                     >
