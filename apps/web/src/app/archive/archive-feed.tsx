@@ -53,12 +53,21 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
   // The ?q= URL param is the single source of truth for the search term.
   const urlQuery = searchParams?.get("q") ?? ""
   const [searchQuery, setSearchQuery] = useState(urlQuery)
+  // Collapsed by default — the box is an icon button that expands on
+  // click/focus with a width transition. A non-empty ?q= (header search
+  // routed here, a shared link) starts expanded.
+  const [searchOpen, setSearchOpen] = useState(urlQuery !== "")
 
   // Sync from URL changes (header search, browser back/forward).
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing external URL state
     setSearchQuery(urlQuery)
+    // A query arriving from elsewhere (header search, back/forward)
+    // opens the box to show it. Deliberately never closes here — the
+    // URL also updates while typing, and collapsing mid-typing would
+    // yank the input away from focus.
+    if (urlQuery !== "") setSearchOpen(true)
   }, [urlQuery])
 
   // Debounce typing: the input is uncontrolled (key held in a local ref)
@@ -95,6 +104,14 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
     setSearchQuery("")
     syncSearchUrl("")
     if (inputRef.current) inputRef.current.value = ""
+  }
+  /** Collapse the box on blur with nothing typed — deferred one frame
+   *  because the X button's click fires blur first and collapsing
+   *  synchronously would run before clearSearch empties the input. */
+  function collapseIfEmpty() {
+    requestAnimationFrame(() => {
+      if (!inputRef.current?.value.trim()) setSearchOpen(false)
+    })
   }
 
   const categories = useMemo(
@@ -232,19 +249,45 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
           independent of the topic pills: a tagless site must still be
           searchable (the header search routes here too). */}
       <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center animate-in fade-in slide-in-from-bottom-2 duration-500">
-        <div className="relative w-full lg:max-w-xs lg:shrink-0">
+        {/* Search — an icon button by default; click/focus expands it with
+            a width transition (the input is always mounted, so the value
+            survives collapse). The icon slides from center to the left as
+            the box widens. */}
+        <div
+          className={cn(
+            "relative h-8 shrink-0 transition-[width] duration-300 ease-out",
+            searchOpen ? "w-64" : "w-8"
+          )}
+        >
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+            className={cn(
+              "absolute top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none transition-all duration-300",
+              searchOpen ? "left-3" : "left-1/2 -translate-x-1/2"
+            )}
           />
           <Input
             ref={inputRef}
             defaultValue={urlQuery}
+            onFocus={() => setSearchOpen(true)}
+            onBlur={collapseIfEmpty}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                clearSearch()
+                inputRef.current?.blur()
+              }
+            }}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={t("site.searchPosts") as string}
-            className="pl-9 pr-8"
+            aria-label={t("site.searchPosts") as string}
+            className={cn(
+              "pl-9 pr-8",
+              // While collapsed the placeholder is hidden — the centered
+              // icon IS the button.
+              !searchOpen && "placeholder:opacity-0"
+            )}
           />
-          {searchQuery && (
+          {searchOpen && searchQuery && (
             <button
               onClick={clearSearch}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
