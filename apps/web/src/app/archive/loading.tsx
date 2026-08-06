@@ -6,9 +6,12 @@ import { Skeleton } from "@/components/ui/skeleton"
 export function ArchiveFeedSkeleton() {
   return (
     <div>
-      {/* Toolbar skeleton — search + topic pills, same row/height as live */}
+      {/* Toolbar skeleton — search + topic pills, same row/height as live.
+          The live search box defaults to the collapsed 32px icon, so the
+          skeleton matches that footprint (a wide bar would snap to the
+          icon on every load). */}
       <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center">
-        <Skeleton className="h-8 w-full lg:max-w-xs rounded-lg" />
+        <Skeleton className="h-8 w-8 rounded-lg" />
         <div className="flex gap-1.5">
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-8 w-16 rounded-full" />
