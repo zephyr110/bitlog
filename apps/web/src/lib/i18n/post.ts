@@ -53,7 +53,7 @@ shortDate: (d: Date) =>
   },
   en: {
 
-minRead: (n: number) => `${n} min read`,
+minRead: (n: number) => `${n} min`,
 comments: "Comments",
 commentsCount: (n: number) => `Comments (${n})`,
 commentAuthorPlaceholder: "Name (optional)",
