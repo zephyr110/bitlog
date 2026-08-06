@@ -85,14 +85,19 @@ export interface AdminCommentPage {
 const ensureTables = createTableGuard(async () => {
   const db = requireDb()
   await db.executeMultiple(COMMENTS_SCHEMA)
-  // Migrate tables created before replies existed — ALTER TABLE throws
-  // "duplicate column" on fresh DBs (the column is already in the
-  // CREATE TABLE above), which is the expected no-op case.
-  try {
-    await db.execute("ALTER TABLE comments ADD COLUMN parent_id INTEGER")
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    if (!/duplicate column/i.test(msg)) throw err
+  // Migrate tables created before replies existed. PRAGMA-gated so a
+  // fresh DB (column already in the CREATE TABLE above) never runs a
+  // guaranteed-failing ALTER on every cold start; the try/catch still
+  // covers concurrent cold-starts racing the ALTER on an old table.
+  const { rows } = await db.execute("PRAGMA table_info(comments)")
+  const hasParent = rows.some((r) => (r as { name?: unknown }).name === "parent_id")
+  if (!hasParent) {
+    try {
+      await db.execute("ALTER TABLE comments ADD COLUMN parent_id INTEGER")
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      if (!/duplicate column/i.test(msg)) throw err
+    }
   }
   // Must run AFTER the migration: on a pre-reply table, CREATE INDEX on
   // a missing column would fail with "no such column".
@@ -141,15 +146,25 @@ export async function getCommentsByPost(
   return result.rows.map((r) => rowToComment(r as unknown as Record<string, unknown>))
 }
 
-/** Fetch one comment — the POST route uses this to validate a reply
- *  target (exists, same post, is a root). */
-export async function getCommentById(id: number): Promise<CommentRecord | null> {
+/** Lean reply-target lookup — existence plus the two fields the POST
+ *  route validates (same post, root comment). The full row (content,
+ *  email, ip hash) is never needed here; a 2-column read keeps this
+ *  check cheap on the comment-submit path. */
+export async function getReplyTarget(
+  id: number
+): Promise<{ postSlug: string; parentId: number | null } | null> {
   const db = requireDb()
   await ensureTables()
-  const result = await db.execute(`SELECT * FROM comments WHERE id = ?`, [id])
+  const result = await db.execute(
+    `SELECT post_slug, parent_id FROM comments WHERE id = ?`,
+    [id]
+  )
   const row = result.rows[0]
   if (!row) return null
-  return rowToComment(row as unknown as Record<string, unknown>)
+  return {
+    postSlug: String(row.post_slug),
+    parentId: row.parent_id == null ? null : Number(row.parent_id),
+  }
 }
 
 export async function createComment(input: {
@@ -176,6 +191,41 @@ export async function createComment(input: {
     ]
   )
   return rowToComment(result.rows[0] as unknown as Record<string, unknown>)
+}
+
+/** Insert a reply only when its parent still qualifies (exists, same
+ *  post, root comment) — the atomic backstop for the route's pre-check
+ *  (step 7), closing the delete-between-check-and-insert window. The
+ *  INSERT ... SELECT returns no row when the parent no longer matches,
+ *  so a reply can never be orphaned. Returns null in that case. */
+export async function createReply(input: {
+  postSlug: string
+  authorName: string
+  authorEmail: string
+  content: string
+  ipHash: string
+  parentId: number
+}): Promise<CommentRecord | null> {
+  const db = requireDb()
+  await ensureTables()
+  const result = await db.execute(
+    `INSERT INTO comments (post_slug, author_name, author_email, content, ip_hash, parent_id)
+     SELECT ?, ?, ?, ?, ?, p.id FROM comments p
+     WHERE p.id = ? AND p.post_slug = ? AND p.parent_id IS NULL
+     RETURNING *`,
+    [
+      input.postSlug,
+      input.authorName,
+      input.authorEmail,
+      input.content,
+      input.ipHash,
+      input.parentId,
+      input.postSlug,
+    ]
+  )
+  const row = result.rows[0]
+  if (!row) return null
+  return rowToComment(row as unknown as Record<string, unknown>)
 }
 
 /**
@@ -241,16 +291,28 @@ export async function markCommentRead(id: number): Promise<boolean> {
   return Number(result.rowsAffected) > 0
 }
 
-export async function deleteComment(id: number): Promise<boolean> {
+/** Delete a comment — deleting a root takes its replies with it (a
+ *  thread whose parent is gone would otherwise dangle under nothing).
+ *  Returns how many rows were removed and how many of those were
+ *  unread, so the admin page can adjust its counts exactly even when
+ *  the replies live on other pages of the paginated inbox. */
+export async function deleteComment(
+  id: number
+): Promise<{ removed: number; removedUnread: number }> {
   const db = requireDb()
   await ensureTables()
-  // Deleting a root comment takes its replies with it — a thread whose
-  // parent is gone would otherwise dangle under nothing.
+  const unread = await db.execute(
+    `SELECT COUNT(*) AS n FROM comments WHERE (id = ? OR parent_id = ?) AND is_read = 0`,
+    [id, id]
+  )
   const result = await db.execute(
     `DELETE FROM comments WHERE id = ? OR parent_id = ?`,
     [id, id]
   )
-  return Number(result.rowsAffected) > 0
+  return {
+    removed: Number(result.rowsAffected),
+    removedUnread: Number(unread.rows[0]?.n ?? 0),
+  }
 }
 
 // ── Rate limiting ───────────────────────────────────────────────────────

@@ -27,6 +27,9 @@ export async function DELETE(
   if (!Number.isInteger(commentId)) {
     return NextResponse.json({ error: "Invalid comment id" }, { status: 400 })
   }
-  const ok = await deleteComment(commentId)
-  return NextResponse.json({ ok })
+  // removed/removedUnread let the inbox page adjust its counts exactly
+  // even when a root's replies live on other pages of the paginated
+  // list (the delete cascades server-side).
+  const { removed, removedUnread } = await deleteComment(commentId)
+  return NextResponse.json({ ok: removed > 0, removed, removedUnread })
 }

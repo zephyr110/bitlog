@@ -4,6 +4,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 // (Math.random in render breaks React purity rules).
 const lineWidths = [92, 78, 85, 66, 90, 74, 88, 70, 82, 95, 64, 80]
 
+// The GitHub Pages mirror (static export) has no API routes — the live
+// comment section renders a "not available" notice there, so the
+// skeleton mirrors that instead of a form that can never materialize.
+const STATIC_MIRROR = !!process.env.NEXT_PUBLIC_SITE_URL?.includes("github.io")
+
 /** Skeleton mirroring the post page: hero header (breadcrumb, title,
  *  description, author meta + tags + share), prose content, the tag
  *  card footer, the comments block, and the related-posts grid — same
@@ -79,38 +84,45 @@ export default function PostLoading() {
         </div>
       </div>
 
-      {/* Comments — same card + list + form shapes as the live section */}
+      {/* Comments — same card + list + form shapes as the live section.
+          On the static mirror the live section renders only the
+          "not available" notice — mirror that instead of flashing a
+          form that can never materialize. */}
       <section className="container mx-auto max-w-5xl px-4 py-12 2xl:max-w-7xl">
         <div className="rounded-2xl border bg-card p-6 md:p-8">
           <div className="mb-8 flex items-center gap-3">
             <Skeleton className="size-9 rounded-xl" />
             <Skeleton className="h-6 w-32" />
           </div>
-          <div className="space-y-3">
-            <div className="rounded-xl border bg-muted/20 p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <Skeleton className="size-6 rounded-full" />
-                <Skeleton className="h-4 w-24" />
+          {STATIC_MIRROR ? (
+            <Skeleton className="h-16 w-full rounded-xl" />
+          ) : (
+            <>
+              <div className="space-y-3">
+                {[
+                  { name: "w-24", content: "w-3/4" },
+                  { name: "w-20", content: "w-2/3" },
+                ].map((w, i) => (
+                  <div key={i} className="rounded-xl border bg-muted/20 p-4">
+                    <div className="mb-2 flex items-center gap-2">
+                      <Skeleton className="size-6 rounded-full" />
+                      <Skeleton className={`h-4 ${w.name}`} />
+                    </div>
+                    <Skeleton className={`h-3.5 ${w.content}`} />
+                  </div>
+                ))}
               </div>
-              <Skeleton className="h-3.5 w-3/4" />
-            </div>
-            <div className="rounded-xl border bg-muted/20 p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <Skeleton className="size-6 rounded-full" />
-                <Skeleton className="h-4 w-20" />
+              {/* Form */}
+              <div className="mt-8 space-y-3">
+                <div className="flex gap-3">
+                  <Skeleton className="h-9 w-40 rounded-md" />
+                  <Skeleton className="h-9 w-56 rounded-md" />
+                </div>
+                <Skeleton className="h-24 w-full rounded-lg" />
+                <Skeleton className="ml-auto h-9 w-28 rounded-md" />
               </div>
-              <Skeleton className="h-3.5 w-2/3" />
-            </div>
-          </div>
-          {/* Form */}
-          <div className="mt-8 space-y-3">
-            <div className="flex gap-3">
-              <Skeleton className="h-9 w-40 rounded-md" />
-              <Skeleton className="h-9 w-56 rounded-md" />
-            </div>
-            <Skeleton className="h-24 w-full rounded-lg" />
-            <Skeleton className="ml-auto h-9 w-28 rounded-md" />
-          </div>
+            </>
+          )}
         </div>
       </section>
 

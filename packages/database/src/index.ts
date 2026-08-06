@@ -31,8 +31,9 @@ export { getSiteSettings, upsertSiteSettings } from "./site-settings"
 export type { SiteSettingsRecord, SiteSettingsUpdate } from "./site-settings"
 export {
   getCommentsByPost,
-  getCommentById,
+  getReplyTarget,
   createComment,
+  createReply,
   listAdminComments,
   countUnreadComments,
   markCommentRead,

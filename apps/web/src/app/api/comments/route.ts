@@ -5,10 +5,12 @@ import {
   verifyCommentSession,
   isBeforeMinSubmitDelay,
 } from "@/lib/comment-session"
+import { type PublicComment } from "@/lib/comment-shared"
 import {
   getCommentsByPost,
-  getCommentById,
+  getReplyTarget,
   createComment,
+  createReply,
   getSiteSettings,
   getPostBySlug,
   consumeRateLimit,
@@ -22,18 +24,6 @@ import {
   RATE_LIMIT_GLOBAL_WINDOW_MS,
   RATE_LIMIT_GLOBAL_MAX,
 } from "@zlog/database"
-
-// ── Public shape ────────────────────────────────────────────────────────
-// The guest never sees author_email (stored, never rendered).
-
-type PublicComment = {
-  id: number
-  postSlug: string
-  authorName: string
-  content: string
-  parentId: number | null
-  createdAt: string
-}
 
 // ── Validation ──────────────────────────────────────────────────────────
 
@@ -161,7 +151,16 @@ export async function POST(request: NextRequest) {
   const ip = getClientIp(request)
   const ipHash = hashIp(ip)
 
-  // 1. Master switch (settings) — spam kill-switch. Read straight from
+  // 1. Honeypot — robots fill hidden fields; silently succeed so the
+  //    script gets no feedback, but never store the comment. First
+  //    check (zero dependencies, no DB): a honeypot-filled probe must
+  //    not pay a query nor be told — via a distinguishing error —
+  //    whether its payload was valid.
+  if (body.website) {
+    return NextResponse.json({ ok: true })
+  }
+
+  // 2. Master switch (settings) — spam kill-switch. Read straight from
   //    the DB (not getSiteConfig's 1h cache): a multi-instance self-host
   //    without a shared cache store would otherwise keep accepting
   //    comments for up to an hour after the admin flips the switch.
@@ -170,17 +169,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Comments are closed" }, { status: 503 })
   }
 
-  // 2. Signed session token — script POSTs without a session are
-  //    rejected before anything else.
+  // 3. Signed session token — script POSTs without a session are
+  //    rejected before any state is touched.
   const session = await verifyCommentSession(body.token)
   if (!session) {
     return NextResponse.json({ error: "Invalid session" }, { status: 401 })
   }
-  // 3. Token must match this request (post + visitor IP).
+  // 4. Token must match this request (post + visitor IP).
   if (session.postSlug !== body.postSlug || session.ipHash !== ipHash) {
     return NextResponse.json({ error: "Session mismatch" }, { status: 401 })
   }
-  // 4. The post must actually exist and be published — comments for
+  // 5. The post must actually exist and be published — comments for
   //    arbitrary slugs would otherwise land in the admin inbox with a
   //    404 link (an open channel when Turnstile is unconfigured).
   {
@@ -190,13 +189,24 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 4b. Reply target — must exist, belong to THIS post, and be a root
+  // 6. Time-trap — a script that fetched the session and POSTs
+  //    immediately is rejected; humans take longer than 2 s.
+  if (isBeforeMinSubmitDelay(session)) {
+    return NextResponse.json(
+      { error: "Comment submitted too quickly", code: "too_soon" },
+      { status: 400 }
+    )
+  }
+
+  // 7. Reply target — must exist, belong to THIS post, and be a root
   //     comment (single-level nesting: a reply can't reply to a reply).
-  //     Rejected before Turnstile/rate limits so a bad target costs the
-  //     visitor nothing.
+  //     Runs after the free checks (honeypot, time-trap) but before
+  //     Turnstile/rate limits so a bad target burns nothing. The
+  //     insert itself re-verifies the parent atomically (createReply),
+  //     closing the delete-between-check-and-insert window.
   let parentId: number | null = null
   if (body.parentId != null) {
-    const parent = await getCommentById(body.parentId)
+    const parent = await getReplyTarget(body.parentId)
     if (
       !parent ||
       parent.postSlug !== body.postSlug ||
@@ -210,22 +220,7 @@ export async function POST(request: NextRequest) {
     parentId = body.parentId
   }
 
-  // 5. Time-trap — a script that fetched the session and POSTs
-  //    immediately is rejected; humans take longer than 2 s.
-  if (isBeforeMinSubmitDelay(session)) {
-    return NextResponse.json(
-      { error: "Comment submitted too quickly", code: "too_soon" },
-      { status: 400 }
-    )
-  }
-
-  // 6. Honeypot — robots fill hidden fields; silently succeed so the
-  //    script gets no feedback, but never store the comment.
-  if (body.website) {
-    return NextResponse.json({ ok: true })
-  }
-
-  // 7. Content sanity — cheap string checks before the paid ones.
+  // 8. Content sanity — cheap string checks before the paid ones.
   if (countUrls(body.content) > 2) {
     return NextResponse.json(
       { error: "Too many links", code: "invalid_content" },
@@ -239,7 +234,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // 8. Turnstile — BEFORE the rate limits: a siteverify failure (or a
+  // 9. Turnstile — BEFORE the rate limits: a siteverify failure (or a
   //    Cloudflare outage) must not burn the visitor's IP/post/global
   //    budget, or five transient failures would lock a legit user out
   //    for 15 minutes. The widget token IS single-use, so the client
@@ -253,7 +248,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // 9. Rate limits — IP, then per-post, then global (all DB-backed:
+  // 10. Rate limits — IP, then per-post, then global (all DB-backed:
   //    serverless instances share no memory).
   const limited = [
     [ipRateScope(ipHash), RATE_LIMIT_IP_WINDOW_MS, RATE_LIMIT_IP_MAX, "Too many comments"],
@@ -266,17 +261,36 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // 10. Store. A nameless visitor gets an Anonymous_ name server-side
-  //     (never trust the client to pick one).
-  const comment = await createComment({
-    postSlug: body.postSlug,
-    // zod already trimmed authorName; empty/undefined → anonymous.
-    authorName: body.authorName || anonymousName(),
-    authorEmail: body.authorEmail ?? "",
-    content: body.content,
-    ipHash,
-    parentId,
-  })
+  // 11. Store. A nameless visitor gets an Anonymous_ name server-side
+  //     (never trust the client to pick one). Replies go through
+  //     createReply, which atomically re-verifies the parent (step 7)
+  //     so a parent deleted mid-submit can't orphan a reply.
+  const comment =
+    parentId != null
+      ? await createReply({
+          postSlug: body.postSlug,
+          // zod already trimmed authorName; empty/undefined → anonymous.
+          authorName: body.authorName || anonymousName(),
+          authorEmail: body.authorEmail ?? "",
+          content: body.content,
+          ipHash,
+          parentId,
+        })
+      : await createComment({
+          postSlug: body.postSlug,
+          authorName: body.authorName || anonymousName(),
+          authorEmail: body.authorEmail ?? "",
+          content: body.content,
+          ipHash,
+          parentId: null,
+        })
+  if (!comment) {
+    // The parent disappeared between the pre-check and the insert.
+    return NextResponse.json(
+      { error: "Invalid reply target", code: "invalid_parent" },
+      { status: 400 }
+    )
+  }
   return NextResponse.json(
     {
       comment: {

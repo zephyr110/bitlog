@@ -14,43 +14,13 @@ import {
   displayName,
   type PublicComment,
 } from "@/lib/comment-shared"
+import { CommentAvatar } from "@/components/blog/comment-avatar"
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 // The GitHub Pages mirror (static export) has no API routes — comments
 // cannot work there. Build-time flag from the CI-injected site URL:
 // deploy.yml sets NEXT_PUBLIC_SITE_URL=https://zephyr110.github.io.
 const STATIC_MIRROR = !!process.env.NEXT_PUBLIC_SITE_URL?.includes("github.io")
-
-// Deterministic avatar color per comment id: the palette slot is
-// id % length, so one comment always renders with the same color while
-// different comments spread across the palette. Shades are Tailwind
-// 700-levels so white initials keep readable contrast.
-const AVATAR_COLORS = [
-  "#b91c1c", // red-700
-  "#c2410c", // orange-700
-  "#a16207", // amber-700
-  "#15803d", // green-700
-  "#0f766e", // teal-700
-  "#1d4ed8", // blue-700
-  "#4338ca", // indigo-700
-  "#6d28d9", // violet-700
-  "#be185d", // pink-700
-  "#0e7490", // cyan-700
-]
-
-/** Initial-letter avatar. Decorative (aria-hidden); the initial comes
- *  from the rendered display name. */
-function CommentAvatar({ commentId, name }: { commentId: number; name: string }) {
-  return (
-    <span
-      aria-hidden
-      className="flex size-6 shrink-0 select-none items-center justify-center rounded-full text-[11px] font-semibold text-white"
-      style={{ backgroundColor: AVATAR_COLORS[commentId % AVATAR_COLORS.length] }}
-    >
-      {Array.from(name)[0] ?? ""}
-    </span>
-  )
-}
 
 /** One comment bubble — #number (display order), avatar, name, date,
  *  content, and (for root comments) the reply action. */
@@ -176,11 +146,19 @@ export function CommentSection({ slug }: { slug: string }) {
     [slug]
   )
 
+  // Sequence guard for loadComments — the submit-path reload has no
+  // AbortSignal (only the mount effect's controller covers its own
+  // fetches), so without this a stale response could clobber a newer
+  // load (e.g. after client-side navigation to another post). Each
+  // call bumps the sequence; only the latest may write state.
+  const loadSeqRef = useRef(0)
+
   /** Load the comment list. `signal` lets a stale navigation abort; the
    *  list is cleared first so an old post's comments never linger under
    *  a new post's heading. */
   const loadComments = useCallback(
     async (signal?: AbortSignal) => {
+      const seq = ++loadSeqRef.current
       // A post switch must not carry a reply target from the old post
       // into the new one (the API would reject it, but the stale chip
       // would linger until then).
@@ -193,13 +171,14 @@ export function CommentSection({ slug }: { slug: string }) {
           { signal }
         )
         if (!res.ok) return
+        if (seq !== loadSeqRef.current) return // superseded by a newer load
         const data = (await res.json()) as { comments: PublicComment[] }
         setComments(data.comments)
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return
         // Other failures keep the list empty — comments are progressive.
       } finally {
-        setLoading(false)
+        if (seq === loadSeqRef.current) setLoading(false)
       }
     },
     [slug]
@@ -218,8 +197,12 @@ export function CommentSection({ slug }: { slug: string }) {
     }
   }, [fetchSession])
 
-  /** Enter reply mode for a root comment. */
+  /** Enter reply mode for a root comment. Ignored while a submit is in
+   *  flight: the success path clears the target, so a click during the
+   *  POST would be silently wiped (and the next submit would post the
+   *  text as a top-level comment). */
   function startReply(comment: PublicComment) {
+    if (submitting) return
     setError(null)
     setReplyingTo(comment)
     // The form sits below the list — bring it into view so the visitor
@@ -240,15 +223,15 @@ export function CommentSection({ slug }: { slug: string }) {
     const groups: {
       root: PublicComment
       no: number
-      replies: { comment: PublicComment; no: number }[]
+      replies: PublicComment[]
     }[] = []
     let no = 0
     for (const root of comments) {
       if (root.parentId != null) continue
-      groups.push({ root, no: ++no, replies: [] })
-      for (const reply of repliesByParent.get(root.id) ?? []) {
-        groups[groups.length - 1].replies.push({ comment: reply, no: ++no })
-      }
+      const replies = repliesByParent.get(root.id) ?? []
+      groups.push({ root, no: ++no, replies })
+      // Replies are numbered immediately after their root.
+      no += replies.length
     }
     return groups
   }, [comments])
@@ -370,6 +353,14 @@ export function CommentSection({ slug }: { slug: string }) {
             case "too_soon":
               setError(t("post.commentErrorTooFast") as string)
               break
+            case "invalid_parent":
+              // The reply target vanished (e.g. an admin deleted it) —
+              // drop the chip AND the draft so a retry can't silently
+              // post the text as a top-level comment.
+              setReplyingTo(null)
+              setContent("")
+              setError(t("post.commentErrorInvalidTarget") as string)
+              break
             default:
               setError(t("post.commentErrorInvalid") as string)
           }
@@ -416,13 +407,24 @@ export function CommentSection({ slug }: { slug: string }) {
           <ul className="space-y-4">
             {orderedGroups.map(({ root, no, replies }) => (
               <li key={root.id}>
-                <CommentCard comment={root} no={no} onReply={startReply} />
-                {replies.map((reply) => (
+                {/* Reply is only actionable when the form can render —
+                    in the closed / unconfigured / session-error states
+                    the button would arm a chip that can never appear. */}
+                <CommentCard
+                  comment={root}
+                  no={no}
+                  onReply={
+                    commentsEnabled && turnstileConfigured && !sessionError
+                      ? startReply
+                      : undefined
+                  }
+                />
+                {replies.map((reply, i) => (
                   <div
-                    key={reply.comment.id}
+                    key={reply.id}
                     className="mt-1.5 ml-5 border-l-2 border-foreground/10 pl-4"
                   >
-                    <CommentCard comment={reply.comment} no={reply.no} />
+                    <CommentCard comment={reply} no={no + i + 1} />
                   </div>
                 ))}
               </li>
@@ -430,8 +432,11 @@ export function CommentSection({ slug }: { slug: string }) {
           </ul>
         )}
 
-        {/* Form */}
-        {!commentsEnabled ? (
+        {/* Form — on the static mirror there is no API at all: the
+            mirror notice above is the whole story, so render nothing
+            here (the "not configured" notice would be false — comments
+            ARE configured, just not on this host). */}
+        {STATIC_MIRROR ? null : !commentsEnabled ? (
           <p className="mt-6 rounded-xl border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
             {t("post.commentClosed") as string}
           </p>
@@ -472,7 +477,13 @@ export function CommentSection({ slug }: { slug: string }) {
                   size="sm"
                   variant="ghost"
                   className="ml-auto"
-                  onClick={() => setReplyingTo(null)}
+                  onClick={() => {
+                    // Cancel abandons the reply draft too — otherwise
+                    // the still-enabled submit button would silently
+                    // post the text as a top-level comment.
+                    setReplyingTo(null)
+                    setContent("")
+                  }}
                 >
                   {t("post.commentCancelReply") as string}
                 </Button>
