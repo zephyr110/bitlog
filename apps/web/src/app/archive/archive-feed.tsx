@@ -53,21 +53,28 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
   // The ?q= URL param is the single source of truth for the search term.
   const urlQuery = searchParams?.get("q") ?? ""
   const [searchQuery, setSearchQuery] = useState(urlQuery)
-  // Collapsed by default — the box is an icon button that expands on
-  // click/focus with a width transition. A non-empty ?q= (header search
-  // routed here, a shared link) starts expanded.
-  const [searchOpen, setSearchOpen] = useState(urlQuery !== "")
+  // Derived open state — the box is expanded while focused OR while a
+  // (trimmed) query is active. Deriving instead of tracking a separate
+  // flag makes every collapse/expand path consistent: clearing the query
+  // (X, Escape, clear-filter) collapses as soon as focus is gone, with
+  // no blur-vs-click timing to get wrong.
+  const [isFocused, setIsFocused] = useState(false)
+  const searchOpen = isFocused || searchQuery.trim() !== ""
 
   // Sync from URL changes (header search, browser back/forward).
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing external URL state
     setSearchQuery(urlQuery)
-    // A query arriving from elsewhere (header search, back/forward)
-    // opens the box to show it. Deliberately never closes here — the
-    // URL also updates while typing, and collapsing mid-typing would
-    // yank the input away from focus.
-    if (urlQuery !== "") setSearchOpen(true)
+    // Keep the uncontrolled input's visible text in sync too —
+    // defaultValue only applies at mount, so a URL-driven change
+    // (header search, back/forward) would otherwise filter by the new
+    // query while the box still shows the old text. Equal values (the
+    // debounce already wrote the same term) are a no-op write.
+    if (inputRef.current && inputRef.current.value !== urlQuery) {
+       
+      inputRef.current.value = urlQuery
+    }
   }, [urlQuery])
 
   // Debounce typing: the input is uncontrolled (key held in a local ref)
@@ -103,15 +110,8 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     setSearchQuery("")
     syncSearchUrl("")
+    // eslint-disable-next-line react-hooks/immutability -- uncontrolled input, value lives in the DOM
     if (inputRef.current) inputRef.current.value = ""
-  }
-  /** Collapse the box on blur with nothing typed — deferred one frame
-   *  because the X button's click fires blur first and collapsing
-   *  synchronously would run before clearSearch empties the input. */
-  function collapseIfEmpty() {
-    requestAnimationFrame(() => {
-      if (!inputRef.current?.value.trim()) setSearchOpen(false)
-    })
   }
 
   const categories = useMemo(
@@ -255,24 +255,31 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
             the box widens. */}
         <div
           className={cn(
-            "relative h-8 shrink-0 transition-[width] duration-300 ease-out",
-            searchOpen ? "w-64" : "w-8"
+            "relative h-8 shrink-0 transition-[width] duration-300 ease-out motion-reduce:transition-none",
+            searchOpen
+              ? "w-full sm:w-64"
+              : // Collapsed — a circular icon button: muted background,
+                // no border, centered icon. Clicking it (or Tab-focusing)
+                // expands the box.
+                "w-8 rounded-full bg-muted"
           )}
         >
           <Search
             size={16}
             className={cn(
-              "absolute top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none transition-all duration-300",
+              "absolute top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none transition-[left,transform] duration-300 motion-reduce:transition-none",
               searchOpen ? "left-3" : "left-1/2 -translate-x-1/2"
             )}
           />
           <Input
             ref={inputRef}
             defaultValue={urlQuery}
-            onFocus={() => setSearchOpen(true)}
-            onBlur={collapseIfEmpty}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             onKeyDown={(e) => {
-              if (e.key === "Escape") {
+              // While an IME (pinyin etc.) composes, Escape cancels the
+              // candidate window — it must not also wipe the search.
+              if (e.key === "Escape" && !e.nativeEvent.isComposing) {
                 clearSearch()
                 inputRef.current?.blur()
               }
@@ -282,14 +289,18 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
             aria-label={t("site.searchPosts") as string}
             className={cn(
               "pl-9 pr-8",
-              // While collapsed the placeholder is hidden — the centered
-              // icon IS the button.
-              !searchOpen && "placeholder:opacity-0"
+              // While collapsed the input's own border/placeholder/cursor
+              // are suppressed — the circular button IS the affordance.
+              !searchOpen && "cursor-pointer border-transparent bg-transparent placeholder:opacity-0"
             )}
           />
           {searchOpen && searchQuery && (
             <button
               onClick={clearSearch}
+              // Keep focus in the input on mousedown so the blur-based
+              // collapse can't race the click, and so the visitor can
+              // keep typing right after clearing.
+              onMouseDown={(e) => e.preventDefault()}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <X size={14} />
@@ -352,7 +363,7 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
         {years.length >= 2 && filteredPosts.length > 0 && (
           <button
             onClick={toggleAll}
-            className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-border/60 px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground lg:ml-auto"
+            className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-border/60 bg-background px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/25 hover:text-foreground lg:ml-auto"
           >
             <svg
               className={`size-3 transition-transform duration-300 ${allCollapsed ? "" : "rotate-180"}`}
