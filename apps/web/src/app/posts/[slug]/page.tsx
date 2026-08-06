@@ -97,9 +97,13 @@ export default async function PostPage({ params }: PostPageProps) {
               <img
                 src={post.cover}
                 alt=""
-                className="absolute inset-0 w-full h-full object-cover opacity-10"
+                className="absolute inset-0 w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+              {/* Legibility scrim — the cover shows at full opacity; a
+                  background-colored gradient (strongest behind the title
+                  block, fading upward) keeps the breadcrumb/title readable
+                  on busy art in both themes without hiding the image. */}
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/55 to-background/25" />
             </>
           )}
 
