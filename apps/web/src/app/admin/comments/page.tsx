@@ -8,7 +8,7 @@ import { useCommentUnread } from "@/components/admin/comment-unread"
 import { useT } from "@/components/layout/trans"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ListSkeleton } from "@/components/ui/loading"
+import { CommentInboxCardSkeleton } from "@/components/ui/loading"
 import { EmptyState } from "@/components/ui/empty-state"
 import { PaginationBar } from "@/components/admin/pagination-bar"
 import { CommentAvatar } from "@/components/blog/comment-avatar"
@@ -149,7 +149,15 @@ export default function AdminCommentsPage() {
 
       {loading ? (
         <div className="min-h-0 flex-1">
-          <ListSkeleton items={3} />
+          {/* Mirror the inbox card layout — same heights and shapes as
+              the live cards so the swap causes no layout shift. The
+              second card shows the thread-context line (unread-first
+              ordering keeps threads co-located). */}
+          <div className="space-y-3">
+            {[0, 1, 2].map((i) => (
+              <CommentInboxCardSkeleton key={i} withThread={i === 1} />
+            ))}
+          </div>
         </div>
       ) : comments.length === 0 ? (
         <div className="flex min-h-0 flex-1 items-center justify-center">

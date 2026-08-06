@@ -93,18 +93,54 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   )
 }
 
-export function ListSkeleton({ items = 5 }: { items?: number }) {
+/** Admin comment inbox card — mirrors the redesigned inbox card:
+ *  avatar + name/time header (with unread dot), optional thread
+ *  context line, content, source row, then the divider + right-aligned
+ *  action buttons. */
+export function CommentInboxCardSkeleton({
+  withThread = false,
+}: {
+  withThread?: boolean
+}) {
   return (
-    <div className="space-y-2">
-      {Array.from({ length: items }).map((_, i) => (
-        <div key={i} className="flex items-center justify-between rounded-xl border bg-card p-4">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-48" />
-            <Skeleton className="h-3 w-32" />
+    <div className="rounded-xl border bg-card p-4">
+      {/* Author header */}
+      <div className="flex items-center gap-3">
+        <Skeleton className="size-8 shrink-0 rounded-full" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="size-1.5 shrink-0 rounded-full" />
           </div>
-          <Skeleton className="h-8 w-16" />
+          <Skeleton className="mt-1.5 h-3 w-40" />
         </div>
-      ))}
+      </div>
+
+      {/* Thread context */}
+      {withThread && (
+        <div className="mt-2.5 flex items-center gap-1.5 border-l-2 border-foreground/10 pl-2.5">
+          <Skeleton className="size-3 shrink-0 rounded-sm" />
+          <Skeleton className="h-3 w-28" />
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="mt-2 space-y-1.5">
+        <Skeleton className="h-3.5 w-full" />
+        <Skeleton className="h-3.5 w-4/5" />
+      </div>
+
+      {/* Source row — post link + email */}
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-3 w-36" />
+      </div>
+
+      {/* Actions */}
+      <div className="mt-3 flex items-center justify-end gap-2 border-t pt-3">
+        <Skeleton className="h-8 w-24 rounded-md" />
+        <Skeleton className="h-8 w-16 rounded-md" />
+      </div>
     </div>
   )
 }
