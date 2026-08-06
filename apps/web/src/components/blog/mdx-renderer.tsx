@@ -8,20 +8,20 @@ interface MDXRendererProps {
   post: Post
 }
 
+/** Renders post MDX. Prose chrome lives on the caller so we don't nest
+ *  `.prose` (which fights `prose-lg` sizing). */
 export function MDXRenderer({ post }: MDXRendererProps) {
   return (
-    <article className="prose dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-a:no-underline">
-      <MDXRemote
-        source={post.content}
-        options={{
-          parseFrontmatter: false,
-          mdxOptions: {
-            remarkPlugins: [remarkGfm],
-            rehypePlugins: blogRehypePlugins,
-          },
-        }}
-        components={mdxComponents}
-      />
-    </article>
+    <MDXRemote
+      source={post.content}
+      options={{
+        parseFrontmatter: false,
+        mdxOptions: {
+          remarkPlugins: [remarkGfm],
+          rehypePlugins: blogRehypePlugins,
+        },
+      }}
+      components={mdxComponents}
+    />
   )
 }

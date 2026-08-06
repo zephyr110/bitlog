@@ -6,7 +6,15 @@ export function computeReadingStats(content: string): {
   wordCount: number
   readingTime: number
 } {
-  const wordCount = content.split(/\s+/).filter(Boolean).length
+  // CJK ideographs / hiragana / katakana / hangul each count as one word.
+  // Local /g RegExp — avoid a shared lastIndex across calls.
+  const cjk = /[一-龥\u3040-ゟ゠-ヿ가-힯]/g
+  const cjkCount = (content.match(cjk) || []).length
+  const nonCjkWords = content
+    .replace(cjk, " ")
+    .split(/\s+/)
+    .filter(Boolean).length
+  const wordCount = cjkCount + nonCjkWords
   const readingTime = Math.max(1, Math.ceil(wordCount / READING_SPEED_WPM))
   return { wordCount, readingTime }
 }

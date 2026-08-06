@@ -16,7 +16,7 @@ import { blogRehypePlugins } from "@/lib/mdx-pipeline"
 import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
-import { type Post } from "@zlog/database"
+import { computeReadingStats, type Post } from "@zlog/core"
 import { MediaPickerDialog } from "@/components/admin/media-picker-dialog"
 import {
   HeaderActions,
@@ -229,16 +229,9 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     return () => clearInterval(interval)
   }, [isNew])
 
-  // Word / char count — CJK characters count as words too
-  const cjkRegex = /[一-龥぀-ゟ゠-ヿ가-힯]/g
-  const cjkCount = (content.match(cjkRegex) || []).length
-  const nonCjkWords = content
-    .replace(cjkRegex, " ")
-    .split(/\s+/)
-    .filter(Boolean).length
-  const wordCount = cjkCount + nonCjkWords
+  // Word / char count — shared CJK-aware stats (same as API persist path)
+  const { wordCount, readingTime: readTime } = computeReadingStats(content)
   const charCount = content.length
-  const readTime = Math.max(1, Math.ceil(wordCount / 200))
 
   function handleTitleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newTitle = e.target.value

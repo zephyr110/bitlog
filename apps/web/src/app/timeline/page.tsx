@@ -3,6 +3,7 @@ import { History } from "lucide-react"
 import { getPublishedPosts } from "@zlog/database"
 import { Trans } from "@/components/layout/trans"
 import { defaultLocale, t } from "@/lib/i18n"
+import { parseUtcDate } from "@/lib/date"
 import { PageHeader } from "@/components/layout/page-header"
 import { Container } from "@/components/ui/container"
 import { YearSection } from "./year-section"
@@ -15,9 +16,9 @@ export const metadata: Metadata = {
 function groupByYear(posts: { date: string; slug: string; title: string }[]) {
   const map = new Map<number, typeof posts>()
   for (const post of posts) {
-    // Dates are UTC calendar dates — the UTC year is the authored year,
-    // timezone-independent.
-    const year = new Date(post.date).getFullYear()
+    // UTC calendar year (local getFullYear() misgroups Jan 1 in
+    // negative-offset zones — same pitfall archive already fixed).
+    const year = parseUtcDate(post.date).getUTCFullYear()
     if (!Number.isFinite(year)) continue
     if (!map.has(year)) map.set(year, [])
     map.get(year)!.push(post)

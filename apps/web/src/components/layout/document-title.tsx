@@ -18,6 +18,7 @@ const TITLE_KEYS: Record<string, string> = {
   "/admin/posts/new": "admin.newPost",
   "/admin/posts/edit": "admin.editPost",
   "/admin/media": "admin.media",
+  "/admin/comments": "admin.commentsPage",
   "/admin/settings": "admin.settings",
 }
 
