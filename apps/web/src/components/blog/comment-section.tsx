@@ -307,7 +307,22 @@ export function CommentSection({ slug }: { slug: string }) {
           setSessionReady(false)
           armSessionTimer()
         }
-        void loadComments()
+        // The 201 body carries the stored row (server-generated id,
+        // Anonymous fallback name, createdAt) — append it locally
+        // instead of re-fetching the whole list: no loading flash, no
+        // re-render of every card. The list sorts by created_at ASC, so
+        // appending is the correct position.
+        const data = (await res.json().catch(() => null)) as {
+          comment?: PublicComment
+        } | null
+        const newComment = data?.comment
+        if (newComment) {
+          setComments((prev) => [...prev, newComment])
+        } else {
+          // Response parsing should not fail on 201 — but if it ever
+          // does, fall back to the full refetch so the list stays true.
+          void loadComments()
+        }
         return
       }
 
