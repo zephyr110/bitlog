@@ -7,6 +7,7 @@ import {
 } from "@/lib/comment-session"
 import {
   getCommentsByPost,
+  getCommentById,
   createComment,
   getSiteSettings,
   getPostBySlug,
@@ -30,6 +31,7 @@ type PublicComment = {
   postSlug: string
   authorName: string
   content: string
+  parentId: number | null
   createdAt: string
 }
 
@@ -46,6 +48,9 @@ const createSchema = z.object({
   authorName: z.string().trim().max(30).optional(),
   authorEmail: z.string().trim().max(100).optional().or(z.literal("")),
   content: z.string().trim().min(2).max(1000),
+  // Reply target — present only for replies; the target is validated
+  // against the DB later (exists, same post, root comment).
+  parentId: z.number().int().positive().optional(),
   // Signed session token from GET /api/comments/session.
   token: z.string().min(10).max(1000),
   // Token from the Turnstile widget (client-side) — optional only when
@@ -137,6 +142,7 @@ export async function GET(request: NextRequest) {
     postSlug: c.postSlug,
     authorName: c.authorName,
     content: c.content,
+    parentId: c.parentId,
     createdAt: c.createdAt,
   }))
   return NextResponse.json({ comments: publicComments })
@@ -182,6 +188,26 @@ export async function POST(request: NextRequest) {
     if (!post || post.draft) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 })
     }
+  }
+
+  // 4b. Reply target — must exist, belong to THIS post, and be a root
+  //     comment (single-level nesting: a reply can't reply to a reply).
+  //     Rejected before Turnstile/rate limits so a bad target costs the
+  //     visitor nothing.
+  let parentId: number | null = null
+  if (body.parentId != null) {
+    const parent = await getCommentById(body.parentId)
+    if (
+      !parent ||
+      parent.postSlug !== body.postSlug ||
+      parent.parentId !== null
+    ) {
+      return NextResponse.json(
+        { error: "Invalid reply target", code: "invalid_parent" },
+        { status: 400 }
+      )
+    }
+    parentId = body.parentId
   }
 
   // 5. Time-trap — a script that fetched the session and POSTs
@@ -249,6 +275,7 @@ export async function POST(request: NextRequest) {
     authorEmail: body.authorEmail ?? "",
     content: body.content,
     ipHash,
+    parentId,
   })
   return NextResponse.json(
     {
@@ -257,6 +284,7 @@ export async function POST(request: NextRequest) {
         postSlug: comment.postSlug,
         authorName: comment.authorName,
         content: comment.content,
+        parentId: comment.parentId,
         createdAt: comment.createdAt,
       } satisfies PublicComment,
     },

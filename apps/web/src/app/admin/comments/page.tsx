@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { MessageSquare, Trash2, Check } from "lucide-react"
 import { apiFetch } from "@/lib/api-client"
+import { displayName } from "@/lib/comment-shared"
 import { useCommentUnread } from "@/components/admin/comment-unread"
 import { useT } from "@/components/layout/trans"
 import { Button } from "@/components/ui/button"
@@ -22,6 +23,10 @@ type AdminComment = {
   content: string
   createdAt: string
   isRead: boolean
+  /** Reply threading — parentName is joined server-side so a reply can
+   *  be labeled even when its parent lives on another page. */
+  parentId: number | null
+  parentName: string | null
 }
 
 type CommentPage = {
@@ -176,7 +181,7 @@ export default function AdminCommentsPage() {
                 <CardContent className="py-4">
                   <div className="mb-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
                     <span className="font-semibold">
-                      {comment.authorName || "Anonymous"}
+                      {displayName(comment.authorName)}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {new Date(comment.createdAt).toLocaleString()}
@@ -193,6 +198,13 @@ export default function AdminCommentsPage() {
                       </span>
                     )}
                   </div>
+                  {comment.parentName != null && (
+                    <p className="mb-1 text-xs text-muted-foreground">
+                      {(t("admin.commentReplyingTo") as (n: string) => string)(
+                        displayName(comment.parentName)
+                      )}
+                    </p>
+                  )}
                   <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                     {comment.content}
                   </p>

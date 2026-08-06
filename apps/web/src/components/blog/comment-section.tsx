@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTheme } from "next-themes"
 import { Turnstile } from "@marsidev/react-turnstile"
 import { MessageSquare } from "lucide-react"
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
   COMMENT_MIN_SUBMIT_DELAY_MS,
+  displayName,
   type PublicComment,
 } from "@/lib/comment-shared"
 
@@ -19,6 +20,80 @@ const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 // cannot work there. Build-time flag from the CI-injected site URL:
 // deploy.yml sets NEXT_PUBLIC_SITE_URL=https://zephyr110.github.io.
 const STATIC_MIRROR = !!process.env.NEXT_PUBLIC_SITE_URL?.includes("github.io")
+
+// Deterministic avatar color per comment id: the palette slot is
+// id % length, so one comment always renders with the same color while
+// different comments spread across the palette. Shades are Tailwind
+// 700-levels so white initials keep readable contrast.
+const AVATAR_COLORS = [
+  "#b91c1c", // red-700
+  "#c2410c", // orange-700
+  "#a16207", // amber-700
+  "#15803d", // green-700
+  "#0f766e", // teal-700
+  "#1d4ed8", // blue-700
+  "#4338ca", // indigo-700
+  "#6d28d9", // violet-700
+  "#be185d", // pink-700
+  "#0e7490", // cyan-700
+]
+
+/** Initial-letter avatar. Decorative (aria-hidden); the initial comes
+ *  from the rendered display name. */
+function CommentAvatar({ commentId, name }: { commentId: number; name: string }) {
+  return (
+    <span
+      aria-hidden
+      className="flex size-6 shrink-0 select-none items-center justify-center rounded-full text-[11px] font-semibold text-white"
+      style={{ backgroundColor: AVATAR_COLORS[commentId % AVATAR_COLORS.length] }}
+    >
+      {Array.from(name)[0] ?? ""}
+    </span>
+  )
+}
+
+/** One comment bubble — #number (display order), avatar, name, date,
+ *  content, and (for root comments) the reply action. */
+function CommentCard({
+  comment,
+  no,
+  onReply,
+}: {
+  comment: PublicComment
+  no: number
+  onReply?: (comment: PublicComment) => void
+}) {
+  const { t } = useT()
+  const name = displayName(comment.authorName)
+  return (
+    <div className="rounded-xl border bg-muted/20 p-4">
+      <div className="mb-1 flex items-center gap-2">
+        <span className="font-mono text-xs text-muted-foreground">#{no}</span>
+        <CommentAvatar commentId={comment.id} name={name} />
+        <span className="text-sm font-semibold">{name}</span>
+        <span className="text-xs text-muted-foreground">
+          {new Date(comment.createdAt).toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })}
+        </span>
+        {onReply && (
+          <button
+            type="button"
+            onClick={() => onReply(comment)}
+            className="ml-auto text-xs text-muted-foreground transition-colors hover:text-primary"
+          >
+            {t("post.commentReply") as string}
+          </button>
+        )}
+      </div>
+      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+        {comment.content}
+      </p>
+    </div>
+  )
+}
 
 /** Guest comments, self-hosted (replaces giscus): no login, immediate
  *  display, spam-gated server-side (signed session token + Turnstile +
@@ -53,6 +128,10 @@ export function CommentSection({ slug }: { slug: string }) {
   // The time-trap mirror timer — cleared on unmount so a stale timer
   // can't unlock a replaced form instance early.
   const armTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Reply target — null = plain top-level form; a comment id puts the
+  // form into "reply to" mode (the next submit carries parentId).
+  const [replyingTo, setReplyingTo] = useState<PublicComment | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
 
   const commentsEnabled = site.commentEnabled
   const turnstileConfigured = !!TURNSTILE_SITE_KEY
@@ -102,6 +181,10 @@ export function CommentSection({ slug }: { slug: string }) {
    *  a new post's heading. */
   const loadComments = useCallback(
     async (signal?: AbortSignal) => {
+      // A post switch must not carry a reply target from the old post
+      // into the new one (the API would reject it, but the stale chip
+      // would linger until then).
+      setReplyingTo(null)
       setComments([])
       setLoading(true)
       try {
@@ -134,6 +217,41 @@ export function CommentSection({ slug }: { slug: string }) {
       armSessionTimer()
     }
   }, [fetchSession])
+
+  /** Enter reply mode for a root comment. */
+  function startReply(comment: PublicComment) {
+    setError(null)
+    setReplyingTo(comment)
+    // The form sits below the list — bring it into view so the visitor
+    // sees where the reply lands.
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+  }
+
+  /** Display order: roots chronologically, each followed by its replies
+   *  (also chronological). #N counts across the whole list. */
+  const orderedGroups = useMemo(() => {
+    const repliesByParent = new Map<number, PublicComment[]>()
+    for (const c of comments) {
+      if (c.parentId == null) continue
+      const list = repliesByParent.get(c.parentId) ?? []
+      list.push(c)
+      repliesByParent.set(c.parentId, list)
+    }
+    const groups: {
+      root: PublicComment
+      no: number
+      replies: { comment: PublicComment; no: number }[]
+    }[] = []
+    let no = 0
+    for (const root of comments) {
+      if (root.parentId != null) continue
+      groups.push({ root, no: ++no, replies: [] })
+      for (const reply of repliesByParent.get(root.id) ?? []) {
+        groups[groups.length - 1].replies.push({ comment: reply, no: ++no })
+      }
+    }
+    return groups
+  }, [comments])
 
   // List + signed session in parallel on mount (and when the post slug
   // changes via client-side navigation). The controller aborts the
@@ -180,6 +298,7 @@ export function CommentSection({ slug }: { slug: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           postSlug: slug,
+          parentId: replyingTo?.id ?? undefined,
           authorName: authorName.trim(),
           authorEmail: authorEmail.trim(),
           content: content.trim(),
@@ -194,6 +313,7 @@ export function CommentSection({ slug }: { slug: string }) {
         setAuthorName("")
         setAuthorEmail("")
         setContent("")
+        setReplyingTo(null)
         resetTurnstile()
         // Re-mint the session: a fresh token keeps the time-trap honest
         // for the next comment. A failure here keeps the old token —
@@ -294,22 +414,17 @@ export function CommentSection({ slug }: { slug: string }) {
           </p>
         ) : (
           <ul className="space-y-4">
-            {comments.map((comment) => (
-              <li key={comment.id} className="rounded-xl border bg-muted/20 p-4">
-                <div className="mb-1 flex items-baseline gap-2">
-                  <span className="text-sm font-semibold">
-                    {comment.authorName || "Anonymous"}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(comment.createdAt).toLocaleDateString(
-                      undefined,
-                      { year: "numeric", month: "short", day: "numeric" }
-                    )}
-                  </span>
-                </div>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                  {comment.content}
-                </p>
+            {orderedGroups.map(({ root, no, replies }) => (
+              <li key={root.id}>
+                <CommentCard comment={root} no={no} onReply={startReply} />
+                {replies.map((reply) => (
+                  <div
+                    key={reply.comment.id}
+                    className="mt-1.5 ml-5 border-l-2 border-foreground/10 pl-4"
+                  >
+                    <CommentCard comment={reply.comment} no={reply.no} />
+                  </div>
+                ))}
               </li>
             ))}
           </ul>
@@ -338,12 +453,31 @@ export function CommentSection({ slug }: { slug: string }) {
           </div>
         ) : (
           <form
+            ref={formRef}
             className="mt-8 space-y-3"
             onSubmit={(e) => {
               e.preventDefault()
               void onSubmit()
             }}
           >
+            {replyingTo && (
+              <div className="flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                <span className="text-muted-foreground">
+                  {(t("post.commentReplyingTo") as (n: string) => string)(
+                    displayName(replyingTo.authorName)
+                  )}
+                </span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="ml-auto"
+                  onClick={() => setReplyingTo(null)}
+                >
+                  {t("post.commentCancelReply") as string}
+                </Button>
+              </div>
+            )}
             <div className="flex flex-col gap-3 sm:flex-row">
               <Input
                 value={authorName}
@@ -409,9 +543,6 @@ export function CommentSection({ slug }: { slug: string }) {
                   : (t("post.commentSubmit") as string)}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {t("post.commentEmailNote") as string}
-            </p>
             {error && (
               <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {error}

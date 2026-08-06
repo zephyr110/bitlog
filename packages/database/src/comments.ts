@@ -7,6 +7,8 @@ import { requireDb, createTableGuard } from "./db"
 // API), so a deleted comment is a hard delete, not a hide flag.
 // ip_hash is a SHA-256 of the visitor IP — stored only so rate limiting
 // can be enforced in the DB (serverless instances share no memory).
+// parent_id threads replies under a root comment (single-level nesting —
+// a reply's parent is always a root; the API enforces this).
 
 const COMMENTS_SCHEMA = `
 CREATE TABLE IF NOT EXISTS comments (
@@ -17,6 +19,7 @@ CREATE TABLE IF NOT EXISTS comments (
   content TEXT NOT NULL,
   ip_hash TEXT NOT NULL,
   is_read INTEGER NOT NULL DEFAULT 0,
+  parent_id INTEGER,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_slug);
@@ -56,11 +59,21 @@ export interface CommentRecord {
   content: string
   ipHash: string
   isRead: boolean
+  /** Root comment: null. Reply: the parent comment's id (single-level —
+   *  the API rejects a reply whose target is itself a reply). */
+  parentId: number | null
   createdAt: string
 }
 
+/** Admin list item — parentName is joined in so the inbox can label a
+ *  thread without a second query (a reply's parent may live on an
+ *  earlier page of the paginated list). */
+export interface AdminCommentRecord extends CommentRecord {
+  parentName: string | null
+}
+
 export interface AdminCommentPage {
-  items: CommentRecord[]
+  items: AdminCommentRecord[]
   total: number
   page: number
   pageSize: number
@@ -72,6 +85,20 @@ export interface AdminCommentPage {
 const ensureTables = createTableGuard(async () => {
   const db = requireDb()
   await db.executeMultiple(COMMENTS_SCHEMA)
+  // Migrate tables created before replies existed — ALTER TABLE throws
+  // "duplicate column" on fresh DBs (the column is already in the
+  // CREATE TABLE above), which is the expected no-op case.
+  try {
+    await db.execute("ALTER TABLE comments ADD COLUMN parent_id INTEGER")
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (!/duplicate column/i.test(msg)) throw err
+  }
+  // Must run AFTER the migration: on a pre-reply table, CREATE INDEX on
+  // a missing column would fail with "no such column".
+  await db.execute(
+    "CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments(parent_id)"
+  )
   await db.executeMultiple(RATE_LIMIT_SCHEMA)
 })
 
@@ -84,7 +111,15 @@ function rowToComment(row: Record<string, unknown>): CommentRecord {
     content: String(row.content),
     ipHash: String(row.ip_hash),
     isRead: Number(row.is_read) !== 0,
+    parentId: row.parent_id == null ? null : Number(row.parent_id),
     createdAt: String(row.created_at),
+  }
+}
+
+function rowToAdminComment(row: Record<string, unknown>): AdminCommentRecord {
+  return {
+    ...rowToComment(row),
+    parentName: row.parent_name == null ? null : String(row.parent_name),
   }
 }
 
@@ -99,11 +134,22 @@ export async function getCommentsByPost(
   const db = requireDb()
   await ensureTables()
   const result = await db.execute(
-    `SELECT id, post_slug, author_name, author_email, content, ip_hash, is_read, created_at
+    `SELECT id, post_slug, author_name, author_email, content, ip_hash, is_read, parent_id, created_at
      FROM comments WHERE post_slug = ? ORDER BY created_at ASC`,
     [postSlug]
   )
   return result.rows.map((r) => rowToComment(r as unknown as Record<string, unknown>))
+}
+
+/** Fetch one comment — the POST route uses this to validate a reply
+ *  target (exists, same post, is a root). */
+export async function getCommentById(id: number): Promise<CommentRecord | null> {
+  const db = requireDb()
+  await ensureTables()
+  const result = await db.execute(`SELECT * FROM comments WHERE id = ?`, [id])
+  const row = result.rows[0]
+  if (!row) return null
+  return rowToComment(row as unknown as Record<string, unknown>)
 }
 
 export async function createComment(input: {
@@ -112,12 +158,13 @@ export async function createComment(input: {
   authorEmail: string
   content: string
   ipHash: string
+  parentId: number | null
 }): Promise<CommentRecord> {
   const db = requireDb()
   await ensureTables()
   const result = await db.execute(
-    `INSERT INTO comments (post_slug, author_name, author_email, content, ip_hash)
-     VALUES (?, ?, ?, ?, ?)
+    `INSERT INTO comments (post_slug, author_name, author_email, content, ip_hash, parent_id)
+     VALUES (?, ?, ?, ?, ?, ?)
      RETURNING *`,
     [
       input.postSlug,
@@ -125,6 +172,7 @@ export async function createComment(input: {
       input.authorEmail,
       input.content,
       input.ipHash,
+      input.parentId,
     ]
   )
   return rowToComment(result.rows[0] as unknown as Record<string, unknown>)
@@ -145,8 +193,12 @@ export async function listAdminComments(input: {
 
   const result = await db.batch([
     {
-      sql: `SELECT * FROM comments
-            ORDER BY is_read ASC, created_at DESC
+      // Join the parent's name so a reply is labeled with its thread
+      // root — the parent is not guaranteed to be on this page.
+      sql: `SELECT c.*, p.author_name AS parent_name
+            FROM comments c
+            LEFT JOIN comments p ON p.id = c.parent_id
+            ORDER BY c.is_read ASC, c.created_at DESC
             LIMIT ? OFFSET ?`,
       args: [pageSize, offset],
     },
@@ -161,7 +213,7 @@ export async function listAdminComments(input: {
   ])
 
   return {
-    items: result[0].rows.map((r) => rowToComment(r as unknown as Record<string, unknown>)),
+    items: result[0].rows.map((r) => rowToAdminComment(r as unknown as Record<string, unknown>)),
     total: Number(result[1].rows[0]?.total ?? 0),
     page,
     pageSize,
@@ -192,7 +244,12 @@ export async function markCommentRead(id: number): Promise<boolean> {
 export async function deleteComment(id: number): Promise<boolean> {
   const db = requireDb()
   await ensureTables()
-  const result = await db.execute(`DELETE FROM comments WHERE id = ?`, [id])
+  // Deleting a root comment takes its replies with it — a thread whose
+  // parent is gone would otherwise dangle under nothing.
+  const result = await db.execute(
+    `DELETE FROM comments WHERE id = ? OR parent_id = ?`,
+    [id, id]
+  )
   return Number(result.rowsAffected) > 0
 }
 
