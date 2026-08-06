@@ -39,6 +39,38 @@ interface MediaFile {
   createdAt?: string
 }
 
+/** Simple async semaphore limiting concurrent uploads — GitHub pushes are
+ *  IO-bound (10-60s each), so 3 in flight hides most of the latency while
+ *  staying well within GitHub's API rate budget. */
+function createSemaphore(max: number) {
+  let current = 0
+  const queue: Array<() => void> = []
+  return {
+    acquire(): Promise<void> {
+      if (current < max) {
+        current++
+        return Promise.resolve()
+      }
+      return new Promise<void>((resolve) => {
+        queue.push(() => {
+          current++
+          resolve()
+        })
+      })
+    },
+    release(): void {
+      current--
+      queue.shift()?.()
+    },
+  }
+}
+
+const UPLOAD_CONCURRENCY = 3
+/** Batch cap — a stray 200-file drop would otherwise lock the page for
+ *  half an hour (30s × 67 slots). Generous for any realistic selection. */
+const MAX_BATCH_SIZE = 30
+const MAX_FILE_SIZE = 5 * 1024 * 1024
+
 /** Local "YYYY-MM-DD" → exact UTC timestamp at the day boundary
  *  ("YYYY-MM-DD HH:MM:SS", matching created_at's format). Converting the
  *  local window start/end to UTC keeps the filter exact in any timezone. */
@@ -59,7 +91,18 @@ export default function AdminMediaPage() {
   const { locale } = useLocale()
   const [files, setFiles] = useState<MediaFile[]>([])
   const [loading, setLoading] = useState(true)
-  const [uploading, setUploading] = useState(false)
+  // Batch progress — null while idle. total includes files rejected in the
+  // pre-check so the counter matches what the user picked.
+  const [uploadStats, setUploadStats] = useState<{
+    total: number
+    done: number
+    failed: number
+  } | null>(null)
+  // Ref mirror of the same state — uploadFiles reads it so its identity
+  // doesn't depend on uploadStats (which changes on every progress tick,
+  // and would ripple through handleDrop's dependency array).
+  const uploadingRef = useRef(false)
+  const isUploading = uploadStats !== null
   const [dragActive, setDragActive] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [previewFile, setPreviewFile] = useState<MediaFile | null>(null)
@@ -176,66 +219,112 @@ export default function AdminMediaPage() {
     localStorage.setItem("media-view", mode)
   }
 
-  const uploadFile = useCallback(async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error(t("admin.uploadFailed") as string)
-      return
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error(t("admin.fileTooLarge") as string)
-      return
-    }
-    setUploading(true)
+  /** Batch upload — pre-checks every file, then runs the POSTs through a
+   *  concurrency-capped worker pool. Failures are isolated per file; the
+   *  summary toast at the end reports the overall result. */
+  const uploadFiles = useCallback(
+    async (fileList: FileList | File[] | null) => {
+      if (!fileList || fileList.length === 0) return
+      // One batch at a time — a drop landing mid-upload is ignored (the
+      // disabled buttons/tile cover most paths; the drop zone is the rest).
+      if (uploadingRef.current) return
 
-    try {
-      const formData = new FormData()
-      formData.append("file", file)
-
-      const res = await apiFetch("/api/upload", {
-        method: "POST",
-        body: formData,
-        // Uploads include compression + a GitHub push to a CN-direct
-        // api.github.com — can take 10-60s. The default 15s would abort
-        // mid-flight (server still finishes → "failed" upload that exists).
-        timeout: 120_000,
-      })
-
-      if (res.ok) {
-        // New uploads are newest-first → jump back to page 1 to see them.
-        // If we're already on page 1 the effect won't refire, so fetch here.
-        if (page === 1) {
-          await fetchMedia(1)
-        } else {
-          setPage(1)
-        }
-        toast.success(t("admin.uploadSuccess") as string)
-      } else {
-        // Error bodies may not be JSON (a 500 from a static host or a
-        // gateway) — never let the parse throw into the generic catch.
-        let message = t("admin.uploadFailed") as string
-        try {
-          const err = await res.json()
-          if (typeof err?.error === "string" && err.error) message = err.error
-        } catch {
-          // non-JSON error body — keep the generic message
-        }
-        // Upload rejection ≠ list API down — the toast carries the real
-        // error; don't flip the list-level banner for a single upload.
-        toast.error(message)
+      const files = Array.from(fileList)
+      if (files.length > MAX_BATCH_SIZE) {
+        toast.error(t("admin.uploadFailed") as string)
+        files.length = MAX_BATCH_SIZE
       }
-    } catch {
-      toast.error(t("admin.networkError") as string)
-    } finally {
-      setUploading(false)
+
+      // Pre-check: separate valid files from rejections so the progress
+      // total reflects the whole selection from the start.
+      const valid: File[] = []
+      let preCheckFailed = 0
+      for (const file of files) {
+        if (!file.type.startsWith("image/") || file.size > MAX_FILE_SIZE) {
+          preCheckFailed++
+        } else {
+          valid.push(file)
+        }
+      }
+      if (valid.length === 0) {
+        toast.error(t("admin.uploadFailed") as string)
+        return
+      }
+
+      const total = valid.length + preCheckFailed
+      // Mutable counters — the state updates they drive may not have been
+      // flushed by the time Promise.all resolves, so the summary toast
+      // reads the refs, not the state.
+      const statsRef = { done: 0, failed: preCheckFailed }
+
+      uploadingRef.current = true
+      setUploadStats({ total, done: 0, failed: preCheckFailed })
+
+      const sem = createSemaphore(UPLOAD_CONCURRENCY)
+      const worker = async (file: File) => {
+        await sem.acquire()
+        try {
+          const formData = new FormData()
+          formData.append("file", file)
+          const res = await apiFetch("/api/upload", {
+            method: "POST",
+            body: formData,
+            // Uploads include compression + a GitHub push to a CN-direct
+            // api.github.com — can take 10-60s. The default 15s would
+            // abort mid-flight (server still finishes → "failed" upload
+            // that exists).
+            timeout: 120_000,
+          })
+          if (res.ok) {
+            statsRef.done++
+          } else {
+            statsRef.failed++
+          }
+        } catch {
+          statsRef.failed++
+        } finally {
+          setUploadStats({ total, done: statsRef.done, failed: statsRef.failed })
+          sem.release()
+        }
+      }
+
+      await Promise.all(valid.map(worker))
+
+      // New uploads are newest-first → jump to page 1 to see them. A
+      // no-op setPage(1) would never refire the effect (React bails out
+      // on the same value), so fetch directly when already on page 1.
+      if (page === 1) {
+        await fetchMedia(1)
+      } else {
+        setPage(1)
+      }
+
+      const { done, failed } = statsRef
+      if (failed === 0) {
+        toast.success(
+          (t("admin.uploadBatchSuccess") as (n: number) => string)(done)
+        )
+      } else if (done === 0) {
+        toast.error(t("admin.uploadFailed") as string)
+      } else {
+        toast.error(
+          (t("admin.uploadBatchPartial") as (
+            ok: number,
+            fail: number
+          ) => string)(done, failed)
+        )
+      }
+
+      uploadingRef.current = false
+      setUploadStats(null)
       const input = document.getElementById("media-file-input") as HTMLInputElement
       if (input) input.value = ""
-    }
-  }, [t, page, fetchMedia])
+    },
+    [t, page, fetchMedia]
+  )
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    await uploadFile(file)
+    await uploadFiles(e.target.files)
   }
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -253,10 +342,9 @@ export default function AdminMediaPage() {
       e.preventDefault()
       e.stopPropagation()
       setDragActive(false)
-      const file = e.dataTransfer.files?.[0]
-      if (file) await uploadFile(file)
+      await uploadFiles(e.dataTransfer.files)
     },
-    [uploadFile]
+    [uploadFiles]
   )
 
   // Backend now returns absolute jsdelivr URLs — only prepend the site
@@ -328,6 +416,7 @@ export default function AdminMediaPage() {
       <HeaderActions>
         <input
           type="file"
+          multiple
           accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
           onChange={handleUpload}
           className="hidden"
@@ -396,11 +485,14 @@ export default function AdminMediaPage() {
           </IconButton>
         </div>
         <Button
-          disabled={uploading}
+          disabled={isUploading}
           onClick={() => document.getElementById("media-file-input")?.click()}
         >
-          {uploading
-            ? (t("admin.uploading") as string)
+          {isUploading && uploadStats
+            ? (t("admin.uploadProgress") as (
+                done: number,
+                total: number
+              ) => string)(uploadStats.done, uploadStats.total)
             : (t("admin.uploadImage") as string)}
         </Button>
       </HeaderActions>
@@ -514,7 +606,7 @@ export default function AdminMediaPage() {
           {/* Upload tile — same 4:3 footprint as media cards */}
           <button
             type="button"
-            disabled={uploading}
+            disabled={isUploading}
             onClick={() => document.getElementById("media-file-input")?.click()}
             className="group flex aspect-[4/3] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/25 bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/30 hover:text-foreground disabled:opacity-60 cursor-pointer"
           >
@@ -604,7 +696,7 @@ export default function AdminMediaPage() {
           {/* Upload row — first position, same footprint as media rows */}
           <button
             type="button"
-            disabled={uploading}
+            disabled={isUploading}
             onClick={() => document.getElementById("media-file-input")?.click()}
             className="flex h-14 w-full items-center gap-3 rounded-lg border border-dashed border-muted-foreground/25 bg-card px-3 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/30 hover:text-foreground disabled:opacity-60 cursor-pointer"
           >
