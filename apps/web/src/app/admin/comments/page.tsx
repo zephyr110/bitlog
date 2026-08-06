@@ -82,7 +82,7 @@ export default function AdminCommentsPage() {
         method: "POST",
       })
       if (!(await applied(res))) {
-        toast.error(t("admin.loadFailed") as string)
+        toast.error(t("admin.loadFailed"))
         return
       }
       setComments((prev) =>
@@ -93,21 +93,21 @@ export default function AdminCommentsPage() {
       // it to re-fetch now instead of waiting up to 60 s.
       refreshUnread()
     } catch {
-      toast.error(t("admin.loadFailed") as string)
+      toast.error(t("admin.loadFailed"))
     } finally {
       setBusyId(null)
     }
   }
 
   async function remove(id: number) {
-    if (!window.confirm(t("admin.commentDeleteConfirm") as string)) return
+    if (!window.confirm(t("admin.commentDeleteConfirm"))) return
     setBusyId(id)
     try {
       const res = await apiFetch(`/api/admin/comments/${id}`, {
         method: "DELETE",
       })
       if (!(await applied(res))) {
-        toast.error(t("admin.loadFailed") as string)
+        toast.error(t("admin.loadFailed"))
         return
       }
       // The server cascades a root's replies — mirror that locally:
@@ -129,7 +129,7 @@ export default function AdminCommentsPage() {
       const goneOnPage = comments.filter((c) => c.id === id || c.parentId === id)
       if (goneOnPage.length >= comments.length && page > 1) setPage(page - 1)
     } catch {
-      toast.error(t("admin.loadFailed") as string)
+      toast.error(t("admin.loadFailed"))
     } finally {
       setBusyId(null)
     }
@@ -139,11 +139,11 @@ export default function AdminCommentsPage() {
     <div className="flex min-h-0 flex-1 flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">
-          {t("admin.commentsPage") as string}
+          {t("admin.commentsPage")}
         </h2>
         {unreadCount > 0 && (
           <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
-            {(t("admin.unreadComments") as string)} · {unreadCount}
+            {(t("admin.unreadComments"))} · {unreadCount}
           </span>
         )}
       </div>
@@ -164,7 +164,7 @@ export default function AdminCommentsPage() {
         <div className="flex min-h-0 flex-1 items-center justify-center">
           <EmptyState
             icon={<MessageSquare size={32} className="text-muted-foreground" />}
-            title={t("admin.commentsEmpty") as string}
+            title={t("admin.commentsEmpty")}
             className="py-0"
           />
         </div>
@@ -227,7 +227,7 @@ export default function AdminCommentsPage() {
                     <div className="mt-2.5 flex items-center gap-1.5 border-l-2 border-foreground/10 pl-2.5 text-xs text-muted-foreground">
                       <Reply size={12} className="shrink-0" />
                       <span className="truncate">
-                        {(t("admin.commentReplyingTo") as (n: string) => string)(
+                        {t("post.commentReplyingTo")(
                           comment.parentName
                         )}
                       </span>
@@ -266,12 +266,12 @@ export default function AdminCommentsPage() {
                         disabled={busyId === comment.id}
                       >
                         <Check size={14} className="mr-1.5" />
-                        {t("admin.markRead") as string}
+                        {t("admin.markRead")}
                       </Button>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/70">
                         <Check size={13} />
-                        {t("admin.commentRead") as string}
+                        {t("admin.commentRead")}
                       </span>
                     )}
                     <Button
@@ -282,7 +282,7 @@ export default function AdminCommentsPage() {
                       disabled={busyId === comment.id}
                     >
                       <Trash2 size={14} className="mr-1.5" />
-                      {t("admin.delete") as string}
+                      {t("admin.delete")}
                     </Button>
                   </div>
                 </CardContent>
@@ -293,7 +293,7 @@ export default function AdminCommentsPage() {
             page={page}
             totalPages={totalPages}
             total={total}
-            itemLabel={t("admin.comments") as string}
+            itemLabel={t("admin.comments")}
             pageSize={pageSize}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}

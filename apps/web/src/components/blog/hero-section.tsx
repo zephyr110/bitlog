@@ -101,10 +101,10 @@ export function HeroSection({ postCount }: { postCount: number }) {
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.05] animate-in fade-in slide-in-from-bottom-4 duration-700"
             style={{ animationFillMode: "both", animationDelay: "100ms" }}
           >
-            {t("site.heroTitleLine1") as string}
+            {t("site.heroTitleLine1")}
             <br />
             <span className="bg-gradient-to-r from-foreground via-foreground/75 to-foreground/40 bg-clip-text text-transparent">
-              {t("site.heroTitleLine2") as string}
+              {t("site.heroTitleLine2")}
             </span>
           </h1>
 
@@ -113,7 +113,7 @@ export function HeroSection({ postCount }: { postCount: number }) {
             className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-700"
             style={{ animationFillMode: "both", animationDelay: "200ms" }}
           >
-            {t("site.heroSubtitle") as string}
+            {t("site.heroSubtitle")}
           </p>
 
           {/* Actions */}
@@ -125,7 +125,7 @@ export function HeroSection({ postCount }: { postCount: number }) {
               href="#post-feed"
               className="group inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:brightness-110 dark:hover:brightness-125"
             >
-              {t("site.browsePosts") as string}
+              {t("site.browsePosts")}
               <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
             <Link
@@ -133,7 +133,7 @@ export function HeroSection({ postCount }: { postCount: number }) {
               className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-5 py-2.5 text-sm font-medium text-foreground/80 backdrop-blur-sm transition-colors duration-200 hover:bg-muted/60 hover:text-foreground"
             >
               <Archive size={15} />
-              {t("site.archive") as string}
+              {t("site.archive")}
             </Link>
           </div>
         </div>

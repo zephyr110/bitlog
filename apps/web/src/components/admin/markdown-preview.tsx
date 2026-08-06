@@ -35,7 +35,7 @@ export function MarkdownPreview({ content }: MarkdownPreviewProps) {
           resetKey={deferredContent}
           fallback={
             <p className="text-muted-foreground italic">
-              {t("admin.previewError") as string}
+              {t("admin.previewError")}
             </p>
           }
         >
@@ -45,7 +45,7 @@ export function MarkdownPreview({ content }: MarkdownPreviewProps) {
             components={mdxComponents}
             fallback={
               <p className="text-muted-foreground italic">
-                {t("admin.previewRendering") as string}
+                {t("admin.previewRendering")}
               </p>
             }
           >
@@ -54,7 +54,7 @@ export function MarkdownPreview({ content }: MarkdownPreviewProps) {
         </PreviewErrorBoundary>
       ) : (
         <p className="text-muted-foreground italic">
-          {t("admin.previewEmpty") as string}
+          {t("admin.previewEmpty")}
         </p>
       )}
     </div>

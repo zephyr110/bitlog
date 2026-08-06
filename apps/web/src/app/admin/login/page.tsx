@@ -60,17 +60,17 @@ export default function AdminLoginPage() {
       if (res.ok) {
         const data = await res.json()
         setToken(data.token)
-        toast.success(t("admin.welcomeBack") as string)
+        toast.success(t("admin.welcomeBack"))
         router.push("/admin/dashboard")
         router.refresh()
       } else {
         const data = await res.json().catch(() => ({}))
-        toast.error(data.error || (t("admin.invalidCredentials") as string))
+        toast.error(data.error || (t("admin.invalidCredentials")))
         setShake(true)
         window.setTimeout(() => setShake(false), 420)
       }
     } catch {
-      toast.error(t("admin.networkError") as string)
+      toast.error(t("admin.networkError"))
     } finally {
       setLoading(false)
     }
@@ -79,7 +79,7 @@ export default function AdminLoginPage() {
   async function handleResetSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (newPassword !== confirmPassword) {
-      toast.error(t("admin.passwordsNotMatch") as string)
+      toast.error(t("admin.passwordsNotMatch"))
       return
     }
     setLoading(true)
@@ -92,7 +92,7 @@ export default function AdminLoginPage() {
       })
 
       if (res.ok) {
-        toast.success(t("admin.resetPasswordSuccess") as string)
+        toast.success(t("admin.resetPasswordSuccess"))
         // Back to sign-in with the username prefilled.
         setMode("login")
         setPassword("")
@@ -101,10 +101,10 @@ export default function AdminLoginPage() {
         setConfirmPassword("")
       } else {
         const data = await res.json().catch(() => ({}))
-        toast.error(data.error || (t("admin.resetPasswordFailed") as string))
+        toast.error(data.error || (t("admin.resetPasswordFailed")))
       }
     } catch {
-      toast.error(t("admin.networkError") as string)
+      toast.error(t("admin.networkError"))
     } finally {
       setLoading(false)
     }
@@ -181,8 +181,8 @@ export default function AdminLoginPage() {
           </Link>
           <h1 className="mt-4 whitespace-nowrap text-sm font-normal text-muted-foreground">
             {mode === "login"
-              ? (t("admin.loginDesc") as string)
-              : (t("admin.resetPassword") as string)}
+              ? (t("admin.loginDesc"))
+              : (t("admin.resetPassword"))}
           </h1>
         </div>
 
@@ -203,7 +203,7 @@ export default function AdminLoginPage() {
               <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                 <div className="flex flex-col gap-5">
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="username">{t("admin.username") as string}</Label>
+                    <Label htmlFor="username">{t("admin.username")}</Label>
                     <Input
                       ref={usernameRef}
                       id="username"
@@ -217,7 +217,7 @@ export default function AdminLoginPage() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="password">{t("admin.password") as string}</Label>
+                    <Label htmlFor="password">{t("admin.password")}</Label>
                     <div className="relative">
                       <Input
                         id="password"
@@ -233,8 +233,8 @@ export default function AdminLoginPage() {
                         onClick={() => setShowPassword((v) => !v)}
                         aria-label={
                           showPassword
-                            ? (t("admin.hidePassword") as string)
-                            : (t("admin.showPassword") as string)
+                            ? (t("admin.hidePassword"))
+                            : (t("admin.showPassword"))
                         }
                         className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
                       >
@@ -253,10 +253,10 @@ export default function AdminLoginPage() {
                     {loading ? (
                       <span className="inline-flex items-center gap-2">
                         <Spinner size="sm" className="text-primary-foreground" />
-                        {t("admin.signingIn") as string}
+                        {t("admin.signingIn")}
                       </span>
                     ) : (
-                      (t("admin.signIn") as string)
+                      (t("admin.signIn"))
                     )}
                   </Button>
                   <button
@@ -269,7 +269,7 @@ export default function AdminLoginPage() {
                     }}
                     className="h-8 self-center text-xs text-muted-foreground transition-colors hover:text-foreground"
                   >
-                    {t("admin.forgotPassword") as string}
+                    {t("admin.forgotPassword")}
                   </button>
                 </div>
               </form>
@@ -277,7 +277,7 @@ export default function AdminLoginPage() {
               <form onSubmit={handleResetSubmit} className="flex flex-col gap-6">
                 <div className="flex flex-col gap-5">
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="reset-username">{t("admin.username") as string}</Label>
+                    <Label htmlFor="reset-username">{t("admin.username")}</Label>
                     <Input
                       ref={usernameRef}
                       id="reset-username"
@@ -291,7 +291,7 @@ export default function AdminLoginPage() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="recovery-key">{t("admin.recoveryKey") as string}</Label>
+                    <Label htmlFor="recovery-key">{t("admin.recoveryKey")}</Label>
                     <Input
                       id="recovery-key"
                       type="text"
@@ -307,14 +307,14 @@ export default function AdminLoginPage() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="reset-new-pw">{t("admin.newPassword") as string}</Label>
+                    <Label htmlFor="reset-new-pw">{t("admin.newPassword")}</Label>
                     <Input
                       id="reset-new-pw"
                       type="password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       autoComplete="new-password"
-                      placeholder={t("admin.newPasswordPlaceholder") as string}
+                      placeholder={t("admin.newPasswordPlaceholder")}
                       required
                       minLength={8}
                       className="h-10 px-3"
@@ -322,14 +322,14 @@ export default function AdminLoginPage() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="reset-confirm-pw">{t("admin.confirmPassword") as string}</Label>
+                    <Label htmlFor="reset-confirm-pw">{t("admin.confirmPassword")}</Label>
                     <Input
                       id="reset-confirm-pw"
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       autoComplete="new-password"
-                      placeholder={t("admin.confirmPasswordPlaceholder") as string}
+                      placeholder={t("admin.confirmPasswordPlaceholder")}
                       required
                       minLength={8}
                       className="h-10 px-3"
@@ -346,10 +346,10 @@ export default function AdminLoginPage() {
                     {loading ? (
                       <span className="inline-flex items-center gap-2">
                         <Spinner size="sm" className="text-primary-foreground" />
-                        {t("admin.resetting") as string}
+                        {t("admin.resetting")}
                       </span>
                     ) : (
-                      (t("admin.resetPassword") as string)
+                      (t("admin.resetPassword"))
                     )}
                   </Button>
                   <button
@@ -364,7 +364,7 @@ export default function AdminLoginPage() {
                     }}
                     className="h-8 self-center text-xs text-muted-foreground transition-colors hover:text-foreground"
                   >
-                    {t("admin.backToLogin") as string}
+                    {t("admin.backToLogin")}
                   </button>
                 </div>
               </form>
@@ -378,7 +378,7 @@ export default function AdminLoginPage() {
           className="mt-8 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground animate-in fade-in duration-500 fill-mode-both [animation-delay:160ms]"
         >
           <ArrowLeft size={14} />
-          {t("admin.backToSite") as string}
+          {t("admin.backToSite")}
         </Link>
       </div>
 

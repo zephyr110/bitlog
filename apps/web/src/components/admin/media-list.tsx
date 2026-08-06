@@ -59,7 +59,7 @@ export function MediaList({
           <Upload size={15} />
         </span>
         <span className="text-sm font-medium">
-          {t("admin.uploadImage") as string}
+          {t("admin.uploadImage")}
         </span>
       </button>
       {files.map((file) => (
@@ -69,14 +69,14 @@ export function MediaList({
         >
           <button
             type="button"
-            aria-label={t("admin.viewFullImage") as string}
+            aria-label={t("admin.viewFullImage")}
             onClick={() => onPreview(file)}
             className="shrink-0 cursor-zoom-in"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={file.url}
-              alt={file.name || (t("admin.uploadedImageAlt") as string)}
+              alt={file.name || (t("admin.uploadedImageAlt"))}
               className="size-10 rounded-md object-cover bg-muted"
               loading="lazy"
             />

@@ -294,18 +294,18 @@ export function CommentSection({ slug }: { slug: string }) {
             setSessionError(false)
             setSessionReady(false)
             armSessionTimer()
-            setError(t("post.commentErrorSessionExpired") as string)
+            setError(t("post.commentErrorSessionExpired"))
           } else {
             setSessionError(true)
-            setError(t("post.commentErrorServiceUnavailable") as string)
+            setError(t("post.commentErrorServiceUnavailable"))
           }
           break
         }
         case 429:
-          setError(t("post.commentErrorRateLimited") as string)
+          setError(t("post.commentErrorRateLimited"))
           break
         case 503:
-          setError(t("post.commentErrorClosed") as string)
+          setError(t("post.commentErrorClosed"))
           break
         case 400: {
           // Server distinguishes the failure cause via a machine-
@@ -316,10 +316,10 @@ export function CommentSection({ slug }: { slug: string }) {
           } | null
           switch (data?.code) {
             case "verification_failed":
-              setError(t("post.commentErrorVerify") as string)
+              setError(t("post.commentErrorVerify"))
               break
             case "too_soon":
-              setError(t("post.commentErrorTooFast") as string)
+              setError(t("post.commentErrorTooFast"))
               break
             case "invalid_parent":
               // The reply target vanished (e.g. an admin deleted it) —
@@ -327,18 +327,18 @@ export function CommentSection({ slug }: { slug: string }) {
               // post the text as a top-level comment.
               setReplyingTo(null)
               setContent("")
-              setError(t("post.commentErrorInvalidTarget") as string)
+              setError(t("post.commentErrorInvalidTarget"))
               break
             default:
-              setError(t("post.commentErrorInvalid") as string)
+              setError(t("post.commentErrorInvalid"))
           }
           break
         }
         default:
-          setError(t("post.commentErrorFailed") as string)
+          setError(t("post.commentErrorFailed"))
       }
     } catch {
-      setError(t("post.commentErrorFailed") as string)
+      setError(t("post.commentErrorFailed"))
     } finally {
       setSubmitting(false)
     }
@@ -352,7 +352,7 @@ export function CommentSection({ slug }: { slug: string }) {
             <MessageSquare size={18} />
           </span>
           <h2 className="text-xl font-bold">
-            {(t("post.commentsCount") as (n: number) => string)(comments.length)}
+            {t("post.commentsCount")(comments.length)}
           </h2>
         </div>
 
@@ -360,7 +360,7 @@ export function CommentSection({ slug }: { slug: string }) {
             so comments are simply not available there. */}
         {STATIC_MIRROR ? (
           <p className="rounded-xl border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
-            {t("post.commentMirrorUnavailable") as string}
+            {t("post.commentMirrorUnavailable")}
           </p>
         ) : loading ? (
           <div className="space-y-3 animate-pulse">
@@ -369,7 +369,7 @@ export function CommentSection({ slug }: { slug: string }) {
           </div>
         ) : comments.length === 0 ? (
           <p className="rounded-xl border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
-            {t("post.commentEmpty") as string}
+            {t("post.commentEmpty")}
           </p>
         ) : (
           <ul className="space-y-4">
@@ -406,22 +406,22 @@ export function CommentSection({ slug }: { slug: string }) {
             ARE configured, just not on this host). */}
         {STATIC_MIRROR ? null : !commentsEnabled ? (
           <p className="mt-6 rounded-xl border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
-            {t("post.commentClosed") as string}
+            {t("post.commentClosed")}
           </p>
         ) : !turnstileConfigured ? (
           <p className="mt-6 rounded-xl border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
-            {t("post.commentNotConfigured") as string}
+            {t("post.commentNotConfigured")}
           </p>
         ) : sessionError ? (
           <div className="mt-6 flex flex-col items-center gap-3 rounded-xl border border-dashed bg-destructive/10 p-6 text-center text-sm text-destructive">
-            <p>{t("post.commentErrorServiceUnavailable") as string}</p>
+            <p>{t("post.commentErrorServiceUnavailable")}</p>
             <Button
               type="button"
               size="sm"
               variant="outline"
               onClick={() => void retrySession()}
             >
-              {t("post.commentRetry") as string}
+              {t("post.commentRetry")}
             </Button>
           </div>
         ) : (

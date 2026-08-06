@@ -240,7 +240,7 @@ export function Mermaid({ code }: { code: string }) {
     return frame(
       <div className="p-4">
         <p className="mb-2 text-xs text-muted-foreground">
-          {t("post.mermaidError") as string}
+          {t("post.mermaidError")}
         </p>
         <pre className="code-block line-numbers overflow-x-auto p-4 text-sm leading-relaxed">
           <code>{code}</code>

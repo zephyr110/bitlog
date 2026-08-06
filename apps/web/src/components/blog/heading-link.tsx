@@ -36,8 +36,8 @@ export function HeadingLink({ as: Tag, id, children, className, ...props }: Head
   const anchor = id || slugify(children)
   const ariaLabel =
     typeof children === "string"
-      ? (t("a11y.linkTo") as (title: string) => string)(children)
-      : (t("a11y.linkToHeading") as string)
+      ? t("a11y.linkTo")(children)
+      : (t("a11y.linkToHeading"))
 
   const baseStyles = cn(
     "group relative flex items-center gap-2 font-bold tracking-tight scroll-mt-20",

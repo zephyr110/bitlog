@@ -15,7 +15,7 @@ export function FeaturedPostCard({ post }: { post: PostSummary }) {
   const { t } = useT()
   const haveCover = !!post.cover
   const gradient = gradientPairs[post.title.length % gradientPairs.length]
-  const shortDate = (t("post.shortDate") as (d: Date) => string)(
+  const shortDate = t("post.shortDate")(
     parseUtcDate(post.date)
   )
   const minReadLabel = t("post.minRead") as (n: number) => string
@@ -51,7 +51,7 @@ export function FeaturedPostCard({ post }: { post: PostSummary }) {
           )}
           {/* "Latest" badge */}
           <span className="absolute left-4 top-4 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
-            {t("site.latest") as string}
+            {t("site.latest")}
           </span>
         </div>
 
@@ -89,7 +89,7 @@ export function FeaturedPostCard({ post }: { post: PostSummary }) {
           )}
 
           <span className="mt-auto inline-flex w-fit items-center gap-1.5 text-sm font-medium text-primary">
-            {t("site.readMore") as string}
+            {t("site.readMore")}
             <ArrowRight
               size={15}
               className="transition-transform duration-200 group-hover:translate-x-0.5"

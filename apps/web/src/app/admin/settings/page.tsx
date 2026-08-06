@@ -34,9 +34,9 @@ export default function AdminSettingsPage() {
       {/* Site Info */}
       <Card>
         <CardHeader>
-          <CardTitle>{t("admin.siteInfo") as string}</CardTitle>
+          <CardTitle>{t("admin.siteInfo")}</CardTitle>
           <CardDescription>
-            {t("admin.siteInfoDesc") as string}
+            {t("admin.siteInfoDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -47,9 +47,9 @@ export default function AdminSettingsPage() {
       {/* Change Password */}
       <Card>
         <CardHeader>
-          <CardTitle>{t("admin.changePassword") as string}</CardTitle>
+          <CardTitle>{t("admin.changePassword")}</CardTitle>
           <CardDescription>
-            {t("admin.changePasswordDesc") as string}
+            {t("admin.changePasswordDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -60,28 +60,28 @@ export default function AdminSettingsPage() {
       {/* Account Info */}
       <Card>
         <CardHeader>
-          <CardTitle>{t("admin.accountInfo") as string}</CardTitle>
+          <CardTitle>{t("admin.accountInfo")}</CardTitle>
           <CardDescription>
-            {t("admin.accountInfoDesc") as string}
+            {t("admin.accountInfoDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <div className="flex justify-between py-2">
-            <span className="text-muted-foreground">{t("admin.username") as string}</span>
+            <span className="text-muted-foreground">{t("admin.username")}</span>
             <span className="font-medium">{username}</span>
           </div>
           <Separator />
           <div className="flex justify-between py-2">
-            <span className="text-muted-foreground">{t("admin.role") as string}</span>
-            <span className="font-medium">{t("admin.administrator") as string}</span>
+            <span className="text-muted-foreground">{t("admin.role")}</span>
+            <span className="font-medium">{t("admin.administrator")}</span>
           </div>
           <Separator />
           <div className="flex justify-between py-2">
-            <span className="text-muted-foreground">{t("admin.environment") as string}</span>
+            <span className="text-muted-foreground">{t("admin.environment")}</span>
             <span className="font-medium">
               {process.env.NODE_ENV === "production"
-                ? (t("admin.environmentProd") as string)
-                : (t("admin.localDev") as string)}
+                ? (t("admin.environmentProd"))
+                : (t("admin.localDev"))}
             </span>
           </div>
         </CardContent>

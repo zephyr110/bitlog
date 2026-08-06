@@ -1,50 +1,55 @@
 "use client"
 
 import { useLocale } from "@/components/layout/i18n-provider"
-import { translations, type Locale, type TranslationDict } from "@/lib/i18n"
-
-type TranslationValue = string | ((...args: unknown[]) => string)
-
-function getTranslation(locale: Locale, path: string): TranslationValue {
-  const keys = path.split(".")
-  let value: unknown = translations[locale] as TranslationDict
-  for (const key of keys) {
-    if (value && typeof value === "object" && key in value) {
-      value = (value as Record<string, unknown>)[key]
-    } else {
-      return path
-    }
-  }
-  return value as TranslationValue
-}
+import {
+  t as tLocale,
+  type Locale,
+  type TranslationPath,
+  type TranslationValueAt,
+} from "@/lib/i18n"
 
 /**
  * Returns a translation function. Usage: const { t, locale } = useT()
+ * `t("site.home")` is typed as string; `t("site.yearPosts")` as (n: number) => string.
  */
 export function useT() {
   const { locale } = useLocale()
-  return { locale, t: (path: string): TranslationValue => getTranslation(locale, path) }
+  return {
+    locale,
+    t: <P extends TranslationPath>(path: P): TranslationValueAt<P> =>
+      tLocale(locale, path),
+  }
 }
 
+type TransArgs<P extends TranslationPath> =
+  TranslationValueAt<P> extends (...args: infer A) => string ? A : never
+
 /**
- * Inline translation component for server components. Usage: <Trans k="site.title" />
- * Each instance is a client component — for repeated use, prefer useT().
+ * Inline translation component. Usage: <Trans k="site.home" />
+ * Formatter keys: <Trans k="site.yearPosts" args={[n]} />
  */
-export function Trans({
+export function Trans<P extends TranslationPath>({
   k,
   args,
   className,
 }: {
-  k: string
-  args?: unknown[]
+  k: P
+  args?: TransArgs<P>
   className?: string
 }) {
   const { locale } = useLocale()
-  const value = getTranslation(locale, k)
+  const value = tLocale(locale, k)
 
   if (typeof value === "function") {
-    return <span className={className}>{(value as (...a: unknown[]) => string)(...(args || []))}</span>
+    const fn = value as (...a: never[]) => string
+    return (
+      <span className={className}>
+        {fn(...((args ?? []) as never[]))}
+      </span>
+    )
   }
 
   return <span className={className}>{value as string}</span>
 }
+
+export type { Locale, TranslationPath, TranslationValueAt }

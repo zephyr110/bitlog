@@ -69,7 +69,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm leading-relaxed text-muted-foreground line-clamp-2">
-              {t("site.heroSubtitle") as string}
+              {t("site.heroSubtitle")}
             </p>
             <p className="text-xs text-muted-foreground/70">
               © {new Date().getFullYear()} {site.name}
@@ -80,32 +80,32 @@ export function Footer() {
             {/* Quick nav */}
             <nav className="flex flex-col gap-2.5">
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
-                {t("site.navigate") as string}
+                {t("site.navigate")}
               </p>
               <Link
                 href="/"
                 className="w-fit text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
-                {t("site.home") as string}
+                {t("site.home")}
               </Link>
               <Link
                 href="/archive"
                 className="w-fit text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
-                {t("site.archive") as string}
+                {t("site.archive")}
               </Link>
               <Link
                 href="/about"
                 className="w-fit text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
-                {t("site.about") as string}
+                {t("site.about")}
               </Link>
             </nav>
 
             {/* Icon actions */}
             <div className="flex flex-col gap-2.5">
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
-                {t("site.links") as string}
+                {t("site.links")}
               </p>
               <div className="flex items-center gap-1">
                 <FooterIconButton
@@ -129,8 +129,8 @@ export function Footer() {
                   href={loggedIn ? "/admin/dashboard" : "/admin/login"}
                   label={
                     loggedIn
-                      ? (t("admin.dashboard") as string)
-                      : (t("admin.signIn") as string)
+                      ? (t("admin.dashboard"))
+                      : (t("admin.signIn"))
                   }
                   icon={
                     loggedIn ? <LayoutDashboard size={18} /> : <UserRoundKey size={18} />

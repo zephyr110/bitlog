@@ -37,10 +37,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       if (res.ok) {
         setNewRecoveryKey(data.recoveryKey)
       } else {
-        toast.error(data.error || (t("admin.recoveryKeyGenerateFailed") as string))
+        toast.error(data.error || (t("admin.recoveryKeyGenerateFailed")))
       }
     } catch {
-      toast.error(t("admin.networkError") as string)
+      toast.error(t("admin.networkError"))
     } finally {
       setGeneratingKey(false)
     }
@@ -51,7 +51,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   // once — it will be gone) and clear it to keep the once-only guarantee.
   function handleOpenChange(open: boolean) {
     if (!open && newRecoveryKey) {
-      toast.warning(t("admin.recoveryKeyCloseWarning") as string)
+      toast.warning(t("admin.recoveryKeyCloseWarning"))
       setNewRecoveryKey(null)
     }
     onOpenChange(open)
@@ -64,9 +64,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           scroll. */}
       <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col overflow-hidden p-5">
         <DialogHeader className="shrink-0 pr-10">
-          <DialogTitle className="text-lg">{t("admin.settings") as string}</DialogTitle>
+          <DialogTitle className="text-lg">{t("admin.settings")}</DialogTitle>
           <DialogDescription>
-            {t("admin.settingsDesc") as string}
+            {t("admin.settingsDesc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -79,9 +79,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           {/* Change Password */}
           <Card size="sm">
             <CardHeader>
-              <CardTitle className="font-semibold">{t("admin.changePassword") as string}</CardTitle>
+              <CardTitle className="font-semibold">{t("admin.changePassword")}</CardTitle>
               <CardDesc>
-                {t("admin.changePasswordDesc") as string}
+                {t("admin.changePasswordDesc")}
               </CardDesc>
             </CardHeader>
             <CardContent>
@@ -101,7 +101,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               {newRecoveryKey ? (
                 <div className="space-y-2.5">
                   <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                    {t("admin.recoveryKeyOnceOnly") as string}
+                    {t("admin.recoveryKeyOnceOnly")}
                   </p>
                   <div className="rounded-lg border bg-muted/50 px-3 py-2.5">
                     <p className="select-all break-all text-center font-mono text-sm font-semibold tracking-[0.12em]">
@@ -117,21 +117,21 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                         navigator.clipboard
                           .writeText(newRecoveryKey)
                           .then(() =>
-                            toast.success(t("admin.keyCopied") as string)
+                            toast.success(t("admin.keyCopied"))
                           )
                           .catch(() =>
-                            toast.error(t("admin.copyFailed") as string)
+                            toast.error(t("admin.copyFailed"))
                           )
                       }}
                     >
-                      {t("admin.copyRecoveryKey") as string}
+                      {t("admin.copyRecoveryKey")}
                     </Button>
                     <Button
                       type="button"
                       size="sm"
                       onClick={() => setNewRecoveryKey(null)}
                     >
-                      {t("admin.recoveryKeySaved") as string}
+                      {t("admin.recoveryKeySaved")}
                     </Button>
                   </div>
                 </div>
@@ -139,10 +139,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
                   <div className="min-w-0">
                     <p className="text-sm font-medium">
-                      {t("admin.recoveryKey") as string}
+                      {t("admin.recoveryKey")}
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      {t("admin.recoveryKeyHint") as string}
+                      {t("admin.recoveryKeyHint")}
                     </p>
                   </div>
                   <Button
@@ -153,8 +153,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     onClick={handleGenerateRecoveryKey}
                   >
                     {generatingKey
-                      ? (t("admin.generatingKey") as string)
-                      : (t("admin.generateRecoveryKey") as string)}
+                      ? (t("admin.generatingKey"))
+                      : (t("admin.generateRecoveryKey"))}
                   </Button>
                 </div>
               )}
@@ -164,8 +164,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           {/* Site Info */}
           <Card size="sm">
             <CardHeader>
-              <CardTitle className="font-semibold">{t("admin.siteInfo") as string}</CardTitle>
-              <CardDesc>{t("admin.siteInfoDesc") as string}</CardDesc>
+              <CardTitle className="font-semibold">{t("admin.siteInfo")}</CardTitle>
+              <CardDesc>{t("admin.siteInfoDesc")}</CardDesc>
             </CardHeader>
             <CardContent>
               {open ? (

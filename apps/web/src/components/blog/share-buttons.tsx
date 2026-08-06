@@ -27,7 +27,7 @@ export function ShareButton({
           <IconButton
             size="sm"
             bordered
-            aria-label={t("post.shareOnX") as string}
+            aria-label={t("post.shareOnX")}
             onClick={() => {
               const fullUrl = window.location.origin + url
               const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(fullUrl)}`
@@ -38,7 +38,7 @@ export function ShareButton({
           </IconButton>
         }
       />
-      <TooltipContent>{t("post.shareOnX") as string}</TooltipContent>
+      <TooltipContent>{t("post.shareOnX")}</TooltipContent>
     </Tooltip>
   )
 }
@@ -50,9 +50,9 @@ export function CopyLinkButton({ url }: { url: string }) {
   async function handleCopy() {
     const ok = await copy(window.location.origin + url)
     if (ok) {
-      toast.success(t("post.linkCopied") as string)
+      toast.success(t("post.linkCopied"))
     } else {
-      toast.error(t("post.copyFailed") as string)
+      toast.error(t("post.copyFailed"))
     }
   }
 
@@ -63,14 +63,14 @@ export function CopyLinkButton({ url }: { url: string }) {
           <IconButton
             size="sm"
             bordered
-            aria-label={t("post.copyLink") as string}
+            aria-label={t("post.copyLink")}
             onClick={handleCopy}
           >
             <Link size={14} />
           </IconButton>
         }
       />
-      <TooltipContent>{t("post.copyLink") as string}</TooltipContent>
+      <TooltipContent>{t("post.copyLink")}</TooltipContent>
     </Tooltip>
   )
 }

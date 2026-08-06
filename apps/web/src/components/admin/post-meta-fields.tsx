@@ -53,34 +53,34 @@ export function PostMetaFields({
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="title">{t("admin.title") as string}</Label>
+        <Label htmlFor="title">{t("admin.title")}</Label>
         <Input
           id="title"
           value={title}
           onChange={onTitleChange}
-          placeholder={t("admin.title") as string}
+          placeholder={t("admin.title")}
           className="text-lg"
         />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="slug">{t("admin.slug") as string}</Label>
+          <Label htmlFor="slug">{t("admin.slug")}</Label>
           <Input
             id="slug"
             value={slug}
             onChange={(e) => onSlugChange(e.target.value)}
-            placeholder={t("admin.slugPlaceholder") as string}
+            placeholder={t("admin.slugPlaceholder")}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="cover">{t("admin.coverImage") as string}</Label>
+          <Label htmlFor="cover">{t("admin.coverImage")}</Label>
           <div className="flex gap-2">
             <Input
               id="cover"
               value={cover}
               onChange={(e) => onCoverChange(e.target.value)}
-              placeholder={t("admin.coverPlaceholder") as string}
+              placeholder={t("admin.coverPlaceholder")}
             />
             <Tooltip>
               <TooltipTrigger
@@ -90,7 +90,7 @@ export function PostMetaFields({
                     variant="outline"
                     size="icon"
                     className="shrink-0"
-                    aria-label={t("admin.pickCoverImage") as string}
+                    aria-label={t("admin.pickCoverImage")}
                     onClick={onPickCover}
                   >
                     <ImagePlus size={16} />
@@ -98,7 +98,7 @@ export function PostMetaFields({
                 }
               />
               <TooltipContent>
-                {t("admin.pickCoverImage") as string}
+                {t("admin.pickCoverImage")}
               </TooltipContent>
             </Tooltip>
           </div>
@@ -120,28 +120,28 @@ export function PostMetaFields({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="description">{t("admin.description") as string}</Label>
+        <Label htmlFor="description">{t("admin.description")}</Label>
         <Textarea
           id="description"
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder={t("admin.description") as string}
+          placeholder={t("admin.description")}
           rows={2}
         />
       </div>
 
       <div className="space-y-2">
-        <Label>{t("admin.tags") as string}</Label>
+        <Label>{t("admin.tags")}</Label>
         <div className="flex gap-2">
           <Input
             value={tagInput}
             onChange={(e) => onTagInputChange(e.target.value)}
             onKeyDown={onTagKeyDown}
-            placeholder={t("admin.addTag") as string}
+            placeholder={t("admin.addTag")}
             className="flex-1"
           />
           <Button variant="outline" onClick={onAddTag} type="button">
-            {t("admin.addTagButton") as string}
+            {t("admin.addTagButton")}
           </Button>
         </div>
         {tags.length > 0 && (

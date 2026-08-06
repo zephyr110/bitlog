@@ -21,10 +21,11 @@ import {
 } from "@/components/ui/tooltip"
 import { IconButton } from "@/components/ui/icon-button"
 import { useT } from "@/components/layout/trans"
+import type { TranslationPath } from "@/lib/i18n"
 
 export interface ToolbarItem {
   key: string
-  i18nKey: string
+  i18nKey: TranslationPath
   icon: LucideIcon
   /** Prefix inserted before selection */
   prefix: string
@@ -89,7 +90,7 @@ export function EditorToolbar({
           render={
             <IconButton
               size="sm"
-              aria-label={t("admin.insertImage") as string}
+              aria-label={t("admin.insertImage")}
               onClick={onInsertImage}
             >
               <ImageIcon size={15} />
@@ -97,7 +98,7 @@ export function EditorToolbar({
           }
         />
         <TooltipContent>
-          {t("admin.insertImage") as string}
+          {t("admin.insertImage")}
         </TooltipContent>
       </Tooltip>
       <span className="w-px h-5 bg-border mx-1" />
@@ -109,8 +110,8 @@ export function EditorToolbar({
               size="sm"
               aria-label={
                 previewCollapsed
-                  ? (t("admin.expandPreview") as string)
-                  : (t("admin.collapsePreview") as string)
+                  ? (t("admin.expandPreview"))
+                  : (t("admin.collapsePreview"))
               }
               onClick={onTogglePreview}
               className={
@@ -129,8 +130,8 @@ export function EditorToolbar({
         />
         <TooltipContent>
           {previewCollapsed
-            ? (t("admin.expandPreview") as string)
-            : (t("admin.collapsePreview") as string)}
+            ? (t("admin.expandPreview"))
+            : (t("admin.collapsePreview"))}
         </TooltipContent>
       </Tooltip>
     </div>

@@ -70,12 +70,12 @@ export function CopyButton({ text, getText }: CopyButtonProps) {
       {shownCopied ? (
         <>
           <Check size={13} />
-          {t("post.codeCopied") as string}
+          {t("post.codeCopied")}
         </>
       ) : (
         <>
           <Copy size={13} />
-          {t("post.copyCode") as string}
+          {t("post.copyCode")}
         </>
       )}
     </Button>

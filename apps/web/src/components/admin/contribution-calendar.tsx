@@ -184,12 +184,12 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
             <SelectValue>
               {selectedYear
                 ? String(selectedYear)
-                : (t("admin.calendarRecent") as string)}
+                : (t("admin.calendarRecent"))}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="recent">
-              {t("admin.calendarRecent") as string}
+              {t("admin.calendarRecent")}
             </SelectItem>
             {availableYears.map((y) => (
               <SelectItem key={y} value={String(y)}>
@@ -274,7 +274,7 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
             style={{ left: tooltip.left, top: tooltip.top }}
           >
             <p className="font-medium">
-              {(t("admin.postsOn") as (date: string, n: number) => string)(
+              {t("admin.postsOn")(
                 monthFmt.format(new Date(`${tooltip.date}T00:00:00`)),
                 tooltip.count
               )}
@@ -285,11 +285,11 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
 
       {/* Legend */}
       <div className="mt-2.5 flex items-center justify-end gap-1.5 text-[10px] text-muted-foreground/70">
-        <span>{t("admin.contributionLess") as string}</span>
+        <span>{t("admin.contributionLess")}</span>
         {LEVEL_CLASSES.map((cls, i) => (
           <span key={i} className={cn("size-2.5 rounded-[3px]", cls)} />
         ))}
-        <span>{t("admin.contributionMore") as string}</span>
+        <span>{t("admin.contributionMore")}</span>
       </div>
     </div>
   )

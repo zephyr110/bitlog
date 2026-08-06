@@ -81,7 +81,7 @@ export function MediaLightbox({
       a.remove()
       URL.revokeObjectURL(objectUrl)
     } catch {
-      toast.error(t("admin.downloadFailed") as string)
+      toast.error(t("admin.downloadFailed"))
       // CORS/network fallback — open the image in a new tab instead.
       window.open(file.url, "_blank", "noopener")
     } finally {
@@ -147,7 +147,7 @@ export function MediaLightbox({
           className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 text-xs font-medium text-white transition-colors hover:bg-white/25 cursor-pointer"
         >
           <Copy size={13} />
-          {t("admin.copyURL") as string}
+          {t("admin.copyURL")}
         </button>
         <button
           type="button"
@@ -155,7 +155,7 @@ export function MediaLightbox({
           className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-white/10 px-2.5 text-xs font-medium text-white transition-colors hover:bg-white/25 cursor-pointer"
         >
           <FileCode size={13} />
-          {t("admin.copyMD") as string}
+          {t("admin.copyMD")}
         </button>
         <button
           type="button"
@@ -165,8 +165,8 @@ export function MediaLightbox({
         >
           {downloading ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
           {downloading
-            ? (t("admin.downloading") as string)
-            : (t("admin.download") as string)}
+            ? (t("admin.downloading"))
+            : (t("admin.download"))}
         </button>
         <button
           type="button"
@@ -174,7 +174,7 @@ export function MediaLightbox({
           className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-red-500/20 px-2.5 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/35 cursor-pointer"
         >
           <Trash2 size={13} />
-          {t("admin.deleteImage") as string}
+          {t("admin.deleteImage")}
         </button>
       </div>
     </div>,

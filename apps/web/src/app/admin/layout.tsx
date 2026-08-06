@@ -8,18 +8,23 @@ import { getToken, apiFetch, clearToken } from "@/lib/api-client"
 import { PageLoader } from "@/components/ui/page-loader"
 import { useT } from "@/components/layout/trans"
 import { type AuthUser } from "@zlog/auth"
+import type { TranslationPath } from "@/lib/i18n"
 
 export const SidebarCollapsedContext = createContext(false)
 
 /** Page title/subtitle shown in the top header, keyed by exact pathname.
  *  descKey is optional — editor pages use title only (+ optional
  *  #admin-header-title-extra for e.g. "View live post"). */
-const pageMeta: Record<string, { titleKey: string; descKey?: string }> = {
+const pageMeta: Record<
+  string,
+  { titleKey: TranslationPath; descKey?: TranslationPath }
+> = {
   "/admin/dashboard": { titleKey: "admin.dashboard", descKey: "admin.dashboardWelcome" },
   "/admin/posts": { titleKey: "admin.posts", descKey: "admin.postsDesc" },
   "/admin/posts/new": { titleKey: "admin.newPost" },
   "/admin/posts/edit": { titleKey: "admin.editPost" },
   "/admin/media": { titleKey: "admin.media", descKey: "admin.mediaDesc" },
+  "/admin/comments": { titleKey: "admin.commentsPage" },
   "/admin/settings": { titleKey: "admin.settings", descKey: "admin.settingsDesc" },
 }
 

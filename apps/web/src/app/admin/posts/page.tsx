@@ -66,7 +66,7 @@ function AdminPostsContent() {
     if (result.ok) {
       setPosts(result.posts)
     } else {
-      toast.error(t("admin.loadFailed") as string)
+      toast.error(t("admin.loadFailed"))
     }
     setLoading(false)
   }
@@ -141,12 +141,12 @@ function AdminPostsContent() {
       )
       if (res.ok) {
         setPosts(posts.filter((p) => p.slug !== target.slug))
-        toast.success(t("admin.deleteSuccess") as string)
+        toast.success(t("admin.deleteSuccess"))
       } else {
-        toast.error(t("admin.deleteFailed") as string)
+        toast.error(t("admin.deleteFailed"))
       }
     } catch {
-      toast.error(t("admin.networkError") as string)
+      toast.error(t("admin.networkError"))
     } finally {
       setDeleting(false)
       setDeleteTarget((cur) => (cur === target ? null : cur))
@@ -171,13 +171,13 @@ function AdminPostsContent() {
           )
         )
         toast.success(
-          currentDraft ? (t("admin.publishSuccess") as string) : (t("admin.unpublishSuccess") as string)
+          currentDraft ? (t("admin.publishSuccess")) : (t("admin.unpublishSuccess"))
         )
       } else {
-        toast.error(t("admin.updateFailed") as string)
+        toast.error(t("admin.updateFailed"))
       }
     } catch {
-      toast.error(t("admin.networkError") as string)
+      toast.error(t("admin.networkError"))
     }
   }
 
@@ -205,21 +205,21 @@ function AdminPostsContent() {
           href="/admin/posts/new"
           className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium px-2.5 hover:bg-primary/80 transition-all"
         >
-          {t("admin.newPost") as string}
+          {t("admin.newPost")}
         </Link>
       </HeaderActions>
 
       {posts.length === 0 ? (
         <EmptyState
           icon={<FileText size={32} className="text-muted-foreground" />}
-          title={t("admin.noPostsYet") as string}
-          description={t("admin.noPostsYetDesc") as string}
+          title={t("admin.noPostsYet")}
+          description={t("admin.noPostsYetDesc")}
           action={
             <Link
               href="/admin/posts/new"
               className="inline-flex h-9 items-center rounded-lg bg-primary text-primary-foreground text-sm font-medium px-3 hover:bg-primary/80"
             >
-              {t("admin.createFirstPost") as string}
+              {t("admin.createFirstPost")}
             </Link>
           }
         />
@@ -250,10 +250,10 @@ function AdminPostsContent() {
                   }`}
                 >
                   {s === "all"
-                    ? (t("admin.all") as string)
+                    ? (t("admin.all"))
                     : s === "published"
-                    ? (t("admin.published") as string)
-                    : (t("admin.drafts") as string)}
+                    ? (t("admin.published"))
+                    : (t("admin.drafts"))}
                 </button>
               ))}
             </div>
@@ -270,12 +270,12 @@ function AdminPostsContent() {
                     the translated category name. */}
                 <SelectValue>
                   {topicFilter === "all"
-                    ? (t("admin.allTopics") as string)
+                    ? (t("admin.allTopics"))
                     : getCategoryLabel(topicFilter, t)}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t("admin.allTopics") as string}</SelectItem>
+                <SelectItem value="all">{t("admin.allTopics")}</SelectItem>
                 {categoryKeys.map((key) => (
                   <SelectItem key={key} value={key}>
                     {getCategoryLabel(key, t)}
@@ -292,13 +292,13 @@ function AdminPostsContent() {
               <Input
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setPage(1) }}
-                placeholder={t("admin.searchPosts") as string}
+                placeholder={t("admin.searchPosts")}
                 className="pl-9"
               />
             </div>
             {(searchQuery || topicFilter !== "all") && (
               <p className="text-sm text-muted-foreground">
-                {filteredPosts.length} / {posts.length} {t("admin.posts") as string}
+                {filteredPosts.length} / {posts.length} {t("admin.posts")}
               </p>
             )}
           </div>
@@ -311,18 +311,18 @@ function AdminPostsContent() {
             <Table containerClassName="max-h-full overflow-y-auto">
               <TableHeader className="sticky top-0 z-10 bg-card">
                 <TableRow>
-                  <TableHead>{t("admin.title") as string}</TableHead>
-                  <TableHead>{t("admin.status") as string}</TableHead>
-                  <TableHead>{t("admin.date") as string}</TableHead>
-                  <TableHead>{t("admin.tags") as string}</TableHead>
-                  <TableHead className="text-right">{t("admin.actions") as string}</TableHead>
+                  <TableHead>{t("admin.title")}</TableHead>
+                  <TableHead>{t("admin.status")}</TableHead>
+                  <TableHead>{t("admin.date")}</TableHead>
+                  <TableHead>{t("admin.tags")}</TableHead>
+                  <TableHead className="text-right">{t("admin.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedPosts.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="py-16 text-center text-muted-foreground">
-                      {t("admin.noMatchSearch") as string}
+                      {t("admin.noMatchSearch")}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -349,8 +349,8 @@ function AdminPostsContent() {
                           }
                         >
                           {post.draft
-                            ? (t("admin.draft") as string)
-                            : (t("admin.publishedStatus") as string)}
+                            ? (t("admin.draft"))
+                            : (t("admin.publishedStatus"))}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground tabular-nums">
@@ -381,7 +381,7 @@ function AdminPostsContent() {
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger
-                            aria-label={t("admin.actions") as string}
+                            aria-label={t("admin.actions")}
                             className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                           >
                             <Ellipsis size={16} />
@@ -397,7 +397,7 @@ function AdminPostsContent() {
                               }
                             >
                               <SquarePen />
-                              {t("admin.edit") as string}
+                              {t("admin.edit")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -405,7 +405,7 @@ function AdminPostsContent() {
                               }
                             >
                               {post.draft ? <Globe /> : <FilePen />}
-                              {post.draft ? (t("admin.publish") as string) : (t("admin.unpublish") as string)}
+                              {post.draft ? (t("admin.publish")) : (t("admin.unpublish"))}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -415,7 +415,7 @@ function AdminPostsContent() {
                               }
                             >
                               <Eye />
-                              {t("admin.view") as string}
+                              {t("admin.view")}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
@@ -423,7 +423,7 @@ function AdminPostsContent() {
                               onClick={() => setDeleteTarget(post)}
                             >
                               <Trash2 />
-                              {t("admin.delete") as string}
+                              {t("admin.delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -440,7 +440,7 @@ function AdminPostsContent() {
             page={page}
             totalPages={totalPages}
             total={filteredPosts.length}
-            itemLabel={t("admin.posts") as string}
+            itemLabel={t("admin.posts")}
             pageSize={pageSize}
             onPageChange={setPage}
             onPageSizeChange={(size) => {
@@ -458,8 +458,8 @@ function AdminPostsContent() {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onConfirm={handleDelete}
         busy={deleting}
-        title={t("admin.delete") as string}
-        description={t("admin.deleteConfirm") as string}
+        title={t("admin.delete")}
+        description={t("admin.deleteConfirm")}
       />
     </>
   )

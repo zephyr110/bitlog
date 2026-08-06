@@ -102,7 +102,7 @@ export default function AdminMediaPage() {
 
       const files = Array.from(fileList)
       if (files.length > MAX_BATCH_SIZE) {
-        toast.error(t("admin.uploadFailed") as string)
+        toast.error(t("admin.uploadFailed"))
         files.length = MAX_BATCH_SIZE
       }
 
@@ -118,7 +118,7 @@ export default function AdminMediaPage() {
         }
       }
       if (valid.length === 0) {
-        toast.error(t("admin.uploadFailed") as string)
+        toast.error(t("admin.uploadFailed"))
         return
       }
 
@@ -163,16 +163,13 @@ export default function AdminMediaPage() {
       const { done, failed } = statsRef
       if (failed === 0) {
         toast.success(
-          (t("admin.uploadBatchSuccess") as (n: number) => string)(done)
+          t("admin.uploadBatchSuccess")(done)
         )
       } else if (done === 0) {
-        toast.error(t("admin.uploadFailed") as string)
+        toast.error(t("admin.uploadFailed"))
       } else {
         toast.error(
-          (t("admin.uploadBatchPartial") as (
-            ok: number,
-            fail: number
-          ) => string)(done, failed)
+          t("admin.uploadBatchPartial")(done, failed)
         )
       }
 
@@ -216,7 +213,7 @@ export default function AdminMediaPage() {
 
   function copyToClipboard(url: string) {
     navigator.clipboard.writeText(fullUrl(url)).then(() => {
-      toast.success(t("admin.urlCopied") as string)
+      toast.success(t("admin.urlCopied"))
     })
   }
 
@@ -224,7 +221,7 @@ export default function AdminMediaPage() {
     navigator.clipboard
       .writeText(`![alt text](${fullUrl(url)})`)
       .then(() => {
-        toast.success(t("admin.markdownCopied") as string)
+        toast.success(t("admin.markdownCopied"))
       })
   }
 
@@ -250,7 +247,7 @@ export default function AdminMediaPage() {
         } else {
           await fetchMedia(page)
         }
-        toast.success(t("admin.imageDeleted") as string)
+        toast.success(t("admin.imageDeleted"))
         if (previewFile?.name === target.name) {
           // Close the dialog first — its deferred scroll-lock restore runs
           // while the lightbox still holds body overflow:hidden — then drop
@@ -261,10 +258,10 @@ export default function AdminMediaPage() {
           requestAnimationFrame(() => setPreviewFile(null))
         }
       } else {
-        toast.error(t("admin.deleteImageFailed") as string)
+        toast.error(t("admin.deleteImageFailed"))
       }
     } catch {
-      toast.error(t("admin.networkError") as string)
+      toast.error(t("admin.networkError"))
     } finally {
       setDeleting(false)
       setDeleteTarget((cur) => (cur === target ? null : cur))
@@ -296,7 +293,7 @@ export default function AdminMediaPage() {
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder={t("admin.searchMedia") as string}
+            placeholder={t("admin.searchMedia")}
             className="h-8 w-44 pl-8 text-xs"
           />
         </div>
@@ -308,14 +305,14 @@ export default function AdminMediaPage() {
             from={dateFrom}
             to={dateTo}
             onChange={updateDateRange}
-            ariaLabel={t("admin.dateRange") as string}
-            placeholder={t("admin.dateRange") as string}
+            ariaLabel={t("admin.dateRange")}
+            placeholder={t("admin.dateRange")}
             locale={locale === "zh" ? "zh" : "en"}
           />
           {(dateFrom || dateTo) && (
             <IconButton
               size="sm"
-              aria-label={t("admin.clearFilter") as string}
+              aria-label={t("admin.clearFilter")}
               onClick={clearDateFilter}
             >
               <X size={14} />
@@ -327,12 +324,12 @@ export default function AdminMediaPage() {
             (32px − border − p-0.5 ≈ 26px). */}
         <div
           role="group"
-          aria-label={t("admin.viewMode") as string}
+          aria-label={t("admin.viewMode")}
           className="flex h-8 items-center rounded-lg border border-border bg-background p-0.5"
         >
           <IconButton
             size="sm"
-            aria-label={t("admin.gridView") as string}
+            aria-label={t("admin.gridView")}
             aria-pressed={viewMode === "grid"}
             className={cn("h-full w-7", viewMode === "grid" && "bg-muted text-foreground")}
             onClick={() => switchView("grid")}
@@ -341,7 +338,7 @@ export default function AdminMediaPage() {
           </IconButton>
           <IconButton
             size="sm"
-            aria-label={t("admin.listView") as string}
+            aria-label={t("admin.listView")}
             aria-pressed={viewMode === "list"}
             className={cn("h-full w-7", viewMode === "list" && "bg-muted text-foreground")}
             onClick={() => switchView("list")}
@@ -354,11 +351,8 @@ export default function AdminMediaPage() {
           onClick={openFileInput}
         >
           {isUploading && uploadStats
-            ? (t("admin.uploadProgress") as (
-                done: number,
-                total: number
-              ) => string)(uploadStats.done, uploadStats.total)
-            : (t("admin.uploadImage") as string)}
+            ? t("admin.uploadProgress")(uploadStats.done, uploadStats.total)
+            : (t("admin.uploadImage"))}
         </Button>
       </HeaderActions>
 
@@ -371,10 +365,10 @@ export default function AdminMediaPage() {
           className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
         >
           <TriangleAlert size={15} className="mt-0.5 shrink-0" />
-          <span className="flex-1">{t("admin.mediaApiError") as string}</span>
+          <span className="flex-1">{t("admin.mediaApiError")}</span>
           <button
             type="button"
-            aria-label={t("admin.dismiss") as string}
+            aria-label={t("admin.dismiss")}
             onClick={() => setApiError(false)}
             className="rounded-md p-0.5 text-destructive/70 transition-colors hover:text-destructive"
           >
@@ -405,9 +399,9 @@ export default function AdminMediaPage() {
             size={40}
             className="mx-auto text-muted-foreground mb-4"
           />
-          <p className="font-medium">{t("admin.uploadImage") as string}</p>
+          <p className="font-medium">{t("admin.uploadImage")}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            {t("admin.dragDropToUpload") as string}
+            {t("admin.dragDropToUpload")}
           </p>
         </div>
       )}
@@ -429,13 +423,13 @@ export default function AdminMediaPage() {
             </div>
             <h3 className="text-lg font-semibold mb-2">
               {searchQuery || dateFrom || dateTo
-                ? (t("admin.noMatchMedia") as string)
-                : (t("admin.noImages") as string)}
+                ? (t("admin.noMatchMedia"))
+                : (t("admin.noImages"))}
             </h3>
             <p className="text-muted-foreground mb-4">
               {searchQuery || dateFrom || dateTo
-                ? (t("admin.noMatchMediaDesc") as string)
-                : (t("admin.noImagesDesc") as string)}
+                ? (t("admin.noMatchMediaDesc"))
+                : (t("admin.noImagesDesc"))}
             </p>
           </CardContent>
         </Card>
@@ -477,7 +471,7 @@ export default function AdminMediaPage() {
         page={page}
         totalPages={totalPages}
         total={total}
-        itemLabel={t("admin.images") as string}
+        itemLabel={t("admin.images")}
         pageSize={pageSize}
         onPageChange={setPage}
         onPageSizeChange={changePageSize}
@@ -497,10 +491,10 @@ export default function AdminMediaPage() {
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         onConfirm={handleDelete}
         busy={deleting}
-        title={t("admin.deleteImage") as string}
-        description={t("admin.deleteImageConfirm") as string}
-        confirmLabel={t("admin.deleteImage") as string}
-        busyLabel={t("admin.deletingImage") as string}
+        title={t("admin.deleteImage")}
+        description={t("admin.deleteImageConfirm")}
+        confirmLabel={t("admin.deleteImage")}
+        busyLabel={t("admin.deletingImage")}
       />
     </>
   )

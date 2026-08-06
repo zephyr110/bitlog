@@ -46,10 +46,36 @@ export const translations = {
 
 export type TranslationDict = typeof translations.zh
 
-export function t(
-  locale: Locale,
-  path: string
-): string | ((...args: unknown[]) => string) {
+/** Dot-path to a leaf string or formatter in the dictionary. */
+type Leaves<T, P extends string = ""> = T extends (
+  ...args: never[]
+) => unknown
+  ? P
+  : T extends object
+    ? {
+        [K in keyof T & string]: Leaves<
+          T[K],
+          P extends "" ? K : `${P}.${K}`
+        >
+      }[keyof T & string]
+    : P
+
+export type TranslationPath = Leaves<TranslationDict>
+
+type PathValue<T, P extends string> = P extends `${infer Head}.${infer Rest}`
+  ? Head extends keyof T
+    ? PathValue<T[Head], Rest>
+    : never
+  : P extends keyof T
+    ? T[P]
+    : never
+
+export type TranslationValueAt<P extends TranslationPath> = PathValue<
+  TranslationDict,
+  P
+>
+
+function lookup(locale: Locale, path: string): unknown {
   const keys = path.split(".")
   let value: unknown = translations[locale]
   for (const key of keys) {
@@ -59,5 +85,12 @@ export function t(
       return path
     }
   }
-  return value as string | ((...args: unknown[]) => string)
+  return value
+}
+
+export function t<P extends TranslationPath>(
+  locale: Locale,
+  path: P
+): TranslationValueAt<P> {
+  return lookup(locale, path) as TranslationValueAt<P>
 }

@@ -20,7 +20,7 @@ import { siteLogoSrc } from "@/lib/site-config"
 import { SiteLogo } from "@/components/layout/site-logo"
 import { useLocale } from "@/components/layout/i18n-provider"
 import { useT } from "@/components/layout/trans"
-import { localeLabels, locales } from "@/lib/i18n"
+import { localeLabels, locales, type TranslationPath } from "@/lib/i18n"
 import { type AuthUser } from "@zlog/auth"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -44,9 +44,14 @@ import {
   PanelLeft,
   SquarePen,
   MessageSquare,
+  type LucideIcon,
 } from "lucide-react"
 
-const sidebarLinks = [
+const sidebarLinks: {
+  href: string
+  i18nKey: TranslationPath
+  icon: LucideIcon
+}[] = [
   { href: "/admin/dashboard", i18nKey: "admin.dashboard", icon: LayoutDashboard },
   { href: "/admin/posts", i18nKey: "admin.posts", icon: FileText },
   { href: "/admin/comments", i18nKey: "admin.comments", icon: MessageSquare },
@@ -138,7 +143,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                 render={
                   <Link
                     href="/admin/posts/new"
-                    aria-label={t("admin.newPost") as string}
+                    aria-label={t("admin.newPost")}
                     className="mx-auto flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-all hover:bg-primary/85 hover:scale-105"
                   >
                     <SquarePen size={16} />
@@ -146,7 +151,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                 }
               />
               <TooltipContent side="right" sideOffset={8}>
-                {t("admin.newPost") as string}
+                {t("admin.newPost")}
               </TooltipContent>
             </Tooltip>
             <Tooltip>
@@ -155,7 +160,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                   <Link
                     href="/"
                     target="_blank"
-                    aria-label={t("admin.viewBlog") as string}
+                    aria-label={t("admin.viewBlog")}
                     className="flex w-full items-center justify-center rounded-lg py-2.5 text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
                   >
                     <ExternalLink size={16} />
@@ -163,7 +168,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                 }
               />
               <TooltipContent side="right" sideOffset={8}>
-                {t("admin.viewBlog") as string}
+                {t("admin.viewBlog")}
               </TooltipContent>
             </Tooltip>
           </>
@@ -174,7 +179,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
               className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85"
             >
               <SquarePen size={16} />
-              <span className="truncate">{t("admin.newPost") as string}</span>
+              <span className="truncate">{t("admin.newPost")}</span>
             </Link>
             <Tooltip>
               <TooltipTrigger
@@ -182,7 +187,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                   <Link
                     href="/"
                     target="_blank"
-                    aria-label={t("admin.viewBlog") as string}
+                    aria-label={t("admin.viewBlog")}
                     className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-sidebar-border text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
                   >
                     <ExternalLink size={16} />
@@ -190,7 +195,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                 }
               />
               <TooltipContent side="bottom" sideOffset={6}>
-                {t("admin.viewBlog") as string}
+                {t("admin.viewBlog")}
               </TooltipContent>
             </Tooltip>
           </div>
@@ -201,7 +206,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
       <div className={cn("flex-1 overflow-y-auto py-2", collapsed ? "px-2.5" : "px-3")}>
         {!collapsed && (
           <p className="px-3 mb-1 text-xs font-medium text-sidebar-foreground/50">
-            {t("admin.menu") as string}
+            {t("admin.menu")}
           </p>
         )}
         <nav className="space-y-1">
@@ -329,7 +334,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
             <div className="flex flex-col gap-3 px-0.5">
               <div className="flex flex-col gap-1.5">
                 <p className="px-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {t("admin.theme") as string}
+                  {t("admin.theme")}
                 </p>
                 <div className="inline-flex w-full rounded-lg bg-muted/50 p-1">
                   {([
@@ -342,10 +347,10 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                       onClick={() => setTheme(mode)}
                       aria-label={
                         mode === "light"
-                          ? (t("admin.light") as string)
+                          ? (t("admin.light"))
                           : mode === "dark"
-                            ? (t("admin.dark") as string)
-                            : (t("admin.system") as string)
+                            ? (t("admin.dark"))
+                            : (t("admin.system"))
                       }
                       className={cn(
                         "flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium transition-all duration-200",
@@ -357,10 +362,10 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                       <Icon size={14} />
                       <span className="hidden sm:inline">
                         {mode === "light"
-                          ? (t("admin.light") as string)
+                          ? (t("admin.light"))
                           : mode === "dark"
-                            ? (t("admin.dark") as string)
-                            : (t("admin.system") as string)}
+                            ? (t("admin.dark"))
+                            : (t("admin.system"))}
                       </span>
                     </button>
                   ))}
@@ -369,7 +374,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
 
               <div className="flex flex-col gap-1.5">
                 <p className="px-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {t("admin.language") as string}
+                  {t("admin.language")}
                 </p>
                 <div className="inline-flex w-full rounded-lg bg-muted/50 p-1">
                   {locales.map((l) => (
@@ -398,14 +403,14 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                 className="cursor-pointer gap-2.5 rounded-md px-2.5 py-2"
               >
                 <Settings size={16} className="shrink-0 opacity-60" />
-                <span>{t("admin.settings") as string}</span>
+                <span>{t("admin.settings")}</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={handleLogout}
                 className="cursor-pointer gap-2.5 rounded-md px-2.5 py-2 text-destructive focus:text-destructive"
               >
                 <LogOut size={16} className="shrink-0 opacity-60" />
-                <span>{t("admin.logout") as string}</span>
+                <span>{t("admin.logout")}</span>
               </DropdownMenuItem>
             </div>
           </DropdownMenuContent>
@@ -430,8 +435,8 @@ export function AdminSidebarTrigger({
 }) {
   const { t } = useT()
   const label = collapsed
-    ? (t("admin.expand") as string)
-    : (t("admin.collapse") as string)
+    ? (t("admin.expand"))
+    : (t("admin.collapse"))
   // Detect platform client-side only — SSR always renders "Ctrl+B", so a
   // mount-time check avoids a hydration mismatch ("⌘B" on first paint).
   const [isMac, setIsMac] = useState(false)

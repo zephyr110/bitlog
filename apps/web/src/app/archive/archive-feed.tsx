@@ -278,8 +278,8 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
               }
             }}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={t("site.searchPosts") as string}
-            aria-label={t("site.searchPosts") as string}
+            placeholder={t("site.searchPosts")}
+            aria-label={t("site.searchPosts")}
             className={cn(
               "pl-9 pr-8",
               // While collapsed the input's own border/placeholder/cursor
@@ -337,10 +337,10 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-xs font-medium text-primary hover:bg-primary/15 transition-all"
           >
             <X size={12} />
-            {t("site.clearFilter") as string}
+            {t("site.clearFilter")}
           </button>
           <span className="text-xs text-muted-foreground">
-            {(t("site.articlesPublished") as (n: number) => string)(
+            {t("site.articlesPublished")(
               filteredPosts.length
             )}
           </span>
@@ -370,8 +370,8 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
               <path d="m6 9 6 6 6-6" />
             </svg>
             {allCollapsed
-              ? (t("site.yearExpandAll") as string)
-              : (t("site.yearCollapseAll") as string)}
+              ? (t("site.yearExpandAll"))
+              : (t("site.yearCollapseAll"))}
           </button>
         )}
       </YearNavBar>
@@ -385,17 +385,17 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
           icon={<FileText size={32} className="text-muted-foreground" />}
           title={
             activeTag !== null || searchQuery.trim() !== ""
-              ? (t("site.noMatchPosts") as string)
-              : (t("site.noPosts") as string)
+              ? (t("site.noMatchPosts"))
+              : (t("site.noPosts"))
           }
           description={
             activeTag !== null
-              ? (t("site.noMatchPostsDesc") as (tag: string) => string)(activeTag)
+              ? t("site.noMatchPostsDesc")(activeTag)
               : searchQuery.trim() !== ""
-                ? (t("site.noSearchMatchDesc") as (q: string) => string)(
+                ? t("site.noSearchMatchDesc")(
                     searchQuery.trim()
                   )
-                : (t("site.noPostsDesc") as string)
+                : (t("site.noPostsDesc"))
           }
         />
       ) : (
@@ -429,7 +429,7 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
                     {year}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {(t("site.yearPosts") as (n: number) => string)(
+                    {t("site.yearPosts")(
                       yearPosts.length
                     )}
                   </span>

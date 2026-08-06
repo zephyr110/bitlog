@@ -90,7 +90,7 @@ export function Header({ categories }: { categories: NavCategory[] }) {
 
             {/* 首页 */}
             <NavLink href="/" active={atHome}>
-              {t("site.home") as string}
+              {t("site.home")}
             </NavLink>
 
             {/* 分类 — premium dropdown */}
@@ -103,13 +103,13 @@ export function Header({ categories }: { categories: NavCategory[] }) {
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                 )}
               >
-                <span>{t("site.topics") as string}</span>
+                <span>{t("site.topics")}</span>
                 <ChevronDown aria-hidden className="size-3 opacity-50" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" sideOffset={12} className="w-64 p-2">
                 {categories.length === 0 ? (
                   <p className="px-3 py-4 text-xs text-muted-foreground text-center">
-                    {t("site.noTopics") as string}
+                    {t("site.noTopics")}
                   </p>
                 ) : (
                   categories.map((cat) => {
@@ -138,7 +138,7 @@ export function Header({ categories }: { categories: NavCategory[] }) {
                               "text-sm font-medium",
                               active ? "text-primary" : "text-foreground"
                             )}>
-                              {t(meta.i18nKey as never) as string}
+                              {t(meta.i18nKey) as string}
                             </span>
                             <span className="text-[11px] text-muted-foreground/60 tabular-nums font-mono">
                               {cat.count}
@@ -154,12 +154,12 @@ export function Header({ categories }: { categories: NavCategory[] }) {
 
             {/* 归档 */}
             <NavLink href="/archive" active={pathname === "/archive"}>
-              {t("site.archive") as string}
+              {t("site.archive")}
             </NavLink>
 
             {/* 关于 */}
             <NavLink href="/about" active={atAbout}>
-              {t("site.about") as string}
+              {t("site.about")}
             </NavLink>
 
             {/* Separator */}

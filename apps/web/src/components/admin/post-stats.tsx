@@ -99,7 +99,7 @@ export function PostStats({ posts }: PostStatsProps) {
   const [timelineRange, setTimelineRange] = useState<TimeRange>("all")
   const [topicRange, setTopicRange] = useState<TimeRange>("all")
   const chartConfig = useMemo(
-    () => buildChartConfig(t("admin.posts") as string),
+    () => buildChartConfig(t("admin.posts")),
     [t]
   )
 
@@ -107,10 +107,10 @@ export function PostStats({ posts }: PostStatsProps) {
 
   const timeRangeLabels = useMemo<Record<TimeRange, string>>(
     () => ({
-      "7d": t("admin.days7") as string,
-      "30d": t("admin.days30") as string,
-      "90d": t("admin.days90") as string,
-      all: t("admin.allTime") as string,
+      "7d": t("admin.days7"),
+      "30d": t("admin.days30"),
+      "90d": t("admin.days90"),
+      all: t("admin.allTime"),
     }),
     [t]
   )
@@ -179,10 +179,10 @@ export function PostStats({ posts }: PostStatsProps) {
         <SelectValue>{timeRangeLabels[range]}</SelectValue>
       </SelectTrigger>
       <SelectContent align="end">
-        <SelectItem value="7d">{t("admin.days7") as string}</SelectItem>
-        <SelectItem value="30d">{t("admin.days30") as string}</SelectItem>
-        <SelectItem value="90d">{t("admin.days90") as string}</SelectItem>
-        <SelectItem value="all">{t("admin.allTime") as string}</SelectItem>
+        <SelectItem value="7d">{t("admin.days7")}</SelectItem>
+        <SelectItem value="30d">{t("admin.days30")}</SelectItem>
+        <SelectItem value="90d">{t("admin.days90")}</SelectItem>
+        <SelectItem value="all">{t("admin.allTime")}</SelectItem>
       </SelectContent>
     </Select>
   )
@@ -192,7 +192,7 @@ export function PostStats({ posts }: PostStatsProps) {
       {/* Timeline Chart */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("admin.postsOverTime") as string}</CardTitle>
+          <CardTitle className="text-base">{t("admin.postsOverTime")}</CardTitle>
           <CardAction>
             {renderTimeRangeSelect(timelineRange, setTimelineRange)}
           </CardAction>
@@ -200,7 +200,7 @@ export function PostStats({ posts }: PostStatsProps) {
         <CardContent>
           {timelineData.length === 0 ? (
             <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">
-              {t("admin.noDataForRange") as string}
+              {t("admin.noDataForRange")}
             </div>
           ) : (
             <ChartContainer
@@ -263,7 +263,7 @@ export function PostStats({ posts }: PostStatsProps) {
       {/* Topics Chart */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("admin.postsByTopic") as string}</CardTitle>
+          <CardTitle className="text-base">{t("admin.postsByTopic")}</CardTitle>
           <CardAction>
             {renderTimeRangeSelect(topicRange, setTopicRange)}
           </CardAction>
@@ -271,7 +271,7 @@ export function PostStats({ posts }: PostStatsProps) {
         <CardContent>
           {topicData.length === 0 ? (
             <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">
-              {t("admin.noTopics") as string}
+              {t("admin.noTopics")}
             </div>
           ) : (
             <ChartContainer

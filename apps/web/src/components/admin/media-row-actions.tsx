@@ -31,35 +31,35 @@ export function MediaRowActions({
           render={
             <IconButton
               size="sm"
-              aria-label={t("admin.copyURL") as string}
+              aria-label={t("admin.copyURL")}
               onClick={() => onCopyUrl(file.url)}
             >
               <Copy size={14} />
             </IconButton>
           }
         />
-        <TooltipContent>{t("admin.copyURL") as string}</TooltipContent>
+        <TooltipContent>{t("admin.copyURL")}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger
           render={
             <IconButton
               size="sm"
-              aria-label={t("admin.copyMD") as string}
+              aria-label={t("admin.copyMD")}
               onClick={() => onCopyMarkdown(file.url)}
             >
               <FileCode size={14} />
             </IconButton>
           }
         />
-        <TooltipContent>{t("admin.copyMD") as string}</TooltipContent>
+        <TooltipContent>{t("admin.copyMD")}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger
           render={
             <IconButton
               size="sm"
-              aria-label={t("admin.deleteImage") as string}
+              aria-label={t("admin.deleteImage")}
               className="ml-auto hover:bg-destructive/10 hover:text-destructive"
               onClick={() => onDelete(file)}
             >
@@ -67,7 +67,7 @@ export function MediaRowActions({
             </IconButton>
           }
         />
-        <TooltipContent>{t("admin.deleteImage") as string}</TooltipContent>
+        <TooltipContent>{t("admin.deleteImage")}</TooltipContent>
       </Tooltip>
     </div>
   )

@@ -36,7 +36,7 @@ export function CommentCard({
             onClick={() => onReply(comment)}
             className="ml-auto text-xs text-muted-foreground transition-colors hover:text-primary"
           >
-            {t("post.commentReply") as string}
+            {t("post.commentReply")}
           </button>
         )}
       </div>

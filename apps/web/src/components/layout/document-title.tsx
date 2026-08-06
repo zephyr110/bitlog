@@ -6,9 +6,12 @@ import { useLocale } from "@/components/layout/i18n-provider"
 import { useSiteConfig } from "@/components/layout/site-config-provider"
 import { useT } from "@/components/layout/trans"
 import { categoryMeta, type CategoryKey } from "@/lib/categories"
+import type { TranslationPath, TranslationValueAt } from "@/lib/i18n"
+
+type TranslateFn = <P extends TranslationPath>(path: P) => TranslationValueAt<P>
 
 /** Exact pathname → i18n key for the page segment of `Brand | Page`. */
-const TITLE_KEYS: Record<string, string> = {
+const TITLE_KEYS: Record<string, TranslationPath> = {
   "/archive": "archive.title",
   "/timeline": "timeline.title",
   "/about": "about.title",
@@ -43,7 +46,7 @@ function pageSegmentFromDocumentTitle(brand: string): string | null {
 
 function pageTitleFromPath(
   pathname: string,
-  t: (path: string) => string | ((...args: unknown[]) => string),
+  t: TranslateFn,
   brand: string
 ): string | null | undefined {
   // `null` = use brand only (home). `undefined` = leave document.title alone.
@@ -67,8 +70,7 @@ function pageTitleFromPath(
     } catch {
       // keep raw segment if malformed
     }
-    const titleFn = t("site.postsTagged") as (tag: string) => string
-    return titleFn(tag)
+    return t("site.postsTagged")(tag)
   }
 
   if (pathname.startsWith("/posts/")) {
@@ -86,7 +88,7 @@ function pageTitleFromPath(
 
 function applyDocumentTitle(
   pathname: string,
-  t: (path: string) => string | ((...args: unknown[]) => string),
+  t: TranslateFn,
   brand: string
 ): boolean {
   const page = pageTitleFromPath(pathname, t, brand)

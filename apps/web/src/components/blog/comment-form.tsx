@@ -65,7 +65,7 @@ export function CommentForm({
       {replyingTo && (
         <div className="flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2 text-sm">
           <span className="text-muted-foreground">
-            {(t("post.commentReplyingTo") as (n: string) => string)(
+            {t("post.commentReplyingTo")(
               displayName(replyingTo.authorName)
             )}
           </span>
@@ -76,7 +76,7 @@ export function CommentForm({
             className="ml-auto"
             onClick={onCancelReply}
           >
-            {t("post.commentCancelReply") as string}
+            {t("post.commentCancelReply")}
           </Button>
         </div>
       )}
@@ -84,14 +84,14 @@ export function CommentForm({
         <Input
           value={authorName}
           onChange={(e) => onAuthorNameChange(e.target.value)}
-          placeholder={t("post.commentAuthorPlaceholder") as string}
+          placeholder={t("post.commentAuthorPlaceholder")}
           maxLength={30}
           className="sm:max-w-40"
         />
         <Input
           value={authorEmail}
           onChange={(e) => onAuthorEmailChange(e.target.value)}
-          placeholder={t("post.commentEmailPlaceholder") as string}
+          placeholder={t("post.commentEmailPlaceholder")}
           type="email"
           maxLength={100}
           className="sm:max-w-56"
@@ -100,7 +100,7 @@ export function CommentForm({
       <Textarea
         value={content}
         onChange={(e) => onContentChange(e.target.value)}
-        placeholder={t("post.commentContentPlaceholder") as string}
+        placeholder={t("post.commentContentPlaceholder")}
         maxLength={1000}
         rows={4}
         required
@@ -141,8 +141,8 @@ export function CommentForm({
           className="sm:ml-auto"
         >
           {submitting
-            ? (t("post.commentSubmitting") as string)
-            : (t("post.commentSubmit") as string)}
+            ? (t("post.commentSubmitting"))
+            : (t("post.commentSubmit"))}
         </Button>
       </div>
       {error && (

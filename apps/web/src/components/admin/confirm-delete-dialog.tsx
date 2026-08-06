@@ -36,8 +36,8 @@ export function ConfirmDeleteDialog({
   busyLabel,
 }: ConfirmDeleteDialogProps) {
   const { t } = useT()
-  const idle = confirmLabel ?? (t("admin.delete") as string)
-  const working = busyLabel ?? (t("admin.deleting") as string)
+  const idle = confirmLabel ?? (t("admin.delete"))
+  const working = busyLabel ?? (t("admin.deleting"))
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -52,7 +52,7 @@ export function ConfirmDeleteDialog({
             onClick={() => onOpenChange(false)}
             disabled={busy}
           >
-            {t("admin.cancel") as string}
+            {t("admin.cancel")}
           </Button>
           <Button
             variant="destructive"

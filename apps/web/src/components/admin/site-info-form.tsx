@@ -91,7 +91,7 @@ export function SiteInfoForm({
         if (!cancelled) {
           // Don't silently fall back — the save below would overwrite the
           // real DB row with possibly-stale values.
-          toast.error(t("admin.siteInfoLoadFailed") as string)
+          toast.error(t("admin.siteInfoLoadFailed"))
           setForm({
             name: site.name,
             title: site.title,
@@ -124,7 +124,7 @@ export function SiteInfoForm({
   async function handleUpload(file: File) {
     const check = validateImageFile(file)
     if (check !== "ok") {
-      toast.error(t("admin.uploadFailed") as string)
+      toast.error(t("admin.uploadFailed"))
       return
     }
     setUploading(true)
@@ -133,8 +133,8 @@ export function SiteInfoForm({
       if (!result.ok) {
         toast.error(
           result.error === "Network error"
-            ? (t("admin.networkError") as string)
-            : result.error || (t("admin.uploadFailed") as string)
+            ? (t("admin.networkError"))
+            : result.error || (t("admin.uploadFailed"))
         )
         return
       }
@@ -145,9 +145,9 @@ export function SiteInfoForm({
       // otherwise closing the dialog without pressing Save orphans the
       // file AND leaves the setting untouched.
       const persisted = await persistLogo(url)
-      if (persisted) toast.success(t("admin.uploadSuccess") as string)
+      if (persisted) toast.success(t("admin.uploadSuccess"))
     } catch {
-      toast.error(t("admin.networkError") as string)
+      toast.error(t("admin.networkError"))
     } finally {
       setUploading(false)
     }
@@ -164,7 +164,7 @@ export function SiteInfoForm({
       })
       const data = await res.json()
       if (!res.ok) {
-        toast.error(data.error || (t("admin.siteInfoSaveFailed") as string))
+        toast.error(data.error || (t("admin.siteInfoSaveFailed")))
         return false
       }
       // Refresh the context so every consumer (header, sidebar, other
@@ -181,7 +181,7 @@ export function SiteInfoForm({
       autoPersistedRef.current = true
       return true
     } catch {
-      toast.error(t("admin.networkError") as string)
+      toast.error(t("admin.networkError"))
       return false
     }
   }
@@ -193,9 +193,9 @@ export function SiteInfoForm({
         // The logo change was already persisted on upload/remove — treat
         // this Save as the confirmation it is, not as a no-op.
         autoPersistedRef.current = false
-        toast.success(t("admin.siteInfoSaved") as string)
+        toast.success(t("admin.siteInfoSaved"))
       } else {
-        toast.info(t("admin.siteInfoNoChanges") as string)
+        toast.info(t("admin.siteInfoNoChanges"))
       }
       return
     }
@@ -214,7 +214,7 @@ export function SiteInfoForm({
       })
       const data = await res.json()
       if (!res.ok) {
-        toast.error(data.error || (t("admin.siteInfoSaveFailed") as string))
+        toast.error(data.error || (t("admin.siteInfoSaveFailed")))
         return
       }
       // The server returns the merged full record — use it to refresh the
@@ -237,9 +237,9 @@ export function SiteInfoForm({
       }))
       touchedRef.current.clear()
       autoPersistedRef.current = false
-      toast.success(t("admin.siteInfoSaved") as string)
+      toast.success(t("admin.siteInfoSaved"))
     } catch {
-      toast.error(t("admin.networkError") as string)
+      toast.error(t("admin.networkError"))
     } finally {
       setSaving(false)
     }
@@ -259,7 +259,7 @@ export function SiteInfoForm({
     <form onSubmit={handleSave} className={cn("space-y-5", className)}>
       {/* Logo */}
       <div className="space-y-2">
-        <Label>{t("admin.siteLogo") as string}</Label>
+        <Label>{t("admin.siteLogo")}</Label>
         <div className="flex items-center gap-4">
           {/* Full-bleed rounded tile, same recipe as the chip — and opaque,
               so a dark-mode inverted transparent PNG rasterizes onto it,
@@ -297,8 +297,8 @@ export function SiteInfoForm({
                   <Upload className="size-3.5" />
                 )}
                 {uploading
-                  ? (t("admin.uploading") as string)
-                  : (t("admin.uploadLogo") as string)}
+                  ? (t("admin.uploading"))
+                  : (t("admin.uploadLogo"))}
               </Button>
               {form.logoUrl ? (
                 <Button
@@ -312,17 +312,17 @@ export function SiteInfoForm({
                     // upload; confirm it like the upload does.
                     void persistLogo("").then((persisted) => {
                       if (persisted)
-                        toast.success(t("admin.siteInfoSaved") as string)
+                        toast.success(t("admin.siteInfoSaved"))
                     })
                   }}
                 >
                   <X className="size-3.5" />
-                  {t("admin.removeLogo") as string}
+                  {t("admin.removeLogo")}
                 </Button>
               ) : (
                 <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                   <ImageIcon className="size-3.5" />
-                  {t("admin.defaultLogo") as string}
+                  {t("admin.defaultLogo")}
                 </span>
               )}
             </div>
@@ -334,9 +334,9 @@ export function SiteInfoForm({
                 className="size-3.5 accent-primary"
               />
               <span>
-                {t("admin.logoInvertDark") as string}
+                {t("admin.logoInvertDark")}
                 <span className="ml-1 text-xs opacity-70">
-                  ({t("admin.logoInvertDarkHint") as string})
+                  ({t("admin.logoInvertDarkHint")})
                 </span>
               </span>
             </label>
@@ -352,13 +352,13 @@ export function SiteInfoForm({
           onChange={(e) => patch("commentEnabled", e.target.checked)}
           className="size-3.5 accent-primary"
         />
-        <span>{t("admin.allowComments") as string}</span>
+        <span>{t("admin.allowComments")}</span>
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor={`${idPrefix}-name`}>
-            {t("admin.siteName") as string}
+            {t("admin.siteName")}
           </Label>
           <Input
             id={`${idPrefix}-name`}
@@ -370,7 +370,7 @@ export function SiteInfoForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor={`${idPrefix}-title`}>
-            {t("admin.siteTitle") as string}
+            {t("admin.siteTitle")}
           </Label>
           <Input
             id={`${idPrefix}-title`}
@@ -384,7 +384,7 @@ export function SiteInfoForm({
 
       <div className="space-y-2">
         <Label htmlFor={`${idPrefix}-desc`}>
-          {t("admin.siteDesc") as string}
+          {t("admin.siteDesc")}
         </Label>
         <Textarea
           id={`${idPrefix}-desc`}
@@ -397,7 +397,7 @@ export function SiteInfoForm({
 
       <div className="space-y-2">
         <Label htmlFor={`${idPrefix}-author`}>
-          {t("admin.author") as string}
+          {t("admin.author")}
         </Label>
         <Input
           id={`${idPrefix}-author`}
@@ -410,7 +410,7 @@ export function SiteInfoForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor={`${idPrefix}-github`}>
-            {t("admin.github") as string}
+            {t("admin.github")}
           </Label>
           <Input
             id={`${idPrefix}-github`}
@@ -423,7 +423,7 @@ export function SiteInfoForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor={`${idPrefix}-twitter`}>
-            {t("admin.twitter") as string}
+            {t("admin.twitter")}
           </Label>
           <Input
             id={`${idPrefix}-twitter`}
@@ -437,7 +437,7 @@ export function SiteInfoForm({
       </div>
 
       <Button type="submit" disabled={saving || uploading}>
-        {saving ? (t("admin.saving") as string) : (t("admin.saveSiteInfo") as string)}
+        {saving ? (t("admin.saving")) : (t("admin.saveSiteInfo"))}
       </Button>
     </form>
   )

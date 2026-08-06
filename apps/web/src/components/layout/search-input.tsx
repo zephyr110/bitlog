@@ -46,7 +46,7 @@ export function SearchInput() {
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder={t("site.searchPosts") as string}
+          placeholder={t("site.searchPosts")}
           className="w-36 h-8 pl-8 pr-2 text-sm rounded-lg border border-transparent bg-muted/50 text-muted-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/30 focus:bg-background focus:text-foreground focus:w-48 transition-all duration-200"
         />
       </div>

@@ -36,11 +36,11 @@ export function ChangePasswordForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (newPassword !== confirmPassword) {
-      toast.error(t("admin.passwordsNotMatch") as string)
+      toast.error(t("admin.passwordsNotMatch"))
       return
     }
     if (newPassword.length < 8) {
-      toast.error(t("admin.passwordLength") as string)
+      toast.error(t("admin.passwordLength"))
       return
     }
 
@@ -53,7 +53,7 @@ export function ChangePasswordForm({
       })
       const data = await res.json()
       if (res.ok) {
-        toast.success(t("admin.passwordChanged") as string)
+        toast.success(t("admin.passwordChanged"))
         setCurrentPassword("")
         setNewPassword("")
         setConfirmPassword("")
@@ -70,7 +70,7 @@ export function ChangePasswordForm({
         toast.error(data.error || (t(wrongPasswordKey) as string))
       }
     } catch {
-      toast.error(t("admin.networkError") as string)
+      toast.error(t("admin.networkError"))
     } finally {
       setLoading(false)
     }
@@ -80,48 +80,48 @@ export function ChangePasswordForm({
     <form onSubmit={handleSubmit} className={cn("space-y-4", className)}>
       <div className="space-y-2">
         <Label htmlFor={`${idPrefix}-current`}>
-          {t("admin.currentPassword") as string}
+          {t("admin.currentPassword")}
         </Label>
         <Input
           id={`${idPrefix}-current`}
           type="password"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          placeholder={t("admin.currentPasswordPlaceholder") as string}
+          placeholder={t("admin.currentPasswordPlaceholder")}
           required
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`${idPrefix}-new`}>
-          {t("admin.newPassword") as string}
+          {t("admin.newPassword")}
         </Label>
         <Input
           id={`${idPrefix}-new`}
           type="password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          placeholder={t("admin.newPasswordPlaceholder") as string}
+          placeholder={t("admin.newPasswordPlaceholder")}
           required
           minLength={8}
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`${idPrefix}-confirm`}>
-          {t("admin.confirmPassword") as string}
+          {t("admin.confirmPassword")}
         </Label>
         <Input
           id={`${idPrefix}-confirm`}
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder={t("admin.confirmPasswordPlaceholder") as string}
+          placeholder={t("admin.confirmPasswordPlaceholder")}
           required
         />
       </div>
       <Button type="submit" disabled={loading}>
         {loading
-          ? (t("admin.updating") as string)
-          : (t("admin.updatePassword") as string)}
+          ? (t("admin.updating"))
+          : (t("admin.updatePassword"))}
       </Button>
     </form>
   )

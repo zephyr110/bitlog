@@ -13,8 +13,9 @@ import { useSiteConfig } from "@/components/layout/site-config-provider"
 import { categoryMeta } from "@/lib/categories"
 import { defaultSiteConfig } from "@/lib/site-config"
 import type { NavCategory } from "@/lib/nav-links"
+import type { TranslationPath } from "@/lib/i18n"
 
-const navLinks = [
+const navLinks: { href: string; i18nKey: TranslationPath }[] = [
   { href: "/", i18nKey: "site.home" },
   { href: "/archive", i18nKey: "site.archive" },
   { href: "/about", i18nKey: "site.about" },
@@ -88,7 +89,7 @@ export function MobileNav({
                 aria-controls={topicsId}
                 className="flex w-full items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-all duration-150"
               >
-                {t("site.topics") as string}
+                {t("site.topics")}
                 <ChevronDown
                   aria-hidden
                   className={cn(
@@ -127,7 +128,7 @@ export function MobileNav({
                               : "text-muted-foreground hover:text-foreground hover:bg-muted"
                           )}
                         >
-                          {t(meta.i18nKey as never) as string}
+                          {t(meta.i18nKey) as string}
                         </Link>
                       )
                     })}
@@ -148,13 +149,13 @@ export function MobileNav({
           </a>
           <div className="flex items-center justify-between px-3 py-2">
             <span className="text-sm text-muted-foreground">
-              {t("admin.theme") as string}
+              {t("admin.theme")}
             </span>
             <ThemeToggle />
           </div>
           <div className="flex items-center justify-between px-3 py-2">
             <span className="text-sm text-muted-foreground">
-              {t("admin.language") as string}
+              {t("admin.language")}
             </span>
             <LanguageSwitcher />
           </div>

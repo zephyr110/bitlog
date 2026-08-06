@@ -232,7 +232,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
     const selected = content.slice(start, end)
 
     if (item.inline) {
-      const inner = selected || (t("admin.linkText") as string)
+      const inner = selected || (t("admin.linkText"))
       insertAtCursor(item.prefix + inner + (item.suffix ?? ""))
       return
     }
@@ -241,7 +241,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
   }
 
   function insertImage(url: string) {
-    insertAtCursor(`![${t("admin.uploadedImageAlt") as string}](${url})`)
+    insertAtCursor(`![${t("admin.uploadedImageAlt")}](${url})`)
   }
 
   async function savePost(publish = false, silent = false) {
@@ -286,16 +286,16 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
           draft: savedDraft,
         }
         if (publish) {
-          toast.success(t("admin.publishSuccess") as string)
+          toast.success(t("admin.publishSuccess"))
         } else if (!silent) {
           toast.success(
             savedDraft
-              ? (t("admin.draftSaved") as string)
-              : (t("admin.postUpdated") as string)
+              ? (t("admin.draftSaved"))
+              : (t("admin.postUpdated"))
           )
         } else if (autoSavedRef.current) {
           autoSavedRef.current = false
-          toast.success(t("admin.autoSaved") as string)
+          toast.success(t("admin.autoSaved"))
         }
         if (isNew) {
           router.push(
@@ -306,12 +306,12 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
       } else {
         const err = await res.json()
         if (!silent) {
-          toast.error(err.error || (t("admin.failedToSavePost") as string))
+          toast.error(err.error || (t("admin.failedToSavePost")))
         }
       }
     } catch {
       if (!silent) {
-        toast.error(t("admin.networkErrorSave") as string)
+        toast.error(t("admin.networkErrorSave"))
       }
     } finally {
       setSaving(false)
@@ -333,7 +333,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
             className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
           >
             <ExternalLink size={12} />
-            {t("admin.viewOnline") as string}
+            {t("admin.viewOnline")}
           </a>
         </HeaderTitleExtra>
       )}
@@ -344,21 +344,21 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
           onClick={() => savePost(false)}
           disabled={saving}
         >
-          {saving ? (t("admin.saving") as string) : (t("admin.saveDraft") as string)}
+          {saving ? (t("admin.saving")) : (t("admin.saveDraft"))}
         </Button>
         <Button size="sm" onClick={() => savePost(true)} disabled={saving}>
-          {saving ? (t("admin.publishing") as string) : (t("admin.publish") as string)}
+          {saving ? (t("admin.publishing")) : (t("admin.publish"))}
         </Button>
       </HeaderActions>
 
       {/* Metadata — collapsible so the editor can focus on content */}
       <Card
         collapsible
-        collapseLabel={t("admin.collapsePreview") as string}
-        expandLabel={t("admin.expandPreview") as string}
+        collapseLabel={t("admin.collapsePreview")}
+        expandLabel={t("admin.expandPreview")}
       >
         <CardHeader>
-          <CardTitle>{t("admin.postDetails") as string}</CardTitle>
+          <CardTitle>{t("admin.postDetails")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <PostMetaFields
@@ -404,7 +404,7 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
               ref={desktopContentRef}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder={t("admin.contentPlaceholder") as string}
+              placeholder={t("admin.contentPlaceholder")}
               className="font-mono min-h-[400px] lg:min-h-[calc(100vh-24rem)] resize-y"
             />
           </div>
@@ -412,15 +412,15 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
           {/* Tabs (mobile) */}
           <Tabs defaultValue="edit" className="lg:hidden">
             <TabsList className="mb-4">
-              <TabsTrigger value="edit">{t("admin.editTab") as string}</TabsTrigger>
-              <TabsTrigger value="preview">{t("admin.previewTab") as string}</TabsTrigger>
+              <TabsTrigger value="edit">{t("admin.editTab")}</TabsTrigger>
+              <TabsTrigger value="preview">{t("admin.previewTab")}</TabsTrigger>
             </TabsList>
             <TabsContent value="edit">
               <Textarea
                 ref={mobileContentRef}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder={t("admin.contentPlaceholder") as string}
+                placeholder={t("admin.contentPlaceholder")}
                 className="font-mono min-h-[400px]"
               />
             </TabsContent>
@@ -428,16 +428,16 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
           </Tabs>
 
           <p className="text-xs text-muted-foreground mt-2">
-            {t("admin.editHint") as string}
+            {t("admin.editHint")}
           </p>
         </CardContent>
       </Card>
 
       {/* Stats */}
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <span>{(t("post.chars") as (n: number) => string)(charCount)}</span>
-        <span>{(t("post.words") as (n: number) => string)(wordCount)}</span>
-        <span>{(t("post.readTime") as (n: number) => string)(readTime)}</span>
+        <span>{t("post.chars")(charCount)}</span>
+        <span>{t("post.words")(wordCount)}</span>
+        <span>{t("post.readTime")(readTime)}</span>
       </div>
 
       {/* Status */}
@@ -451,13 +451,13 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
           }
         >
           {draft
-            ? (t("admin.draft") as string)
-            : (t("admin.publishedStatus") as string)}
+            ? (t("admin.draft"))
+            : (t("admin.publishedStatus"))}
         </Badge>
         <span>
           {draft
-            ? (t("admin.draftDesc") as string)
-            : (t("admin.publishedDesc") as string)}
+            ? (t("admin.draftDesc"))
+            : (t("admin.publishedDesc"))}
         </span>
       </div>
 

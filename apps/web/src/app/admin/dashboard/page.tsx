@@ -28,7 +28,7 @@ export default function AdminDashboardPage() {
       if (result.ok) {
         setPosts(result.posts)
       } else {
-        toast.error(t("admin.loadFailed") as string)
+        toast.error(t("admin.loadFailed"))
       }
       setLoading(false)
     }
@@ -42,34 +42,34 @@ export default function AdminDashboardPage() {
 
   const stats = [
     {
-      label: t("admin.totalPosts") as string,
+      label: t("admin.totalPosts"),
       value: posts.length,
       icon: FileText,
       tile: "bg-muted text-foreground",
       href: "/admin/posts",
     },
     {
-      label: t("admin.published") as string,
+      label: t("admin.published"),
       value: published.length,
       icon: PenLine,
       tile: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
       href: "/admin/posts?status=published",
     },
     {
-      label: t("admin.drafts") as string,
+      label: t("admin.drafts"),
       value: drafts.length,
       icon: Clock,
       tile: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
       href: "/admin/posts?status=drafts",
     },
     {
-      label: t("admin.tags") as string,
+      label: t("admin.tags"),
       value: allTags.size,
       icon: Tag,
       tile: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
     },
     {
-      label: t("admin.unreadComments") as string,
+      label: t("admin.unreadComments"),
       value: unreadComments,
       icon: MessageSquare,
       tile: "bg-primary/10 text-primary",
@@ -174,7 +174,7 @@ export default function AdminDashboardPage() {
       {/* Statistics — stat cards + contribution calendar */}
       <section className="space-y-4">
         <h2 className="text-xl font-semibold">
-          {t("admin.statistics") as string}
+          {t("admin.statistics")}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {stats.map((stat) => {
@@ -228,7 +228,7 @@ export default function AdminDashboardPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
-              {t("admin.postsCalendar") as string}
+              {t("admin.postsCalendar")}
             </CardTitle>
           </CardHeader>
           <CardContent className="overflow-x-auto">
@@ -244,27 +244,27 @@ export default function AdminDashboardPage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">
-            {t("admin.recentPosts") as string}
+            {t("admin.recentPosts")}
           </h2>
           <Link
             href="/admin/posts"
             className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
           >
-            {t("admin.viewAll") as string}
+            {t("admin.viewAll")}
             <span aria-hidden="true">→</span>
           </Link>
         </div>
         {posts.length === 0 ? (
           <EmptyState
             icon={<FileText size={32} className="text-muted-foreground" />}
-            title={t("admin.noPostsYet") as string}
-            description={t("admin.noPostsYetDesc") as string}
+            title={t("admin.noPostsYet")}
+            description={t("admin.noPostsYetDesc")}
             action={
               <Link
                 href="/admin/posts/new"
                 className="inline-flex h-9 items-center rounded-lg bg-primary text-primary-foreground text-sm font-medium px-3 hover:bg-primary/80"
               >
-                {t("admin.createFirstPost") as string}
+                {t("admin.createFirstPost")}
               </Link>
             }
           />
@@ -287,10 +287,10 @@ export default function AdminDashboardPage() {
                     </Link>
                     <p className="text-sm text-muted-foreground">
                       <FormattedDate date={post.date} month="short" /> ·{" "}
-                      {(t("post.minRead") as (n: number) => string)(post.readingTime)}
+                      {t("post.minRead")(post.readingTime)}
                       {post.draft && (
                         <span className="ml-2 text-amber-600 font-medium">
-                          {t("admin.draft") as string}
+                          {t("admin.draft")}
                         </span>
                       )}
                     </p>
@@ -301,7 +301,7 @@ export default function AdminDashboardPage() {
                     )}`}
                     className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-border bg-background text-sm font-medium px-2.5 hover:bg-muted transition-all shrink-0"
                   >
-                    {t("admin.edit") as string}
+                    {t("admin.edit")}
                   </Link>
                 </CardContent>
               </Card>

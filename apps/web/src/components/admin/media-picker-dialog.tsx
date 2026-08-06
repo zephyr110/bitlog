@@ -94,11 +94,11 @@ export function MediaPickerDialog({
     async (file: File) => {
       const check = validateImageFile(file)
       if (check === "type") {
-        toast.error(t("admin.uploadFailed") as string)
+        toast.error(t("admin.uploadFailed"))
         return
       }
       if (check === "size") {
-        toast.error(t("admin.fileTooLarge") as string)
+        toast.error(t("admin.fileTooLarge"))
         return
       }
       setUploading(true)
@@ -108,15 +108,15 @@ export function MediaPickerDialog({
         const result = await uploadImageFile(file)
 
         if (result.ok) {
-          toast.success(t("admin.uploadSuccess") as string)
+          toast.success(t("admin.uploadSuccess"))
           if (openRef.current) {
             onSelect(result.url)
             onOpenChange(false)
           }
         } else if (result.error === "Network error") {
-          toast.error(t("admin.networkError") as string)
+          toast.error(t("admin.networkError"))
         } else {
-          toast.error(result.error || (t("admin.uploadFailed") as string))
+          toast.error(result.error || (t("admin.uploadFailed")))
         }
       } finally {
         setUploading(false)
@@ -176,16 +176,16 @@ export function MediaPickerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t("admin.media") as string}</DialogTitle>
+          <DialogTitle>{t("admin.media")}</DialogTitle>
           <DialogDescription>
-            {t("admin.mediaPickDesc") as string}
+            {t("admin.mediaPickDesc")}
           </DialogDescription>
         </DialogHeader>
 
         {/* Mode switch — library / local upload */}
         <div
           role="tablist"
-          aria-label={t("admin.media") as string}
+          aria-label={t("admin.media")}
           className="flex w-fit items-center rounded-lg border border-border bg-background p-0.5"
         >
           <button
@@ -200,7 +200,7 @@ export function MediaPickerDialog({
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            {t("admin.mediaLibrary") as string}
+            {t("admin.mediaLibrary")}
           </button>
           <button
             type="button"
@@ -214,7 +214,7 @@ export function MediaPickerDialog({
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            {t("admin.uploadLocal") as string}
+            {t("admin.uploadLocal")}
           </button>
         </div>
 
@@ -245,7 +245,7 @@ export function MediaPickerDialog({
                 {uploading && (
                   <div className="mt-1.5 flex items-center justify-center gap-2 text-xs text-muted-foreground">
                     <Spinner size="sm" />
-                    <span>{t("admin.uploading") as string}</span>
+                    <span>{t("admin.uploading")}</span>
                   </div>
                 )}
               </div>
@@ -269,16 +269,16 @@ export function MediaPickerDialog({
                   className="mx-auto mb-3 text-muted-foreground"
                 />
                 <p className="font-medium">
-                  {t("admin.dragDropToUpload") as string}
+                  {t("admin.dragDropToUpload")}
                 </p>
                 <p className="mt-1.5 text-xs text-muted-foreground">
-                  {t("admin.uploadHint") as string}
+                  {t("admin.uploadHint")}
                 </p>
               </div>
             )}
 
             <p className="text-xs text-muted-foreground">
-              JPG / PNG / GIF / WebP / SVG · {t("admin.fileTooLarge") as string}
+              JPG / PNG / GIF / WebP / SVG · {t("admin.fileTooLarge")}
             </p>
           </div>
         ) : loading ? (
@@ -291,7 +291,7 @@ export function MediaPickerDialog({
               aria-hidden="true"
             />
             <p className="text-muted-foreground text-sm mb-2">
-              {t("admin.noImages") as string}
+              {t("admin.noImages")}
             </p>
             {/* Hard navigation on purpose: fires the editor's beforeunload
                 unsaved-changes guard when navigating away with edits. */}
@@ -300,7 +300,7 @@ export function MediaPickerDialog({
               onClick={() => onOpenChange(false)}
               className="text-primary text-sm hover:underline"
             >
-              {t("admin.goToMedia") as string}
+              {t("admin.goToMedia")}
             </a>
           </div>
         ) : (
@@ -343,7 +343,7 @@ export function MediaPickerDialog({
 
         <div className="flex items-center justify-between pt-2">
           <p className="text-xs text-muted-foreground">
-            {t("admin.mediaPickHint") as string}
+            {t("admin.mediaPickHint")}
           </p>
           {/* Hard navigation on purpose: fires the editor's beforeunload
               unsaved-changes guard when navigating away with edits. */}
@@ -356,7 +356,7 @@ export function MediaPickerDialog({
             )}
           >
             <Upload size={14} />
-            {t("admin.uploadImage") as string}
+            {t("admin.uploadImage")}
           </a>
         </div>
       </DialogContent>

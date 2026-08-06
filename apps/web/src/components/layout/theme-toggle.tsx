@@ -23,9 +23,9 @@ export function ThemeToggle() {
   }
 
   const options = [
-    { key: "light", label: t("admin.light") as string, icon: Sun, iconClass: "text-amber-500" },
-    { key: "dark", label: t("admin.dark") as string, icon: Moon, iconClass: "text-indigo-400" },
-    { key: "system", label: t("admin.system") as string, icon: Monitor, iconClass: "text-emerald-500" },
+    { key: "light", label: t("admin.light"), icon: Sun, iconClass: "text-amber-500" },
+    { key: "dark", label: t("admin.dark"), icon: Moon, iconClass: "text-indigo-400" },
+    { key: "system", label: t("admin.system"), icon: Monitor, iconClass: "text-emerald-500" },
   ] as const
 
   const current = options.find((o) => o.key === theme) || options[2]

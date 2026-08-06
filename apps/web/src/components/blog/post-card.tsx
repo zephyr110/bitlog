@@ -24,7 +24,7 @@ export const gradientPairs = [
 export function PostCard({ post }: { post: PostSummary }) {
   const { t } = useT()
   const haveCover = !!post.cover
-  const shortDate = (t("post.shortDate") as (d: Date) => string)(
+  const shortDate = t("post.shortDate")(
     parseUtcDate(post.date)
   )
   const minReadLabel = t("post.minRead") as (n: number) => string

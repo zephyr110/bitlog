@@ -6,13 +6,18 @@ import { defaultLocale, t } from "@/lib/i18n"
 import { PageHeader } from "@/components/layout/page-header"
 import { Sparkles, Palette, FileCode, Cloud, Rocket, Database, UserRound } from "lucide-react"
 import { GithubIcon, XIcon } from "@/components/ui/brand-icons"
+import type { TranslationPath } from "@/lib/i18n"
 
 export const metadata: Metadata = {
-  title: t(defaultLocale, "about.title") as string,
-  description: t(defaultLocale, "about.description") as string,
+  title: t(defaultLocale, "about.title"),
+  description: t(defaultLocale, "about.description"),
 }
 
-const techStack = [
+const techStack: {
+  name: string
+  descKey: TranslationPath
+  icon: typeof Rocket
+}[] = [
   {
     name: "Next.js 16",
     descKey: "about.rendered",

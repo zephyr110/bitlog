@@ -32,7 +32,7 @@ export function YearNavBar({
           right via ml-auto. */}
       <div className="flex w-fit max-w-full items-center gap-2 lg:w-full">
         <nav
-          aria-label={t("site.yearNav") as string}
+          aria-label={t("site.yearNav")}
           className="flex min-w-0 max-w-full items-center gap-1 overflow-x-auto rounded-full border border-border/60 bg-background/85 p-1 shadow-sm backdrop-blur-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {years.map((year) => (
@@ -75,7 +75,7 @@ export function BackToTopButton() {
   return (
     <button
       type="button"
-      aria-label={t("site.backToTop") as string}
+      aria-label={t("site.backToTop")}
       onClick={() => {
         const reduce =
           typeof window.matchMedia === "function" &&

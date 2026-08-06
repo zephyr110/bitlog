@@ -67,7 +67,7 @@ export function MediaGrid({
           className="transition-transform duration-300 group-hover:scale-110"
         />
         <span className="text-xs font-medium">
-          {t("admin.uploadImage") as string}
+          {t("admin.uploadImage")}
         </span>
       </button>
       {files.map((file) => (
@@ -79,7 +79,7 @@ export function MediaGrid({
           <div
             role="button"
             tabIndex={0}
-            aria-label={t("admin.viewFullImage") as string}
+            aria-label={t("admin.viewFullImage")}
             onClick={() => onPreview(file)}
             onKeyDown={(e) => {
               // Ignore keydowns from nested interactive elements
@@ -95,7 +95,7 @@ export function MediaGrid({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={file.url}
-              alt={file.name || (t("admin.uploadedImageAlt") as string)}
+              alt={file.name || (t("admin.uploadedImageAlt"))}
               className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
               onError={(e) => {
@@ -106,7 +106,7 @@ export function MediaGrid({
             <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
             <button
               type="button"
-              aria-label={t("admin.deleteImage") as string}
+              aria-label={t("admin.deleteImage")}
               onClick={(e) => {
                 e.stopPropagation()
                 onDelete(file)
