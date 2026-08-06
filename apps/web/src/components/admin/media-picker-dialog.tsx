@@ -20,21 +20,18 @@ import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
 import { ImageIcon, Upload } from "lucide-react"
-
-interface MediaFile {
-  name: string
-  url: string
-}
+import type { MediaFile } from "@/components/admin/media-lightbox"
+import {
+  UPLOAD_ACCEPT,
+  uploadImageFile,
+  validateImageFile,
+} from "@/lib/upload"
 
 interface MediaPickerDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSelect: (url: string) => void
 }
-
-const ACCEPT =
-  "image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB — mirrors /api/upload
 
 /**
  * Insert-image dialog with two modes: browse the media library, or upload
@@ -95,43 +92,32 @@ export function MediaPickerDialog({
 
   const uploadLocal = useCallback(
     async (file: File) => {
-      if (!file.type.startsWith("image/")) {
+      const check = validateImageFile(file)
+      if (check === "type") {
         toast.error(t("admin.uploadFailed") as string)
         return
       }
-      if (file.size > MAX_FILE_SIZE) {
+      if (check === "size") {
         toast.error(t("admin.fileTooLarge") as string)
         return
       }
       setUploading(true)
       try {
-        const formData = new FormData()
-        formData.append("file", file)
-
         // Same pipeline as the media page: compress + dual-write to
         // Turso/GitHub — the server does the heavy lifting.
-        const res = await apiFetch("/api/upload", {
-          method: "POST",
-          body: formData,
-          // Uploads include compression + a GitHub push to a CN-direct
-          // api.github.com — can take 10-60s. The default 15s would abort
-          // mid-flight (server still finishes → "failed" upload that exists).
-          timeout: 120_000,
-        })
+        const result = await uploadImageFile(file)
 
-        if (res.ok) {
-          const data = await res.json()
+        if (result.ok) {
           toast.success(t("admin.uploadSuccess") as string)
           if (openRef.current) {
-            onSelect(data.url)
+            onSelect(result.url)
             onOpenChange(false)
           }
+        } else if (result.error === "Network error") {
+          toast.error(t("admin.networkError") as string)
         } else {
-          const err = await res.json()
-          toast.error(err.error || (t("admin.uploadFailed") as string))
+          toast.error(result.error || (t("admin.uploadFailed") as string))
         }
-      } catch {
-        toast.error(t("admin.networkError") as string)
       } finally {
         setUploading(false)
         setPendingFile((prev) => {
@@ -237,7 +223,7 @@ export function MediaPickerDialog({
             <input
               ref={fileInputRef}
               type="file"
-              accept={ACCEPT}
+              accept={UPLOAD_ACCEPT}
               onChange={handlePick}
               className="hidden"
             />

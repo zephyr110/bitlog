@@ -10,8 +10,9 @@ import { TagBadge } from "@/components/blog/tag-badge"
 import { useT } from "@/components/layout/trans"
 import { Input } from "@/components/ui/input"
 import { resolveCategory, getCategoryLabel } from "@/lib/categories"
-import { parseUtcDate } from "@/lib/date"
+import { parseUtcDate, groupPostsByUtcYear } from "@/lib/date"
 import { cn } from "@/lib/utils"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface ArchiveFeedProps {
   posts: PostSummary[]
@@ -142,20 +143,12 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
 
   // Year groups (newest first) — the sticky YearNavBar jumps between
   // them, and an IntersectionObserver keeps the bar's highlight on the
-  // section currently in view. Dates are UTC calendar dates, so the
-  // group year must use the UTC calendar year (local getFullYear() on a
-  // UTC-midnight date misgroups Dec-31/Jan-1 posts for negative-offset
-  // timezones).
-  const grouped = useMemo(() => {
-    const map = new Map<number, PostSummary[]>()
-    for (const post of filteredPosts) {
-      const year = parseUtcDate(post.date).getUTCFullYear()
-      if (!Number.isFinite(year)) continue
-      if (!map.has(year)) map.set(year, [])
-      map.get(year)!.push(post)
-    }
-    return Array.from(map.entries())
-  }, [filteredPosts])
+  // section currently in view. First-seen order is preserved (posts are
+  // newest-first), so years appear newest-first without an explicit sort.
+  const grouped = useMemo(
+    () => groupPostsByUtcYear(filteredPosts),
+    [filteredPosts]
+  )
 
   const years = grouped.map(([year]) => year)
   const [activeYear, setActiveYear] = useState<number | null>(null)
@@ -385,25 +378,26 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
 
       {/* Dense year-grouped index */}
       {filteredPosts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center animate-in fade-in duration-500">
-          <div className="flex size-20 items-center justify-center rounded-full bg-muted mb-6">
-            <FileText size={32} className="text-muted-foreground" />
-          </div>
-          <h2 className="text-2xl font-semibold mb-2">
-            {activeTag !== null || searchQuery.trim() !== ""
+        <EmptyState
+          size="lg"
+          titleAs="h2"
+          className="animate-in fade-in duration-500"
+          icon={<FileText size={32} className="text-muted-foreground" />}
+          title={
+            activeTag !== null || searchQuery.trim() !== ""
               ? (t("site.noMatchPosts") as string)
-              : (t("site.noPosts") as string)}
-          </h2>
-          <p className="text-muted-foreground max-w-md">
-            {activeTag !== null
+              : (t("site.noPosts") as string)
+          }
+          description={
+            activeTag !== null
               ? (t("site.noMatchPostsDesc") as (tag: string) => string)(activeTag)
               : searchQuery.trim() !== ""
                 ? (t("site.noSearchMatchDesc") as (q: string) => string)(
                     searchQuery.trim()
                   )
-                : (t("site.noPostsDesc") as string)}
-          </p>
-        </div>
+                : (t("site.noPostsDesc") as string)
+          }
+        />
       ) : (
         <div className="space-y-12">
           {grouped.map(([year, yearPosts]) => {

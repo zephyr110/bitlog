@@ -3,9 +3,10 @@ import { History } from "lucide-react"
 import { getPublishedPosts } from "@zlog/database"
 import { Trans } from "@/components/layout/trans"
 import { defaultLocale, t } from "@/lib/i18n"
-import { parseUtcDate } from "@/lib/date"
+import { groupPostsByUtcYear } from "@/lib/date"
 import { PageHeader } from "@/components/layout/page-header"
 import { Container } from "@/components/ui/container"
+import { EmptyState } from "@/components/ui/empty-state"
 import { YearSection } from "./year-section"
 
 export const metadata: Metadata = {
@@ -13,22 +14,9 @@ export const metadata: Metadata = {
   description: t(defaultLocale, "timeline.description") as string,
 }
 
-function groupByYear(posts: { date: string; slug: string; title: string }[]) {
-  const map = new Map<number, typeof posts>()
-  for (const post of posts) {
-    // UTC calendar year (local getFullYear() misgroups Jan 1 in
-    // negative-offset zones — same pitfall archive already fixed).
-    const year = parseUtcDate(post.date).getUTCFullYear()
-    if (!Number.isFinite(year)) continue
-    if (!map.has(year)) map.set(year, [])
-    map.get(year)!.push(post)
-  }
-  return Array.from(map.entries()).sort(([a], [b]) => b - a)
-}
-
 export default async function TimelinePage() {
   const posts = await getPublishedPosts()
-  const grouped = groupByYear(posts)
+  const grouped = groupPostsByUtcYear(posts, { sortYears: "desc" })
 
   return (
     <div className="min-h-[calc(100vh-4rem)]">
@@ -76,11 +64,11 @@ export default async function TimelinePage() {
           )}
 
           {grouped.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <h2 className="text-2xl font-semibold mb-2">
-                <Trans k="timeline.empty" />
-              </h2>
-            </div>
+            <EmptyState
+              size="lg"
+              titleAs="h2"
+              title={<Trans k="timeline.empty" />}
+            />
           )}
         </div>
       </Container>

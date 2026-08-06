@@ -45,6 +45,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { POST_PROSE_CLASSES } from "@/lib/prose"
 
 interface PostEditorProps {
   initialPost?: Post
@@ -400,13 +401,10 @@ export function PostEditor({ initialPost, isNew = false }: PostEditorProps) {
   // preview matches the published typography, colors, and code blocks.
   const previewPanel = (
     <div
-      className="prose dark:prose-invert prose-lg max-w-none min-h-[400px] lg:min-h-[calc(100vh-24rem)] border rounded-lg p-6 bg-card
-        prose-headings:scroll-mt-20 prose-headings:font-semibold prose-headings:tracking-tight
-        prose-p:leading-relaxed prose-p:my-5
-        prose-strong:text-foreground prose-strong:font-semibold
-        prose-li:my-1.5
-        prose-img:rounded-xl prose-img:shadow-md
-        prose-a:no-underline prose-pre:!bg-transparent prose-pre:!p-0 prose-pre:!border-0"
+      className={cn(
+        POST_PROSE_CLASSES,
+        "min-h-[400px] lg:min-h-[calc(100vh-24rem)] border rounded-lg p-6 bg-card"
+      )}
     >
       {deferredContent.trim() ? (
         <PreviewErrorBoundary

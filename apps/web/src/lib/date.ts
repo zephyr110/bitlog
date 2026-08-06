@@ -25,3 +25,33 @@ export function formatUtcDateTime(utc: string): string {
 export function parseUtcDate(value: string): Date {
   return new Date(`${value}T00:00:00Z`)
 }
+
+/**
+ * Group posts by UTC calendar year (the authored `YYYY-MM-DD` year).
+ * Use `getUTCFullYear()` via parseUtcDate — local getFullYear() misgroups
+ * Jan 1 in negative-offset zones.
+ *
+ * `sortYears: "desc" | "asc"` sorts year keys. Omit / `false` to keep
+ * first-seen order (archive relies on newest-first posts so years appear
+ * newest-first without an explicit sort).
+ */
+export function groupPostsByUtcYear<T extends { date: string }>(
+  posts: T[],
+  options?: { sortYears?: "asc" | "desc" | false }
+): [number, T[]][] {
+  const map = new Map<number, T[]>()
+  for (const post of posts) {
+    const year = parseUtcDate(post.date).getUTCFullYear()
+    if (!Number.isFinite(year)) continue
+    if (!map.has(year)) map.set(year, [])
+    map.get(year)!.push(post)
+  }
+  const entries = Array.from(map.entries())
+  if (options?.sortYears === "desc") {
+    return entries.sort(([a], [b]) => b - a)
+  }
+  if (options?.sortYears === "asc") {
+    return entries.sort(([a], [b]) => a - b)
+  }
+  return entries
+}

@@ -5,6 +5,7 @@ import { HeroSection } from "@/components/blog/hero-section"
 import { FeaturedPostCard } from "@/components/blog/featured-post-card"
 import { PostCard } from "@/components/blog/post-card"
 import { Trans } from "@/components/layout/trans"
+import { EmptyState } from "@/components/ui/empty-state"
 
 /** How many cards the home page shows: 1 featured + this many in the grid. */
 const LATEST_GRID_COUNT = 6
@@ -28,17 +29,14 @@ export default async function HomePage() {
         className="container mx-auto max-w-5xl scroll-mt-16 px-4 py-8 md:py-12 2xl:max-w-7xl"
       >
         {!featured ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center animate-in fade-in duration-500">
-            <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-muted">
-              <FileText size={32} className="text-muted-foreground" />
-            </div>
-            <h2 className="mb-2 text-2xl font-semibold">
-              <Trans k="site.noPosts" />
-            </h2>
-            <p className="max-w-md text-muted-foreground">
-              <Trans k="site.noPostsDesc" />
-            </p>
-          </div>
+          <EmptyState
+            size="lg"
+            titleAs="h2"
+            className="animate-in fade-in duration-500"
+            icon={<FileText size={32} className="text-muted-foreground" />}
+            title={<Trans k="site.noPosts" />}
+            description={<Trans k="site.noPostsDesc" />}
+          />
         ) : (
           <>
             {/* Newest post gets the editorial spotlight */}

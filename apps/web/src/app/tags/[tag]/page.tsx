@@ -7,6 +7,7 @@ import { Trans } from "@/components/layout/trans"
 import { PageHeader } from "@/components/layout/page-header"
 import { Container } from "@/components/ui/container"
 import { defaultLocale, t } from "@/lib/i18n"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface TagPageProps {
   params: Promise<{ tag: string }>
@@ -83,14 +84,12 @@ export default async function TagPage({ params }: TagPageProps) {
       {/* Posts */}
       <Container className="pb-16">
         {posts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <h2 className="text-2xl font-semibold mb-2">
-              <Trans k="site.noMatchPosts" />
-            </h2>
-            <p className="text-muted-foreground">
-              <Trans k="site.noMatchPostsDesc" args={[decodedTag]} />
-            </p>
-          </div>
+          <EmptyState
+            size="lg"
+            titleAs="h2"
+            title={<Trans k="site.noMatchPosts" />}
+            description={<Trans k="site.noMatchPostsDesc" args={[decodedTag]} />}
+          />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {posts.map((post, index) => (

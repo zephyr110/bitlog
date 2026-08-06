@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { MessageSquare, Reply, FileText, Mail, Trash2, Check } from "lucide-react"
 import { apiFetch } from "@/lib/api-client"
@@ -14,6 +14,7 @@ import { PaginationBar } from "@/components/admin/pagination-bar"
 import { CommentAvatar } from "@/components/blog/comment-avatar"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useStaleRequest } from "@/hooks/use-stale-request"
 // The admin API passes the DB result through untouched, so the wire
 // shape IS the package type — no local re-declaration to drift.
 import type { AdminCommentRecord, AdminCommentPage } from "@zlog/database"
@@ -33,17 +34,17 @@ export default function AdminCommentsPage() {
   const { refresh: refreshUnread } = useCommentUnread()
   // Stale-response guard: fast page clicks can interleave fetches; only
   // the latest request may write state.
-  const loadSeqRef = useRef(0)
+  const { begin, isCurrent } = useStaleRequest()
 
   const load = useCallback(async () => {
-    const seq = ++loadSeqRef.current
+    const seq = begin()
     setLoading(true)
     try {
       const res = await apiFetch(
         `/api/admin/comments?page=${page}&pageSize=${pageSize}`
       )
       if (!res.ok) return
-      if (seq !== loadSeqRef.current) return // superseded by a newer load
+      if (!isCurrent(seq)) return // superseded by a newer load
       const data = (await res.json()) as AdminCommentPage
       setComments(data.items)
       setTotal(data.total)
@@ -57,9 +58,9 @@ export default function AdminCommentsPage() {
         setPage(lastPage)
       }
     } finally {
-      if (seq === loadSeqRef.current) setLoading(false)
+      if (isCurrent(seq)) setLoading(false)
     }
-  }, [page, pageSize])
+  }, [page, pageSize, begin, isCurrent])
 
   useEffect(() => {
     void load() // eslint-disable-line react-hooks/set-state-in-effect -- async fetch, same pattern as admin/media

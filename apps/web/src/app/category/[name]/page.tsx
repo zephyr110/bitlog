@@ -7,6 +7,7 @@ import { Container } from "@/components/ui/container"
 import { Trans } from "@/components/layout/trans"
 import { defaultLocale, t } from "@/lib/i18n"
 import { categoryMeta, categoryKeys, type CategoryKey } from "@/lib/categories"
+import { EmptyState } from "@/components/ui/empty-state"
 
 interface CategoryPageProps {
   params: Promise<{ name: string }>
@@ -127,17 +128,19 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
       <Container className="pb-16">
         {posts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="flex size-16 items-center justify-center rounded-full bg-muted mb-4">
-              <Icon size={28} className="text-muted-foreground/50" />
-            </div>
-            <h2 className="text-xl font-semibold mb-2">
-              <Trans k="category.empty" />
-            </h2>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              <Trans k="category.emptyDesc" />
-            </p>
-          </div>
+          <EmptyState
+            size="lg"
+            titleAs="h2"
+            icon={<Icon size={28} className="text-muted-foreground/50" />}
+            iconClassName="size-16 mb-4"
+            titleClassName="text-xl"
+            title={<Trans k="category.empty" />}
+            description={
+              <span className="text-sm max-w-sm inline-block">
+                <Trans k="category.emptyDesc" />
+              </span>
+            }
+          />
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {posts.map((post, index) => (

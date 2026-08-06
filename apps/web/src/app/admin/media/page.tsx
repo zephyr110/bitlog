@@ -31,6 +31,13 @@ import { IconButton } from "@/components/ui/icon-button"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import { formatUtcDateTime } from "@/lib/date"
+import { useStaleRequest } from "@/hooks/use-stale-request"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
+import {
+  UPLOAD_ACCEPT,
+  uploadImageFile,
+  validateImageFile,
+} from "@/lib/upload"
 
 interface MediaFile {
   name: string
@@ -69,7 +76,6 @@ const UPLOAD_CONCURRENCY = 3
 /** Batch cap — a stray 200-file drop would otherwise lock the page for
  *  half an hour (30s × 67 slots). Generous for any realistic selection. */
 const MAX_BATCH_SIZE = 30
-const MAX_FILE_SIZE = 5 * 1024 * 1024
 
 /** Local "YYYY-MM-DD" → exact UTC timestamp at the day boundary
  *  ("YYYY-MM-DD HH:MM:SS", matching created_at's format). Converting the
@@ -116,7 +122,10 @@ export default function AdminMediaPage() {
   const [pageSize, setPageSize] = useState(20)
   const [searchInput, setSearchInput] = useState("")
   // Debounced query — the fetch below keys on this, so typing only hits
-  // the API after a pause.
+  // the API after a pause. Page 1 is only forced when the trimmed query
+  // actually changes, so a stale debounce can't override a page/pageSize/
+  // date change made within the debounce window.
+  const debouncedInput = useDebouncedValue(searchInput, 400)
   const [searchQuery, setSearchQuery] = useState("")
   // API unreachable (static deployment, server error, network) — was
   // previously swallowed silently, leaving an empty library with no
@@ -125,28 +134,21 @@ export default function AdminMediaPage() {
   // and would refetch on each keystroke).
   const [apiError, setApiError] = useState(false)
   // Stale-response guard: rapid page changes only let the newest fetch win.
-  const fetchSeq = useRef(0)
+  const { begin, isCurrent } = useStaleRequest()
   // Refetch indicator (page/filter changes) — distinct from `loading`,
   // which only covers the initial skeleton.
   const [refreshing, setRefreshing] = useState(false)
 
-  // Debounce the search input, then reset to page 1 — the [page,
-  // fetchMedia] effect refetches automatically. Page 1 is only forced
-  // when the query actually changed, so a stale timer can't override a
-  // page/pageSize/date change made within the debounce window.
   useEffect(() => {
-    const id = setTimeout(() => {
-      const next = searchInput.trim()
-      if (next !== searchQuery) {
-        setSearchQuery(next)
-        setPage(1)
-      }
-    }, 400)
-    return () => clearTimeout(id)
-  }, [searchInput, searchQuery])
+    const next = debouncedInput.trim()
+    if (next !== searchQuery) {
+      setSearchQuery(next)
+      setPage(1)
+    }
+  }, [debouncedInput, searchQuery])
 
   const fetchMedia = useCallback(async (targetPage: number) => {
-    const seq = ++fetchSeq.current
+    const seq = begin()
     setRefreshing(true)
     try {
       const params = new URLSearchParams({
@@ -161,26 +163,26 @@ export default function AdminMediaPage() {
       const res = await apiFetch(`/api/upload?${params}`)
       if (res.ok) {
         const data = await res.json()
-        if (seq === fetchSeq.current) {
+        if (isCurrent(seq)) {
           setFiles(data.images || [])
           setTotal(data.total ?? 0)
           setTotalPages(data.totalPages ?? 1)
           setApiError(false)
         }
-      } else if (seq === fetchSeq.current) {
+      } else if (isCurrent(seq)) {
         setApiError(true)
       }
     } catch {
-      if (seq === fetchSeq.current) {
+      if (isCurrent(seq)) {
         setApiError(true)
       }
     } finally {
-      if (seq === fetchSeq.current) {
+      if (isCurrent(seq)) {
         setLoading(false)
         setRefreshing(false)
       }
     }
-  }, [dateFrom, dateTo, pageSize, searchQuery])
+  }, [dateFrom, dateTo, pageSize, searchQuery, begin, isCurrent])
 
   useEffect(() => {
     fetchMedia(page) // eslint-disable-line react-hooks/set-state-in-effect
@@ -240,7 +242,7 @@ export default function AdminMediaPage() {
       const valid: File[] = []
       let preCheckFailed = 0
       for (const file of files) {
-        if (!file.type.startsWith("image/") || file.size > MAX_FILE_SIZE) {
+        if (validateImageFile(file) !== "ok") {
           preCheckFailed++
         } else {
           valid.push(file)
@@ -264,18 +266,8 @@ export default function AdminMediaPage() {
       const worker = async (file: File) => {
         await sem.acquire()
         try {
-          const formData = new FormData()
-          formData.append("file", file)
-          const res = await apiFetch("/api/upload", {
-            method: "POST",
-            body: formData,
-            // Uploads include compression + a GitHub push to a CN-direct
-            // api.github.com — can take 10-60s. The default 15s would
-            // abort mid-flight (server still finishes → "failed" upload
-            // that exists).
-            timeout: 120_000,
-          })
-          if (res.ok) {
+          const result = await uploadImageFile(file)
+          if (result.ok) {
             statsRef.done++
           } else {
             statsRef.failed++
@@ -417,7 +409,7 @@ export default function AdminMediaPage() {
         <input
           type="file"
           multiple
-          accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+          accept={UPLOAD_ACCEPT}
           onChange={handleUpload}
           className="hidden"
           id="media-file-input"

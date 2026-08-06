@@ -15,6 +15,7 @@ import {
   type PublicComment,
 } from "@/lib/comment-shared"
 import { CommentAvatar } from "@/components/blog/comment-avatar"
+import { useStaleRequest } from "@/hooks/use-stale-request"
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 // The GitHub Pages mirror (static export) has no API routes — comments
@@ -151,14 +152,14 @@ export function CommentSection({ slug }: { slug: string }) {
   // fetches), so without this a stale response could clobber a newer
   // load (e.g. after client-side navigation to another post). Each
   // call bumps the sequence; only the latest may write state.
-  const loadSeqRef = useRef(0)
+  const { begin, isCurrent } = useStaleRequest()
 
   /** Load the comment list. `signal` lets a stale navigation abort; the
    *  list is cleared first so an old post's comments never linger under
    *  a new post's heading. */
   const loadComments = useCallback(
     async (signal?: AbortSignal) => {
-      const seq = ++loadSeqRef.current
+      const seq = begin()
       // A post switch must not carry a reply target from the old post
       // into the new one (the API would reject it, but the stale chip
       // would linger until then).
@@ -171,17 +172,17 @@ export function CommentSection({ slug }: { slug: string }) {
           { signal }
         )
         if (!res.ok) return
-        if (seq !== loadSeqRef.current) return // superseded by a newer load
+        if (!isCurrent(seq)) return // superseded by a newer load
         const data = (await res.json()) as { comments: PublicComment[] }
         setComments(data.comments)
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return
         // Other failures keep the list empty — comments are progressive.
       } finally {
-        if (seq === loadSeqRef.current) setLoading(false)
+        if (isCurrent(seq)) setLoading(false)
       }
     },
-    [slug]
+    [slug, begin, isCurrent]
   )
 
   /** Re-fetch the session and re-arm the form — shown as a Retry

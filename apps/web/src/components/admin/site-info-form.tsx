@@ -14,6 +14,11 @@ import { SiteLogo } from "@/components/layout/site-logo"
 import { toast } from "sonner"
 import { ImageIcon, Upload, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  UPLOAD_ACCEPT,
+  uploadImageFile,
+  validateImageFile,
+} from "@/lib/upload"
 
 type FormState = {
   name: string
@@ -26,9 +31,6 @@ type FormState = {
   twitterUrl: string
   commentEnabled: boolean
 }
-
-const ACCEPT = "image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
-const MAX_FILE_SIZE = 5 * 1024 * 1024
 
 export function SiteInfoForm({
   idPrefix = "site",
@@ -120,29 +122,23 @@ export function SiteInfoForm({
   }
 
   async function handleUpload(file: File) {
-    if (!ACCEPT.split(",").includes(file.type)) {
-      toast.error(t("admin.uploadFailed") as string)
-      return
-    }
-    if (file.size > MAX_FILE_SIZE) {
+    const check = validateImageFile(file)
+    if (check !== "ok") {
       toast.error(t("admin.uploadFailed") as string)
       return
     }
     setUploading(true)
     try {
-      const body = new FormData()
-      body.append("file", file)
-      const res = await apiFetch("/api/upload", {
-        method: "POST",
-        body,
-        timeout: 120_000,
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        toast.error(data.error || (t("admin.uploadFailed") as string))
+      const result = await uploadImageFile(file)
+      if (!result.ok) {
+        toast.error(
+          result.error === "Network error"
+            ? (t("admin.networkError") as string)
+            : result.error || (t("admin.uploadFailed") as string)
+        )
         return
       }
-      const url = data.url as string
+      const url = result.url
       patch("logoUrl", url)
       // 上传即保存: the file is already persisted in the media library by
       // /api/upload, so the logoUrl must be persisted right away too —
@@ -280,7 +276,7 @@ export function SiteInfoForm({
               <input
                 ref={fileRef}
                 type="file"
-                accept={ACCEPT}
+                accept={UPLOAD_ACCEPT}
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0]

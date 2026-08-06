@@ -8,6 +8,7 @@ import {
   deleteMedia,
 } from "@zlog/database"
 import { cdnUrl } from "@/lib/github-image"
+import { MAX_UPLOAD_BYTES } from "@/lib/upload-constants"
 import path from "path"
 
 const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"]
@@ -18,7 +19,6 @@ const ALLOWED_TYPES = [
   "image/webp",
   "image/svg+xml",
 ]
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
 // Magic numbers for the most common image formats.
 const MAGIC_NUMBERS: Record<string, number[]> = {
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (file.size > MAX_FILE_SIZE) {
+    if (file.size > MAX_UPLOAD_BYTES) {
       return NextResponse.json(
         { error: "File too large" },
         { status: 400 }

@@ -15,6 +15,7 @@ import { HeroGlow } from "@/components/layout/hero-glow"
 import { Trans } from "@/components/layout/trans"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Calendar, Clock } from "lucide-react"
+import { POST_PROSE_CLASSES } from "@/lib/prose"
 
 interface PostPageProps {
   params: Promise<{ slug: string }>
@@ -185,14 +186,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
         {/* Content */}
         <Container size="md">
-          <div className="prose dark:prose-invert prose-lg max-w-none
-            prose-headings:scroll-mt-20 prose-headings:font-semibold prose-headings:tracking-tight
-            prose-p:leading-relaxed prose-p:my-5
-            prose-strong:text-foreground prose-strong:font-semibold
-            prose-li:my-1.5
-            prose-a:no-underline
-            prose-img:rounded-xl prose-img:shadow-md
-            prose-pre:!bg-transparent prose-pre:!p-0 prose-pre:!border-0">
+          <div className={POST_PROSE_CLASSES}>
             <MDXRenderer post={post} />
           </div>
 
