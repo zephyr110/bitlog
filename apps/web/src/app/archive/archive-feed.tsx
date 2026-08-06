@@ -253,8 +253,9 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
               ? "w-full sm:w-64"
               : // Collapsed — a circular icon button: muted background,
                 // no border, centered icon. Clicking it (or Tab-focusing)
-                // expands the box.
-                "w-8 rounded-full bg-muted"
+                // expands the box. overflow-hidden clips the input so its
+                // intrinsic min-width can't inflate the circle.
+                "w-8 overflow-hidden rounded-full bg-muted"
           )}
         >
           <Search
@@ -266,6 +267,9 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
           />
           <Input
             ref={inputRef}
+            // size=1 keeps the browser's intrinsic input width from
+            // fighting the collapsed w-8 circle.
+            size={1}
             defaultValue={urlQuery}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
@@ -281,10 +285,11 @@ export function ArchiveFeed({ posts, allTags }: ArchiveFeedProps) {
             placeholder={t("site.searchPosts")}
             aria-label={t("site.searchPosts")}
             className={cn(
-              "pl-9 pr-8",
-              // While collapsed the input's own border/placeholder/cursor
-              // are suppressed — the circular button IS the affordance.
-              !searchOpen && "cursor-pointer border-transparent bg-transparent placeholder:opacity-0"
+              searchOpen
+                ? "pl-9 pr-8"
+                : // Collapsed: fill the circle, drop padding/chrome so the
+                  // control reads as an icon button (not a stubby text field).
+                  "size-full cursor-pointer rounded-full border-transparent bg-transparent p-0 caret-transparent placeholder:opacity-0 focus-visible:border-transparent focus-visible:ring-0 dark:bg-transparent"
             )}
           />
           {searchOpen && searchQuery && (
