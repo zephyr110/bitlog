@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
-import { apiFetch } from "@/lib/api-client"
+import { fetchAdminPosts } from "@/lib/admin-posts"
 import { useCommentUnread } from "@/components/admin/comment-unread"
 import { cn } from "@/lib/utils"
 import { FileText, PenLine, Clock, Tag, MessageSquare } from "lucide-react"
@@ -24,20 +24,13 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     async function fetchPosts() {
-      try {
-        const res = await apiFetch("/api/posts?includeDrafts=true")
-        if (res.ok) {
-          const data = await res.json()
-          setPosts(data.posts || [])
-        } else {
-          toast.error(t("admin.loadFailed") as string)
-        }
-      } catch (error) {
-        console.error("Failed to fetch posts:", error)
+      const result = await fetchAdminPosts()
+      if (result.ok) {
+        setPosts(result.posts)
+      } else {
         toast.error(t("admin.loadFailed") as string)
-      } finally {
-        setLoading(false)
       }
+      setLoading(false)
     }
     fetchPosts()
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-once fetch; adding `t` (new identity per render) would refetch on every render

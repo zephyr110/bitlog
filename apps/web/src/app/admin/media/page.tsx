@@ -4,17 +4,10 @@ import { useEffect, useState, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog"
 import { apiFetch } from "@/lib/api-client"
 import { HeaderActions } from "@/components/admin/header-actions"
 import { PaginationBar } from "@/components/admin/pagination-bar"
+import { ConfirmDeleteDialog } from "@/components/admin/confirm-delete-dialog"
 import { MediaLightbox } from "@/components/admin/media-lightbox"
 import { Input } from "@/components/ui/input"
 import { useT } from "@/components/layout/trans"
@@ -773,34 +766,16 @@ export default function AdminMediaPage() {
         onCopyMarkdown={copyMarkdown}
         onDelete={setDeleteTarget}
       />
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("admin.deleteImage") as string}</DialogTitle>
-            <DialogDescription>
-              {t("admin.deleteImageConfirm") as string}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteTarget(null)}
-              disabled={deleting}
-            >
-              {t("admin.cancel") as string}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting
-                ? (t("admin.deletingImage") as string)
-                : (t("admin.deleteImage") as string)}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        busy={deleting}
+        title={t("admin.deleteImage") as string}
+        description={t("admin.deleteImageConfirm") as string}
+        confirmLabel={t("admin.deleteImage") as string}
+        busyLabel={t("admin.deletingImage") as string}
+      />
     </>
   )
 }

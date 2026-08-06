@@ -2,23 +2,14 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { SiteInfoForm } from "@/components/admin/site-info-form"
-import { apiFetch, clearToken } from "@/lib/api-client"
+import { ChangePasswordForm } from "@/components/admin/change-password-form"
+import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
 
 export default function AdminSettingsPage() {
   const { t } = useT()
-  const router = useRouter()
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [loading, setLoading] = useState(false)
   const [username, setUsername] = useState("admin")
 
   useEffect(() => {
@@ -37,53 +28,6 @@ export default function AdminSettingsPage() {
     }
     fetchUser()
   }, [])
-
-  async function handleChangePassword(e: React.FormEvent) {
-    e.preventDefault()
-
-    if (newPassword !== confirmPassword) {
-      toast.error(t("admin.passwordsNotMatch") as string)
-      return
-    }
-
-    if (newPassword.length < 8) {
-      toast.error(t("admin.passwordLength") as string)
-      return
-    }
-
-    setLoading(true)
-    try {
-      const res = await apiFetch("/api/auth/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      })
-
-      const data = await res.json()
-
-      if (res.ok) {
-        toast.success(t("admin.passwordChanged") as string)
-        setCurrentPassword("")
-        setNewPassword("")
-        setConfirmPassword("")
-        if (data.requireRelogin) {
-          clearToken()
-          router.push("/admin/login")
-        }
-      } else if (res.status === 401 && data.error === "Unauthorized") {
-        // Session expired (as opposed to a wrong current password) —
-        // send the user back to login instead of showing an error.
-        clearToken()
-        router.push("/admin/login")
-      } else {
-        toast.error(data.error || (t("admin.changePasswordFailed") as string))
-      }
-    } catch {
-      toast.error(t("admin.networkError") as string)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -109,45 +53,7 @@ export default function AdminSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleChangePassword} className="space-y-4 max-w-sm">
-            <div className="space-y-2">
-              <Label htmlFor="current-password">{t("admin.currentPassword") as string}</Label>
-              <Input
-                id="current-password"
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder={t("admin.currentPasswordPlaceholder") as string}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-password">{t("admin.newPassword") as string}</Label>
-              <Input
-                id="new-password"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder={t("admin.newPasswordPlaceholder") as string}
-                required
-                minLength={8}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">{t("admin.confirmPassword") as string}</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={t("admin.confirmPasswordPlaceholder") as string}
-                required
-              />
-            </div>
-            <Button type="submit" disabled={loading}>
-              {loading ? (t("admin.updating") as string) : (t("admin.updatePassword") as string)}
-            </Button>
-          </form>
+          <ChangePasswordForm idPrefix="page-pw" className="max-w-sm" />
         </CardContent>
       </Card>
 

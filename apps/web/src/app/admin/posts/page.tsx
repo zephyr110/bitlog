@@ -4,22 +4,14 @@ import { useEffect, useState, useMemo, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Ellipsis, Search, FileText, SquarePen, Eye, Globe, FilePen, Trash2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { TableSkeleton } from "@/components/ui/loading"
 import { Skeleton } from "@/components/ui/skeleton"
 import { HeaderActions } from "@/components/admin/header-actions"
 import { PaginationBar } from "@/components/admin/pagination-bar"
+import { ConfirmDeleteDialog } from "@/components/admin/confirm-delete-dialog"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import {
   Table,
   TableBody,
@@ -43,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { apiFetch } from "@/lib/api-client"
+import { fetchAdminPosts } from "@/lib/admin-posts"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
 import { categoryKeys, getCategoryLabel, resolveCategory } from "@/lib/categories"
@@ -68,21 +61,14 @@ function AdminPostsContent() {
   const [deleting, setDeleting] = useState(false)
 
   async function fetchPosts() {
-    try {
-      const res = await apiFetch("/api/posts?includeDrafts=true")
-      if (res.ok) {
-        const data = await res.json()
-        setPosts(data.posts || [])
-      } else {
-        // A failed list fetch used to render an empty table — surface it.
-        toast.error(t("admin.loadFailed") as string)
-      }
-    } catch (error) {
-      console.error("Failed to fetch posts:", error)
+    // A failed list fetch used to render an empty table — surface it.
+    const result = await fetchAdminPosts()
+    if (result.ok) {
+      setPosts(result.posts)
+    } else {
       toast.error(t("admin.loadFailed") as string)
-    } finally {
-      setLoading(false)
     }
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -467,32 +453,14 @@ function AdminPostsContent() {
     </div>
 
       {/* Outside the gap flex column so the portal root cannot steal spacing */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("admin.delete") as string}</DialogTitle>
-            <DialogDescription>
-              {t("admin.deleteConfirm") as string}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteTarget(null)}
-              disabled={deleting}
-            >
-              {t("admin.cancel") as string}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? (t("admin.deleting") as string) : (t("admin.delete") as string)}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        busy={deleting}
+        title={t("admin.delete") as string}
+        description={t("admin.deleteConfirm") as string}
+      />
     </>
   )
 }

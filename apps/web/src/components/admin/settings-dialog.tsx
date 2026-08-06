@@ -9,14 +9,12 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription as CardDesc } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import { SiteInfoForm } from "@/components/admin/site-info-form"
-import { apiFetch, clearToken } from "@/lib/api-client"
+import { ChangePasswordForm } from "@/components/admin/change-password-form"
+import { apiFetch } from "@/lib/api-client"
 import { useT } from "@/components/layout/trans"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
 
 interface SettingsDialogProps {
   open: boolean
@@ -25,11 +23,6 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { t } = useT()
-  const router = useRouter()
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [loading, setLoading] = useState(false)
   // Newly generated recovery key — shown once until confirmed saved.
   const [newRecoveryKey, setNewRecoveryKey] = useState<string | null>(null)
   const [generatingKey, setGeneratingKey] = useState(false)
@@ -64,50 +57,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     onOpenChange(open)
   }
 
-  async function handleChangePassword(e: React.FormEvent) {
-    e.preventDefault()
-    if (newPassword !== confirmPassword) {
-      toast.error(t("admin.passwordsNotMatch") as string)
-      return
-    }
-    if (newPassword.length < 8) {
-      toast.error(t("admin.passwordLength") as string)
-      return
-    }
-    setLoading(true)
-    try {
-      const res = await apiFetch("/api/auth/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        toast.success(t("admin.passwordChanged") as string)
-        setCurrentPassword("")
-        setNewPassword("")
-        setConfirmPassword("")
-        onOpenChange(false)
-        if (data.requireRelogin) {
-          clearToken()
-          router.push("/admin/login")
-        }
-      } else if (res.status === 401 && data.error === "Unauthorized") {
-        // Session expired (as opposed to a wrong current password) —
-        // send the user back to login instead of showing an error.
-        onOpenChange(false)
-        clearToken()
-        router.push("/admin/login")
-      } else {
-        toast.error(data.error || (t("admin.currentPasswordWrong") as string))
-      }
-    } catch {
-      toast.error(t("admin.networkError") as string)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {/* The dialog shell never scrolls — only the body below does, so
@@ -136,45 +85,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </CardDesc>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleChangePassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="dlg-current-pw">{t("admin.currentPassword") as string}</Label>
-                  <Input
-                    id="dlg-current-pw"
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder={t("admin.currentPasswordPlaceholder") as string}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dlg-new-pw">{t("admin.newPassword") as string}</Label>
-                  <Input
-                    id="dlg-new-pw"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder={t("admin.newPasswordPlaceholder") as string}
-                    required
-                    minLength={8}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dlg-confirm-pw">{t("admin.confirmPassword") as string}</Label>
-                  <Input
-                    id="dlg-confirm-pw"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder={t("admin.confirmPasswordPlaceholder") as string}
-                    required
-                  />
-                </div>
-                <Button type="submit" disabled={loading}>
-                  {loading ? (t("admin.updating") as string) : (t("admin.updatePassword") as string)}
-                </Button>
-              </form>
+              <ChangePasswordForm
+                idPrefix="dlg-pw"
+                wrongPasswordKey="admin.currentPasswordWrong"
+                onSuccess={() => onOpenChange(false)}
+              />
             </CardContent>
           </Card>
 
