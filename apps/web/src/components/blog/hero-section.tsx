@@ -89,9 +89,9 @@ export function HeroSection({ postCount }: { postCount: number }) {
             className="inline-flex items-center gap-2.5 rounded-full border border-border/60 bg-background/60 px-3.5 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-sm mb-7 animate-in fade-in slide-in-from-bottom-4 duration-700"
             style={{ animationFillMode: "both" }}
           >
-            <span className="relative flex size-1.5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/50" />
-              <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
+            <span className="relative flex size-2.5">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/40 dark:bg-primary/70" />
+              <span className="relative size-2.5 rounded-full bg-primary ring-2 ring-primary/25 dark:ring-primary/45 dark:shadow-[0_0_10px_rgba(255,255,255,0.35)]" />
             </span>
             {articlesLabel(postCount)}
           </div>

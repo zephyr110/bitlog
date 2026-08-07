@@ -98,7 +98,7 @@ export default async function PostPage({ params }: PostPageProps) {
               <img
                 src={post.cover}
                 alt=""
-                className="absolute inset-0 h-full w-full object-cover object-top"
+                className="absolute inset-0 h-full w-full object-cover"
               />
               {/* Legibility scrim — the cover shows at full opacity; a
                   background-colored gradient (strongest behind the title
