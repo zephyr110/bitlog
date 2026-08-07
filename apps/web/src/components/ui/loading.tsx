@@ -102,9 +102,9 @@ export function CommentInboxCardSkeleton({
   withThread?: boolean
 }) {
   return (
-    <div className="flex flex-col gap-4 rounded-xl bg-card py-4 ring-1 ring-foreground/10">
-      {/* Author header */}
-      <div className="flex items-center gap-3 px-4">
+    <div className="flex flex-col gap-3 rounded-xl bg-card py-3 ring-1 ring-foreground/10">
+      {/* Author header + corner actions */}
+      <div className="flex items-center gap-3 px-3">
         <Skeleton className="size-8 shrink-0 rounded-full" />
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <div className="flex items-center gap-2">
@@ -113,10 +113,11 @@ export function CommentInboxCardSkeleton({
           </div>
           <Skeleton className="h-3 w-40" />
         </div>
+        <Skeleton className="ml-auto h-8 w-24 rounded-md" />
       </div>
 
       {/* Body — thread, content, source */}
-      <div className="flex flex-col gap-3 px-4">
+      <div className="flex flex-col gap-2.5 px-3">
         {withThread && (
           <div className="flex items-center gap-1.5 border-l-2 border-foreground/10 pl-2.5">
             <Skeleton className="size-3 shrink-0 rounded-sm" />
@@ -129,16 +130,10 @@ export function CommentInboxCardSkeleton({
           <Skeleton className="h-3.5 w-4/5" />
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-border/50 pt-2.5">
           <Skeleton className="h-3 w-24" />
           <Skeleton className="h-3 w-36" />
         </div>
-      </div>
-
-      {/* Actions footer */}
-      <div className="flex items-center justify-end gap-2 border-t px-4 pt-4">
-        <Skeleton className="h-8 w-24 rounded-md" />
-        <Skeleton className="h-8 w-16 rounded-md" />
       </div>
     </div>
   )

@@ -83,12 +83,12 @@ export default function AdminDashboardPage() {
     // columns, card chrome, and content heights so the swap to real data
     // causes no layout shift.
     return (
-      <div className="flex flex-col gap-6">
-        <section className="flex flex-col gap-4">
+      <div className="flex flex-col gap-8 md:gap-10">
+        <section className="flex flex-col gap-5 md:gap-6">
           <Skeleton className="h-7 w-32" />
 
           {/* Stat cards — same 5-up grid as the loaded view */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-5">
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
@@ -127,7 +127,7 @@ export default function AdminDashboardPage() {
         </section>
 
         {/* Charts — same 2-up grid, 240px plot area as the loaded view */}
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
           {[0, 1].map((i) => (
             <div
               key={i}
@@ -145,12 +145,12 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent posts — section header + list */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           <div className="flex items-center justify-between">
             <Skeleton className="h-7 w-32" />
             <Skeleton className="h-4 w-16" />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
@@ -170,13 +170,13 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8 md:gap-10">
       {/* Statistics — stat cards + contribution calendar */}
-      <section className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold">
+      <section className="flex flex-col gap-5 md:gap-6">
+        <h2 className="text-xl font-semibold tracking-tight">
           {t("admin.statistics")}
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-5">
           {stats.map((stat) => {
             const Icon = stat.icon
             const inner = (
@@ -241,14 +241,14 @@ export default function AdminDashboardPage() {
       <PostStats posts={posts} />
 
       {/* Recent Posts */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">
+      <div className="flex flex-col gap-5">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-xl font-semibold tracking-tight">
             {t("admin.recentPosts")}
           </h2>
           <Link
             href="/admin/posts"
-            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline"
           >
             {t("admin.viewAll")}
             <span aria-hidden="true">→</span>
@@ -262,34 +262,34 @@ export default function AdminDashboardPage() {
             action={
               <Link
                 href="/admin/posts/new"
-                className="inline-flex h-9 items-center rounded-lg bg-primary text-primary-foreground text-sm font-medium px-3 hover:bg-primary/80"
+                className="inline-flex h-9 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/80"
               >
                 {t("admin.createFirstPost")}
               </Link>
             }
           />
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {posts.slice(0, 5).map((post) => (
               <Card
                 key={post.slug}
-                className="hover:border-primary/10 transition-colors"
+                className="transition-colors hover:border-primary/10"
               >
-                <CardContent className="flex items-center justify-between">
+                <CardContent className="flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <Link
                       href={`/admin/posts/edit?slug=${encodeURIComponent(
                         post.slug
                       )}`}
-                      className="font-medium hover:text-primary transition-colors truncate block"
+                      className="block truncate font-medium transition-colors hover:text-primary"
                     >
                       {post.title}
                     </Link>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       <FormattedDate date={post.date} month="short" /> ·{" "}
                       {t("post.minRead")(post.readingTime)}
                       {post.draft && (
-                        <span className="ml-2 text-amber-600 font-medium">
+                        <span className="ml-2 font-medium text-amber-600">
                           {t("admin.draft")}
                         </span>
                       )}
@@ -299,7 +299,7 @@ export default function AdminDashboardPage() {
                     href={`/admin/posts/edit?slug=${encodeURIComponent(
                       post.slug
                     )}`}
-                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-border bg-background text-sm font-medium px-2.5 hover:bg-muted transition-all shrink-0"
+                    className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-sm font-medium transition-all hover:bg-muted"
                   >
                     {t("admin.edit")}
                   </Link>

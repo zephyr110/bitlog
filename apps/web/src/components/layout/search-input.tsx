@@ -36,7 +36,7 @@ export function SearchInput() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="hidden md:flex items-center mr-2">
+    <form onSubmit={handleSubmit} className="hidden md:flex items-center mx-1.5">
       <div className="relative">
         <Search
           size={14}

@@ -25,6 +25,74 @@ import { cn } from "@/lib/utils"
 
 type LoginMode = "login" | "reset"
 
+/** Primary submit button on the login/reset forms. The default variant
+ *  only fades to primary/80 on hover; the login page gets a theme-aware
+ *  treatment. Because --primary flips with the theme (near-black on
+ *  light, near-white on dark), a fixed brightness-* goes the wrong way
+ *  on one theme (black → dead black, white → blown out). Instead we
+ *  color-mix a touch of the OPPOSITE anchor: hover mixes the button a
+ *  little toward white on light (lift) and toward black on dark
+ *  (settle) — both read as a natural press feedback without clipping. */
+const LOGIN_SUBMIT_CLASSES =
+  "h-10 w-full bg-primary text-primary-foreground shadow-sm shadow-primary/25 transition-all duration-200 hover:shadow-md hover:shadow-primary/30 focus-visible:ring-primary/40 " +
+  "hover:bg-[color-mix(in_oklab,var(--primary),white_8%)] active:bg-[color-mix(in_oklab,var(--primary),black_6%)] " +
+  "dark:hover:bg-[color-mix(in_oklab,var(--primary),black_10%)] dark:active:bg-[color-mix(in_oklab,var(--primary),black_18%)]"
+
+/* ── Layer: square line grid ──
+   50px cells (divides the 400px card width evenly). Phase is pinned so
+   a vertical line lands exactly on the card's left edge
+   (center − card-w/2); subsequent lines then land on center − 150,
+   −100, …, +200 — so the right edge coincides with a grid line too.
+   LoginCellsSweep uses the same size + phase so the sweep tracks these
+   cells instead of drifting across a second, misaligned grid. */
+function LoginGridLayer() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-25"
+      style={{
+        backgroundImage: `
+          linear-gradient(to right, color-mix(in oklab, var(--color-foreground) 9%, transparent) 1px, transparent 1px),
+          linear-gradient(to bottom, color-mix(in oklab, var(--color-foreground) 9%, transparent) 1px, transparent 1px)
+        `,
+        backgroundSize: "50px 50px",
+        // Tile origin at the card's left edge → lines frame the form.
+        backgroundPosition: "calc(50% - (var(--card-w) / 2)) top",
+        maskImage:
+          "radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 72%)",
+        WebkitMaskImage:
+          "radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 72%)",
+      }}
+    />
+  )
+}
+
+/* ── Layer: sweeping cell highlight (reuses global hero-cells-sweep).
+   Same 50px size + card-edge phase as LoginGridLayer. ── */
+function LoginCellsSweep() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 motion-safe:block hidden opacity-[0.08] dark:opacity-[0.14]"
+      style={{
+        backgroundImage:
+          "conic-gradient(from 90deg at 2px 2px, transparent 90deg, oklch(0.6 0.2 290) 0)",
+        backgroundSize: "50px 50px",
+        backgroundPosition: "calc(50% - (var(--card-w) / 2)) top",
+        maskImage:
+          "linear-gradient(90deg, transparent 30%, black 42%, black 58%, transparent 70%)",
+        WebkitMaskImage:
+          "linear-gradient(90deg, transparent 30%, black 42%, black 58%, transparent 70%)",
+        maskSize: "300% 100%",
+        WebkitMaskSize: "300% 100%",
+        maskRepeat: "no-repeat",
+        WebkitMaskRepeat: "no-repeat",
+        animation: "hero-cells-sweep 8s linear infinite",
+      }}
+    />
+  )
+}
+
 export default function AdminLoginPage() {
   const router = useRouter()
   const { t } = useT()
@@ -112,37 +180,36 @@ export default function AdminLoginPage() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12 [--card-w:400px]">
-      {/* Atmosphere — vertical wash + brand-tinted glow + drifting
-          aurora blobs + faint grid */}
+      {/* Top glow — a FLAT ellipse sliced along its horizontal axis, the
+          cut sitting exactly on the page's top edge. Only the lower half
+          of the ellipse is visible, so the light is brightest right at
+          the top-center and thins out as it travels down the Y axis —
+          the wide horizontal radius keeps it a shallow, arc-like band
+          rather than a round blob.
+
+          Theme-aware color: a cool white beam on the dark theme, a warm
+          amber beam on the light theme. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-muted/50 via-muted/30 to-background"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[46%] opacity-20"
+        style={{
+          // Ellipse centered at 50% 0% (on the top edge). Rx = 78% (wide,
+          // X axis), Ry = 100% of this box's height (the downward falloff).
+          // --login-glow is set per-theme below (white on dark, amber on
+          // light); the radial fade gives the Y-negative dissolve.
+          background:
+            "radial-gradient(ellipse 78% 100% at 50% 0%, var(--login-glow) 0%, transparent 68%)",
+        }}
       />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_-10%,var(--primary)_0%,transparent_60%)] opacity-[0.08] dark:opacity-[0.16]"
-      />
-      <div
-        aria-hidden
-        className="animate-login-drift-a pointer-events-none absolute -left-32 top-1/4 size-96 rounded-full bg-primary/[0.06] blur-3xl dark:bg-primary/[0.10]"
-      />
-      <div
-        aria-hidden
-        className="animate-login-drift-b pointer-events-none absolute -right-32 bottom-1/4 size-[28rem] rounded-full bg-primary/[0.05] blur-3xl dark:bg-primary/[0.08]"
-      />
-      {/* Faint grid. The vertical lines live in their own layer whose box
-          matches the card's (w-full max-w-[var(--card-w)], centered), so
-          they always frame the card's left/right edges at any viewport
-          width — no phase offset to keep in sync. The horizontal lines
-          span the page. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-1/2 w-full max-w-[var(--card-w)] -translate-x-1/2 opacity-40 dark:opacity-25 [background-image:linear-gradient(90deg,var(--border)_1px,transparent_1px)] [background-size:40px_100%] [background-position:center] [mask-image:radial-gradient(ellipse_at_center,black_15%,transparent_70%)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-25 [background-image:linear-gradient(var(--border)_1px,transparent_1px)] [background-size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black_15%,transparent_70%)]"
-      />
+      {/* Faint square grid — same recipe as the home hero (color-mix
+          hairlines, 56px cells, centered radial mask). This single layer
+          already carries BOTH the vertical and horizontal lines, so there
+          is no separate card-framing grid — a second offset grid was
+          overlapping this one and producing a double/moiré pattern. */}
+      <LoginGridLayer />
+      {/* Sweeping cell highlight — reuses the global hero-cells-sweep
+          keyframes; a slow horizontal light band crossing the grid. */}
+      <LoginCellsSweep />
 
       {/* Particles — same rising/blinking effects as the home hero,
           reusing the shared seeded sets and global keyframes */}
@@ -247,7 +314,7 @@ export default function AdminLoginPage() {
                 <div className="flex flex-col gap-2">
                   <Button
                     type="submit"
-                    className="h-10 w-full"
+                    className={LOGIN_SUBMIT_CLASSES}
                     disabled={loading}
                   >
                     {loading ? (
@@ -340,7 +407,7 @@ export default function AdminLoginPage() {
                 <div className="flex flex-col gap-2">
                   <Button
                     type="submit"
-                    className="h-10 w-full"
+                    className={LOGIN_SUBMIT_CLASSES}
                     disabled={loading}
                   >
                     {loading ? (

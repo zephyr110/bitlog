@@ -57,6 +57,9 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
+  /* Login page top-glow beam — a bright, airy amber on the light theme
+     (high lightness, low chroma so it reads as warm light, not dirt). */
+  --login-glow: oklch(0.96 0.05 97);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -92,6 +95,8 @@
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
+  /* Login page top-glow beam — clean white on the dark theme. */
+  --login-glow: oklch(1 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -263,26 +268,14 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-particle, .hero-pixel { animation: none !important; }
-  /* Login page: hide the drifting aurora blobs entirely (matching the
-     particle layers, which are display:none via motion-safe) and drop
-     the error shake — the toast already reports the failure. */
-  .animate-login-drift-a, .animate-login-drift-b { display: none; }
+  /* Login page: drop the error shake — the toast already reports the
+     failure. */
   .animate-login-shake { animation: none !important; }
 }
 /* ── Admin login ambient effects ──
    Lives here (not in a page <style jsx> block) so the keyframes ship in
    the CSS chunk and apply before hydration; hero-rise etc. set the
    precedent for global keyframes. */
-@keyframes login-drift-a {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(24px, 20px) scale(1.06); }
-}
-@keyframes login-drift-b {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-20px, -24px) scale(1.08); }
-}
-.animate-login-drift-a { animation: login-drift-a 14s ease-in-out infinite; }
-.animate-login-drift-b { animation: login-drift-b 18s ease-in-out infinite; }
 @keyframes login-shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-5px); }

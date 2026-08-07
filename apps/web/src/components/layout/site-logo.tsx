@@ -24,11 +24,12 @@ type SiteLogoProps = {
   /**
    * Render the mark inside an opaque tile (muted background + hairline
    * ring) that stands off any page background. The mark fills the tile
-   * edge-to-edge and carries its own rounded-lg, so it reads as rounded
-   * in both themes — an opaque square PNG gets rounded corners, and a
-   * rounded/transparent PNG shows the muted tile behind its corners
-   * instead of bleeding the page background through (e.g. black corner
-   * triangles on a dark footer).
+   * edge-to-edge and inherits the tile's corner radius (rounded-[inherit]),
+   * so it reads as rounded in both themes — an opaque square PNG gets
+   * rounded corners, and a rounded/transparent PNG shows the muted tile
+   * behind its corners instead of bleeding the page background through
+   * (e.g. black corner triangles on a dark footer). Pass a rounded-*
+   * in className to set the radius for both tile and mark.
    */
   chip?: boolean
 }
@@ -91,7 +92,7 @@ export function SiteLogo({
       src={renderedSrc}
       alt={alt}
       className={cn(
-        chip ? "size-full rounded-lg object-cover" : "object-contain",
+        chip ? "size-full rounded-[inherit] object-cover" : "object-contain",
         !chip && className
       )}
       style={needsInvert ? { filter: "invert(1)" } : undefined}

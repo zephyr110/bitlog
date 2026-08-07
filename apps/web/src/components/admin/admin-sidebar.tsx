@@ -106,11 +106,11 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
       {/* Logo — matches admin header height (h-14) */}
       <div
         className={cn(
-          "flex h-14 shrink-0 items-center px-2 transition-all",
-          collapsed && "justify-center"
+          "flex h-14 shrink-0 items-center transition-all",
+          collapsed ? "justify-center px-2" : "px-3"
         )}
       >
-        <Link href="/admin/dashboard" className="flex min-w-0 items-center gap-2">
+        <Link href="/admin/dashboard" className="flex min-w-0 items-center gap-2.5">
           <SiteLogo
             src={logoSrc}
             invertInDark={site.logoInvertInDark ?? true}
@@ -129,8 +129,10 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
           CTA so it stays distinct from rounded-md nav items. */}
       <div
         className={cn(
-          "shrink-0 px-2 pb-2",
-          collapsed && "mb-2 flex flex-col gap-1 border-b border-sidebar-border"
+          "shrink-0",
+          collapsed
+            ? "mb-1 flex flex-col items-center gap-2 border-b border-sidebar-border px-2 pb-3"
+            : "px-3 pb-4 pt-1"
         )}
       >
         {collapsed ? (
@@ -141,7 +143,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                   <Link
                     href="/admin/posts/new"
                     aria-label={t("admin.newPost")}
-                    className="mx-auto flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                    className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                   >
                     <SquarePen size={16} />
                   </Link>
@@ -158,7 +160,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                     href="/"
                     target="_blank"
                     aria-label={t("admin.viewBlog")}
-                    className="flex h-8 w-full items-center justify-center rounded-md text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    className="flex size-9 items-center justify-center rounded-md text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   >
                     <ExternalLink size={16} />
                   </Link>
@@ -170,10 +172,10 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
             </Tooltip>
           </>
         ) : (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <Link
               href="/admin/posts/new"
-              className="inline-flex h-8 flex-1 items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <SquarePen size={16} />
               <span className="truncate">{t("admin.newPost")}</span>
@@ -185,7 +187,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                     href="/"
                     target="_blank"
                     aria-label={t("admin.viewBlog")}
-                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-sidebar-border text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-sidebar-border text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   >
                     <ExternalLink size={16} />
                   </Link>
@@ -199,14 +201,19 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
         )}
       </div>
 
-      {/* Navigation — SidebarMenuButton rhythm: h-8, gap-2, rounded-md */}
-      <div className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
+      {/* Navigation */}
+      <div
+        className={cn(
+          "flex flex-1 flex-col overflow-y-auto",
+          collapsed ? "gap-2 px-2 py-2" : "gap-2 px-3 py-1"
+        )}
+      >
         {!collapsed && (
-          <p className="px-2 text-xs font-medium text-sidebar-foreground/70">
+          <p className="mb-1 px-2.5 text-xs font-medium tracking-wide text-sidebar-foreground/55">
             {t("admin.menu")}
           </p>
         )}
-        <nav className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-1.5">
         {sidebarLinks.map((link) => {
           const Icon = link.icon
           const isActive =
@@ -221,8 +228,10 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
               aria-current={isActive ? "page" : undefined}
               aria-label={collapsed ? (t(link.i18nKey) as string) : undefined}
               className={cn(
-                "flex h-8 items-center gap-2 rounded-md px-2 text-sm transition-colors",
-                collapsed && "justify-center px-0",
+                "flex items-center rounded-lg text-sm transition-colors",
+                collapsed
+                  ? "h-9 justify-center px-0"
+                  : "h-9 gap-2.5 px-2.5",
                 isActive
                   ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
                   : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
@@ -269,12 +278,12 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
       </div>
 
       {/* Footer — user menu trigger */}
-      <div className="shrink-0 p-2">
+      <div className={cn("shrink-0", collapsed ? "p-2" : "p-3 pt-2")}>
         <DropdownMenu>
           <DropdownMenuTrigger
             className={cn(
-              "group flex w-full items-center gap-2 rounded-md outline-none transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-              collapsed ? "justify-center p-1.5" : "px-2 py-1.5"
+              "group flex w-full items-center gap-2.5 rounded-lg outline-none transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+              collapsed ? "justify-center p-1.5" : "px-2.5 py-2"
             )}
           >
             <Avatar className="size-8 shrink-0">

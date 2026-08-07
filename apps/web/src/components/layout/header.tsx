@@ -74,17 +74,14 @@ export function Header({ categories }: { categories: NavCategory[] }) {
             <SiteLogo
               src={logoSrc}
               invertInDark={site.logoInvertInDark ?? true}
-              className="size-9"
+              className="size-10"
               chip
             />
             <span className="hidden font-black text-lg sm:inline">{site.name}</span>
           </Link>
 
-          {/* Right: Search · 首页 · 分类 · 归档 · 关于 · | · 主题 · 语言 · GitHub */}
+          {/* Right: 首页 · 分类 · 归档 · 关于 · | · 搜索 · 主题 · 语言 · GitHub · ☰ */}
           <div className="flex items-center gap-1">
-
-            {/* Search */}
-            <SearchInput />
 
             {/* ── Text links with polished active/hover states ── */}
 
@@ -165,16 +162,21 @@ export function Header({ categories }: { categories: NavCategory[] }) {
             {/* Separator */}
             <span className="mx-2 h-4 w-px bg-border/60 hidden md:block" aria-hidden="true" />
 
+            {/* Search — a tool, grouped with the icon buttons rather
+                than the nav links */}
+            <SearchInput />
+
             {/* Icon buttons */}
             <ThemeToggle />
             <LanguageSwitcher />
 
-            {/* GitHub */}
+            {/* GitHub — hidden on small screens to leave room for the
+                hamburger; reachable from the footer / mobile nav */}
             <a
               href={githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground"
+              className="hidden sm:inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground"
               aria-label="GitHub"
             >
               <GithubIcon size={18} />

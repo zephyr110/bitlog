@@ -24,7 +24,7 @@ const pageMeta: Record<
   "/admin/posts/new": { titleKey: "admin.newPost" },
   "/admin/posts/edit": { titleKey: "admin.editPost" },
   "/admin/media": { titleKey: "admin.media", descKey: "admin.mediaDesc" },
-  "/admin/comments": { titleKey: "admin.commentsPage" },
+  "/admin/comments": { titleKey: "admin.commentsPage", descKey: "admin.commentsDesc" },
   "/admin/settings": { titleKey: "admin.settings", descKey: "admin.settingsDesc" },
 }
 
@@ -111,18 +111,30 @@ export default function AdminLayout({
             onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
           />
           {meta && (
-            <div className="min-w-0 leading-tight">
-              <div className="flex items-center gap-2 min-w-0">
-                <h1 className="text-base font-semibold tracking-tight truncate">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <h1 className="truncate text-lg font-semibold tracking-tight md:text-xl">
+                  {/* titleKey/descKey are TranslationPath (union of all
+                      leaves); t() therefore returns string | function.
+                      pageMeta only stores string keys — narrow for JSX. */}
                   {t(meta.titleKey) as string}
                 </h1>
                 {/* Optional adornment beside the title (e.g. view-live link) */}
-                <div id="admin-header-title-extra" className="min-w-0 shrink-0 empty:hidden" />
+                <div
+                  id="admin-header-title-extra"
+                  className="min-w-0 shrink-0 empty:hidden"
+                />
               </div>
               {meta.descKey && (
-                <p className="hidden sm:block text-xs text-muted-foreground truncate mt-0.5">
-                  {t(meta.descKey) as string}
-                </p>
+                <>
+                  <span
+                    aria-hidden
+                    className="hidden h-4 w-px shrink-0 bg-border sm:block"
+                  />
+                  <p className="hidden min-w-0 truncate text-sm text-muted-foreground sm:block">
+                    {t(meta.descKey) as string}
+                  </p>
+                </>
               )}
             </div>
           )}

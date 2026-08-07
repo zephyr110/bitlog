@@ -11,7 +11,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -179,18 +178,19 @@ export default function AdminCommentsPage() {
             {comments.map((comment) => (
               <Card
                 key={comment.id}
+                size="sm"
                 className={cn(
                   "transition-colors",
                   !comment.isRead && "bg-primary/[0.03] ring-primary/30"
                 )}
               >
-                <CardHeader className="flex flex-row items-center gap-3">
+                <CardHeader className="flex flex-row flex-wrap items-center gap-3">
                   <CommentAvatar
                     commentId={comment.id}
                     name={comment.authorName || "Anonymous"}
                     size="default"
                   />
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 basis-32">
                     <div className="flex items-center gap-2">
                       <CardTitle
                         className={cn(
@@ -213,7 +213,7 @@ export default function AdminCommentsPage() {
                         />
                       )}
                     </div>
-                    <CardDescription className="text-xs">
+                    <CardDescription className="mt-0.5 text-xs">
                       {new Date(comment.createdAt).toLocaleString(undefined, {
                         year: "numeric",
                         month: "short",
@@ -223,9 +223,41 @@ export default function AdminCommentsPage() {
                       })}
                     </CardDescription>
                   </div>
+                  {/* Status / delete live in the header corner so the
+                      body reads author → comment → context without a
+                      full-width action band. On narrow panes the
+                      actions wrap to their own row (basis-full). */}
+                  <div className="ml-auto flex shrink-0 items-center gap-1 max-sm:basis-full max-sm:justify-end">
+                    {comment.isRead ? (
+                      <span className="inline-flex items-center gap-1 px-1 text-xs text-muted-foreground/70">
+                        <Check size={13} />
+                        {t("admin.commentRead")}
+                      </span>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => void markRead(comment.id)}
+                        disabled={busyId === comment.id}
+                      >
+                        <Check size={14} className="mr-1.5" />
+                        {t("admin.markRead")}
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => void remove(comment.id)}
+                      disabled={busyId === comment.id}
+                    >
+                      <Trash2 size={14} className="mr-1.5" />
+                      {t("admin.delete")}
+                    </Button>
+                  </div>
                 </CardHeader>
 
-                <CardContent className="flex flex-col gap-3">
+                <CardContent className="flex flex-col gap-2.5">
                   {comment.parentName != null && (
                     <div className="flex items-center gap-1.5 border-l-2 border-foreground/10 pl-2.5 text-xs text-muted-foreground">
                       <Reply size={12} className="shrink-0" />
@@ -239,7 +271,7 @@ export default function AdminCommentsPage() {
                     {comment.content}
                   </p>
 
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-border/50 pt-2.5 text-xs text-muted-foreground/80">
                     <Link
                       href={`/posts/${encodeURIComponent(comment.postSlug)}`}
                       className="inline-flex min-w-0 items-center gap-1.5 text-primary hover:underline"
@@ -248,42 +280,13 @@ export default function AdminCommentsPage() {
                       <span className="truncate">{comment.postSlug}</span>
                     </Link>
                     {comment.authorEmail && (
-                      <span className="inline-flex min-w-0 items-center gap-1.5 text-muted-foreground/80">
+                      <span className="inline-flex min-w-0 items-center gap-1.5">
                         <Mail size={12} className="shrink-0" />
                         <span className="truncate">{comment.authorEmail}</span>
                       </span>
                     )}
                   </div>
                 </CardContent>
-
-                <CardFooter className="justify-end gap-2 bg-transparent">
-                  {!comment.isRead ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => void markRead(comment.id)}
-                      disabled={busyId === comment.id}
-                    >
-                      <Check size={14} className="mr-1.5" />
-                      {t("admin.markRead")}
-                    </Button>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/70">
-                      <Check size={13} />
-                      {t("admin.commentRead")}
-                    </span>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => void remove(comment.id)}
-                    disabled={busyId === comment.id}
-                  >
-                    <Trash2 size={14} className="mr-1.5" />
-                    {t("admin.delete")}
-                  </Button>
-                </CardFooter>
               </Card>
             ))}
           </div>
