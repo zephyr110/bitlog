@@ -7,7 +7,14 @@ import { apiFetch } from "@/lib/api-client"
 import { useCommentUnread } from "@/components/admin/comment-unread"
 import { useT } from "@/components/layout/trans"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { CommentInboxCardSkeleton } from "@/components/ui/loading"
 import { EmptyState } from "@/components/ui/empty-state"
 import { PaginationBar } from "@/components/admin/pagination-bar"
@@ -154,7 +161,7 @@ export default function AdminCommentsPage() {
               the live cards so the swap causes no layout shift. The
               second card shows the thread-context line (unread-first
               ordering keeps threads co-located). */}
-          <div className="space-y-3">
+          <div className="flex flex-col gap-4">
             {[0, 1, 2].map((i) => (
               <CommentInboxCardSkeleton key={i} withThread={i === 1} />
             ))}
@@ -170,77 +177,71 @@ export default function AdminCommentsPage() {
         </div>
       ) : (
         <>
-          <div className="min-h-0 flex-1 space-y-3">
+          <div className="flex min-h-0 flex-1 flex-col gap-4">
             {comments.map((comment) => (
               <Card
                 key={comment.id}
                 className={cn(
                   "transition-colors",
-                  !comment.isRead && "border-primary/30 bg-primary/[0.03]"
+                  !comment.isRead && "bg-primary/[0.03] ring-primary/30"
                 )}
               >
-                <CardContent className="p-4">
-                  {/* Author header — avatar, name, unread dot, time */}
-                  <div className="flex items-center gap-3">
-                    <CommentAvatar
-                      commentId={comment.id}
-                      name={comment.authorName || "Anonymous"}
-                      size="default"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "truncate",
-                            comment.isRead
-                              ? "font-semibold text-muted-foreground"
-                              : "font-bold"
-                          )}
-                        >
-                          {/* Raw stored name — the Anonymous_<hex> suffix
-                              is what lets the admin tell nameless
-                              visitors apart; only the public page folds
-                              it to "Anonymous". */}
-                          {comment.authorName || "Anonymous"}
-                        </span>
-                        {!comment.isRead && (
-                          <span
-                            aria-hidden
-                            className="size-1.5 shrink-0 rounded-full bg-primary"
-                          />
+                <CardHeader className="flex flex-row items-center gap-3">
+                  <CommentAvatar
+                    commentId={comment.id}
+                    name={comment.authorName || "Anonymous"}
+                    size="default"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <CardTitle
+                        className={cn(
+                          "truncate text-sm",
+                          comment.isRead
+                            ? "font-semibold text-muted-foreground"
+                            : "font-bold"
                         )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(comment.createdAt).toLocaleString(undefined, {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
+                      >
+                        {/* Raw stored name — the Anonymous_<hex> suffix
+                            is what lets the admin tell nameless
+                            visitors apart; only the public page folds
+                            it to "Anonymous". */}
+                        {comment.authorName || "Anonymous"}
+                      </CardTitle>
+                      {!comment.isRead && (
+                        <span
+                          aria-hidden
+                          className="size-1.5 shrink-0 rounded-full bg-primary"
+                        />
+                      )}
                     </div>
+                    <CardDescription className="text-xs">
+                      {new Date(comment.createdAt).toLocaleString(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </CardDescription>
                   </div>
+                </CardHeader>
 
-                  {/* Thread context */}
+                <CardContent className="flex flex-col gap-3">
                   {comment.parentName != null && (
-                    <div className="mt-2.5 flex items-center gap-1.5 border-l-2 border-foreground/10 pl-2.5 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5 border-l-2 border-foreground/10 pl-2.5 text-xs text-muted-foreground">
                       <Reply size={12} className="shrink-0" />
                       <span className="truncate">
-                        {t("post.commentReplyingTo")(
-                          comment.parentName
-                        )}
+                        {t("post.commentReplyingTo")(comment.parentName)}
                       </span>
                     </div>
                   )}
 
-                  {/* Content */}
-                  <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                     {comment.content}
                   </p>
 
-                  {/* Source — post link + email */}
-                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
                     <Link
                       href={`/posts/${encodeURIComponent(comment.postSlug)}`}
                       className="inline-flex min-w-0 items-center gap-1.5 text-primary hover:underline"
@@ -255,37 +256,36 @@ export default function AdminCommentsPage() {
                       </span>
                     )}
                   </div>
+                </CardContent>
 
-                  {/* Actions */}
-                  <div className="mt-3 flex items-center justify-end gap-2 border-t pt-3">
-                    {!comment.isRead ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => void markRead(comment.id)}
-                        disabled={busyId === comment.id}
-                      >
-                        <Check size={14} className="mr-1.5" />
-                        {t("admin.markRead")}
-                      </Button>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/70">
-                        <Check size={13} />
-                        {t("admin.commentRead")}
-                      </span>
-                    )}
+                <CardFooter className="justify-end gap-2 bg-transparent">
+                  {!comment.isRead ? (
                     <Button
                       size="sm"
-                      variant="ghost"
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => void remove(comment.id)}
+                      variant="outline"
+                      onClick={() => void markRead(comment.id)}
                       disabled={busyId === comment.id}
                     >
-                      <Trash2 size={14} className="mr-1.5" />
-                      {t("admin.delete")}
+                      <Check size={14} className="mr-1.5" />
+                      {t("admin.markRead")}
                     </Button>
-                  </div>
-                </CardContent>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/70">
+                      <Check size={13} />
+                      {t("admin.commentRead")}
+                    </span>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => void remove(comment.id)}
+                    disabled={busyId === comment.id}
+                  >
+                    <Trash2 size={14} className="mr-1.5" />
+                    {t("admin.delete")}
+                  </Button>
+                </CardFooter>
               </Card>
             ))}
           </div>

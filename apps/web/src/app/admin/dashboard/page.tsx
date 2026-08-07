@@ -83,8 +83,8 @@ export default function AdminDashboardPage() {
     // columns, card chrome, and content heights so the swap to real data
     // causes no layout shift.
     return (
-      <div className="space-y-8">
-        <section className="space-y-4">
+      <div className="flex flex-col gap-6">
+        <section className="flex flex-col gap-4">
           <Skeleton className="h-7 w-32" />
 
           {/* Stat cards — same 5-up grid as the loaded view */}
@@ -92,13 +92,13 @@ export default function AdminDashboardPage() {
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-xl bg-card ring-1 ring-foreground/10"
+                className="flex flex-col gap-4 rounded-xl bg-card py-4 ring-1 ring-foreground/10"
               >
-                <div className="flex items-start justify-between p-4 pb-2">
+                <div className="flex items-start justify-between px-4">
                   <Skeleton className="h-4 w-16" />
                   <Skeleton className="size-8 rounded-lg" />
                 </div>
-                <div className="p-4 pt-0">
+                <div className="px-4">
                   <Skeleton className="h-9 w-10" />
                 </div>
               </div>
@@ -106,16 +106,16 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Contribution calendar card */}
-          <div className="rounded-xl bg-card ring-1 ring-foreground/10">
-            <div className="p-4 pb-3">
+          <div className="flex flex-col gap-4 rounded-xl bg-card py-4 ring-1 ring-foreground/10">
+            <div className="px-4">
               <Skeleton className="h-5 w-28" />
             </div>
-            <div className="p-4 pt-0">
-              <div className="mb-3 flex justify-end">
+            <div className="flex flex-col gap-3 px-4">
+              <div className="flex justify-end">
                 <Skeleton className="h-8 w-36 rounded-md" />
               </div>
               <Skeleton className="h-[118px] w-full" />
-              <div className="mt-2.5 flex items-center justify-end gap-1.5">
+              <div className="flex items-center justify-end gap-1.5">
                 <Skeleton className="h-2.5 w-8" />
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Skeleton key={i} className="size-2.5 rounded-[3px]" />
@@ -127,17 +127,17 @@ export default function AdminDashboardPage() {
         </section>
 
         {/* Charts — same 2-up grid, 240px plot area as the loaded view */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {[0, 1].map((i) => (
             <div
               key={i}
-              className="rounded-xl bg-card ring-1 ring-foreground/10"
+              className="flex flex-col gap-4 rounded-xl bg-card py-4 ring-1 ring-foreground/10"
             >
-              <div className="flex items-center justify-between p-4 pb-0">
+              <div className="flex items-center justify-between px-4">
                 <Skeleton className="h-5 w-36" />
                 <Skeleton className="h-7 w-28 rounded-md" />
               </div>
-              <div className="p-4">
+              <div className="px-4">
                 <Skeleton className="h-[240px] w-full" />
               </div>
             </div>
@@ -145,18 +145,18 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent posts — section header + list */}
-        <div>
-          <div className="mb-4 flex items-center justify-between">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
             <Skeleton className="h-7 w-32" />
             <Skeleton className="h-4 w-16" />
           </div>
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between rounded-xl bg-card p-4 ring-1 ring-foreground/10"
+                className="flex items-center justify-between rounded-xl bg-card px-4 py-4 ring-1 ring-foreground/10"
               >
-                <div className="min-w-0 space-y-2">
+                <div className="flex min-w-0 flex-col gap-2">
                   <Skeleton className="h-4 w-48" />
                   <Skeleton className="h-3 w-36" />
                 </div>
@@ -170,9 +170,9 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-6">
       {/* Statistics — stat cards + contribution calendar */}
-      <section className="space-y-4">
+      <section className="flex flex-col gap-4">
         <h2 className="text-xl font-semibold">
           {t("admin.statistics")}
         </h2>
@@ -181,7 +181,7 @@ export default function AdminDashboardPage() {
             const Icon = stat.icon
             const inner = (
               <>
-                <CardHeader className="pb-2">
+                <CardHeader>
                   <CardTitle className="text-sm font-medium text-muted-foreground">
                     {stat.label}
                   </CardTitle>
@@ -226,7 +226,7 @@ export default function AdminDashboardPage() {
 
         {/* Contribution calendar — full width */}
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader>
             <CardTitle className="text-base">
               {t("admin.postsCalendar")}
             </CardTitle>
@@ -241,8 +241,8 @@ export default function AdminDashboardPage() {
       <PostStats posts={posts} />
 
       {/* Recent Posts */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">
             {t("admin.recentPosts")}
           </h2>
@@ -269,13 +269,13 @@ export default function AdminDashboardPage() {
             }
           />
         ) : (
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             {posts.slice(0, 5).map((post) => (
               <Card
                 key={post.slug}
                 className="hover:border-primary/10 transition-colors"
               >
-                <CardContent className="flex items-center justify-between py-4">
+                <CardContent className="flex items-center justify-between">
                   <div className="min-w-0">
                     <Link
                       href={`/admin/posts/edit?slug=${encodeURIComponent(
