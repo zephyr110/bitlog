@@ -18,6 +18,7 @@ import {
 import { CommentInboxCardSkeleton } from "@/components/ui/loading"
 import { EmptyState } from "@/components/ui/empty-state"
 import { PaginationBar } from "@/components/admin/pagination-bar"
+import { HeaderActions } from "@/components/admin/header-actions"
 import { CommentAvatar } from "@/components/blog/comment-avatar"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -144,16 +145,13 @@ export default function AdminCommentsPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">
-          {t("admin.commentsPage")}
-        </h2>
-        {unreadCount > 0 && (
+      {unreadCount > 0 && (
+        <HeaderActions>
           <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
-            {(t("admin.unreadComments"))} · {unreadCount}
+            {t("admin.unreadComments")} · {unreadCount}
           </span>
-        )}
-      </div>
+        </HeaderActions>
+      )}
 
       {loading ? (
         <div className="min-h-0 flex-1">

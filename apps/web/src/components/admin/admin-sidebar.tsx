@@ -99,41 +99,38 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed top-0 left-0 h-full border-r border-sidebar-border bg-sidebar flex flex-col transition-all duration-300 z-40",
+        "fixed top-0 left-0 z-40 flex h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-300",
         collapsed ? "w-[4.5rem]" : "w-64"
       )}
     >
-      {/* Logo — clean header, no border/subtitle (shadcn dashboard-01 style) */}
+      {/* Logo — matches admin header height (h-14) */}
       <div
         className={cn(
-          "h-14 flex items-center shrink-0 transition-all",
-          collapsed ? "justify-center px-3" : "px-4"
+          "flex h-14 shrink-0 items-center px-2 transition-all",
+          collapsed && "justify-center"
         )}
       >
-        <Link href="/admin/dashboard" className="flex items-center gap-2.5 min-w-0">
+        <Link href="/admin/dashboard" className="flex min-w-0 items-center gap-2">
           <SiteLogo
             src={logoSrc}
             invertInDark={site.logoInvertInDark ?? true}
-            className="size-9 shrink-0"
+            className="size-8 shrink-0"
             chip
           />
           {!collapsed && (
-            <span className="font-black text-base tracking-tight truncate">{site.name}</span>
+            <span className="truncate text-base font-semibold tracking-tight">
+              {site.name}
+            </span>
           )}
         </Link>
       </div>
 
-      {/* Primary action — dashboard-01 "Quick Create" style: solid CTA
-          plus a bordered icon button for the public site. Collapsed: the
-          CTA becomes a circle (action affordance) so it can't be confused
-          with the rounded-square nav items, and a divider separates the
-          action group from navigation. */}
+      {/* Primary action — solid CTA + view-site control. Collapsed: circle
+          CTA so it stays distinct from rounded-md nav items. */}
       <div
         className={cn(
-          "shrink-0",
-          collapsed
-            ? "space-y-1 px-2.5 pb-3 mb-2 border-b border-sidebar-border/60"
-            : "px-3 pb-3"
+          "shrink-0 px-2 pb-2",
+          collapsed && "mb-2 flex flex-col gap-1 border-b border-sidebar-border"
         )}
       >
         {collapsed ? (
@@ -144,7 +141,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                   <Link
                     href="/admin/posts/new"
                     aria-label={t("admin.newPost")}
-                    className="mx-auto flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-all hover:bg-primary/85 hover:scale-105"
+                    className="mx-auto flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                   >
                     <SquarePen size={16} />
                   </Link>
@@ -161,7 +158,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                     href="/"
                     target="_blank"
                     aria-label={t("admin.viewBlog")}
-                    className="flex w-full items-center justify-center rounded-lg py-2.5 text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                    className="flex h-8 w-full items-center justify-center rounded-md text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   >
                     <ExternalLink size={16} />
                   </Link>
@@ -176,7 +173,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
           <div className="flex items-center gap-2">
             <Link
               href="/admin/posts/new"
-              className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85"
+              className="inline-flex h-8 flex-1 items-center justify-center gap-2 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <SquarePen size={16} />
               <span className="truncate">{t("admin.newPost")}</span>
@@ -188,7 +185,7 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
                     href="/"
                     target="_blank"
                     aria-label={t("admin.viewBlog")}
-                    className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-sidebar-border text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-sidebar-border text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   >
                     <ExternalLink size={16} />
                   </Link>
@@ -202,14 +199,14 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
         )}
       </div>
 
-      {/* Navigation */}
-      <div className={cn("flex-1 overflow-y-auto py-2", collapsed ? "px-2.5" : "px-3")}>
+      {/* Navigation — SidebarMenuButton rhythm: h-8, gap-2, rounded-md */}
+      <div className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
         {!collapsed && (
-          <p className="px-3 mb-1 text-xs font-medium text-sidebar-foreground/50">
+          <p className="px-2 text-xs font-medium text-sidebar-foreground/70">
             {t("admin.menu")}
           </p>
         )}
-        <nav className="space-y-1">
+        <nav className="flex flex-col gap-1">
         {sidebarLinks.map((link) => {
           const Icon = link.icon
           const isActive =
@@ -221,25 +218,18 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
             <Link
               key={link.href}
               href={link.href}
+              aria-current={isActive ? "page" : undefined}
               aria-label={collapsed ? (t(link.i18nKey) as string) : undefined}
               className={cn(
-                "group flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-200",
-                collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2.5",
+                "flex h-8 items-center gap-2 rounded-md px-2 text-sm transition-colors",
+                collapsed && "justify-center px-0",
                 isActive
-                  ? "bg-sidebar-primary/10 text-sidebar-primary"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                  ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               )}
             >
               <span className={cn("relative", collapsed && "shrink-0")}>
-                <Icon
-                  size={18}
-                  className={cn(
-                    "shrink-0 transition-colors",
-                    isActive
-                      ? "text-sidebar-primary"
-                      : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground"
-                  )}
-                />
+                <Icon size={16} className="shrink-0" />
                 {/* Unread badge — collapsed mode shows a dot, expanded a
                     count pill, both only while there's something new. */}
                 {isCommentsLink && unreadComments > 0 && collapsed && (
@@ -278,31 +268,31 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
         </nav>
       </div>
 
-      {/* Footer — borderless user card (dashboard-01 style) */}
-      <div className={cn("shrink-0", collapsed ? "p-2.5" : "p-3")}>
-        {/* Avatar Menu */}
+      {/* Footer — user menu trigger */}
+      <div className="shrink-0 p-2">
         <DropdownMenu>
           <DropdownMenuTrigger
             className={cn(
-              "group flex items-center gap-3 rounded-xl hover:bg-sidebar-accent/70 w-full outline-none focus:ring-0 transition-all duration-200 border border-transparent hover:border-sidebar-border",
-              collapsed ? "justify-center px-0 py-2" : "px-2 py-2"
+              "group flex w-full items-center gap-2 rounded-md outline-none transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+              collapsed ? "justify-center p-1.5" : "px-2 py-1.5"
             )}
           >
-            <div className="shrink-0">
-              <Avatar className="size-9 ring-2 ring-sidebar-border transition-shadow group-hover:ring-primary/20">
-                <AvatarFallback className="bg-gradient-to-br from-primary/25 via-primary/15 to-primary/5 text-primary font-semibold text-xs">
-                  A
-                </AvatarFallback>
-              </Avatar>
-            </div>
+            <Avatar className="size-8 shrink-0">
+              <AvatarFallback className="bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground">
+                A
+              </AvatarFallback>
+            </Avatar>
             {!collapsed && (
               <>
                 {/* Just the username — the author name and role badge live
                     in the menu, where there is room for them. */}
-                <div className="flex-1 text-left min-w-0 leading-tight">
-                  <p className="text-sm font-semibold truncate">{user.username}</p>
+                <div className="min-w-0 flex-1 text-left leading-tight">
+                  <p className="truncate text-sm font-medium">{user.username}</p>
                 </div>
-                <ChevronRight size={14} className="text-sidebar-foreground/50 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-90" />
+                <ChevronRight
+                  size={14}
+                  className="shrink-0 text-sidebar-foreground/70 transition-transform duration-200 group-data-[state=open]:rotate-90"
+                />
               </>
             )}
           </DropdownMenuTrigger>
@@ -316,8 +306,8 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
             {/* User info card */}
             <div className="rounded-lg bg-muted/50 px-3 py-2.5">
               <div className="flex items-center gap-2.5">
-                <Avatar className="size-10 ring-2 ring-border shrink-0">
-                  <AvatarFallback className="bg-gradient-to-br from-primary/30 via-primary/20 to-primary/5 text-primary font-semibold text-sm">
+                <Avatar className="size-10 shrink-0">
+                  <AvatarFallback className="bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
                     A
                   </AvatarFallback>
                 </Avatar>
@@ -453,8 +443,8 @@ export function AdminSidebarTrigger({
             size="sm"
             onClick={onToggle}
             aria-label={label}
-            // Always-on muted background block; deepens on hover.
-            className="bg-muted/70 hover:bg-muted"
+            // Always-on muted background; deepens on hover.
+            className="bg-muted hover:bg-muted/80"
           >
             <PanelLeft size={16} />
           </IconButton>
