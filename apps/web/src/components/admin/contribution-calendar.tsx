@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect, useRef, useLayoutEffect } from "react"
+import { useMemo, useState, useEffect, useRef } from "react"
 import { useT } from "@/components/layout/trans"
 import { useLocale } from "@/components/layout/i18n-provider"
 import {
@@ -42,6 +42,9 @@ interface TooltipState {
   x: number
   /** Top of the tooltip (cell top − gap), relative to the container. */
   y: number
+  /** Horizontal alignment — flips near the edges so the card's
+      overflow-hidden never clips the bubble. */
+  align: "left" | "center" | "right"
 }
 
 /** Calendar window: either the rolling past year or a specific year. */
@@ -97,20 +100,6 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [selectedYear, setSelectedYear] = useState<number | null>(null) // null = past year
   const containerRef = useRef<HTMLDivElement>(null)
-  const tipRef = useRef<HTMLDivElement>(null)
-  const [tipShift, setTipShift] = useState(0)
-
-  // Clamp the tooltip inside the grid: without this, hovering the first /
-  // last week column pushes the -translate-x-1/2 bubble past the container
-  // edge and the card clips it. Measured after render so we know its width.
-  useLayoutEffect(() => {
-    if (!tooltip || !containerRef.current || !tipRef.current) return
-    const half = tipRef.current.offsetWidth / 2
-    const max = containerRef.current.clientWidth
-    const pad = 4
-    const clamped = Math.min(Math.max(tooltip.x, half + pad), max - half - pad)
-    setTipShift(clamped - tooltip.x)
-  }, [tooltip])
 
   useEffect(() => {
     setMounted(true) // eslint-disable-line react-hooks/set-state-in-effect
@@ -256,12 +245,22 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
                         containerRef.current?.getBoundingClientRect()
                       const originX = containerRect ? containerRect.left : 0
                       const originY = containerRect ? containerRect.top : 0
-                      setTipShift(0)
+                      const x = rect.left - originX + rect.width / 2
+                      const width = containerRect?.width ?? 0
+                      // Flip alignment near the edges so the bubble stays
+                      // inside the card (which is overflow-hidden).
+                      const align =
+                        x < width * 0.18
+                          ? "left"
+                          : x > width * 0.82
+                            ? "right"
+                            : "center"
                       setTooltip({
                         date: cell.key,
                         count: cell.count,
-                        x: rect.left - originX + rect.width / 2,
+                        x,
                         y: rect.top - originY - 8,
+                        align,
                       })
                     }}
                     onMouseLeave={() => setTooltip(null)}
@@ -280,16 +279,17 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
         </div>
 
         {/* Tooltip — styled like the shadcn chart tooltip: label (date)
-            on top, value row below, theme-aware surface. */}
+            on top, value row below, theme-aware surface. Anchored by
+            alignment so the card's overflow-hidden can't clip it. */}
         {tooltip && (
           <div
-            ref={tipRef}
-            className="pointer-events-none absolute z-20"
-            style={{
-              left: tooltip.x + tipShift,
-              top: tooltip.y,
-              transform: "translate(-50%, -100%)",
-            }}
+            className={cn(
+              "pointer-events-none absolute z-20 -translate-y-full",
+              tooltip.align === "center" && "-translate-x-1/2",
+              tooltip.align === "left" && "-translate-x-1",
+              tooltip.align === "right" && "translate-x-[calc(-100%+4px)]"
+            )}
+            style={{ left: tooltip.x, top: tooltip.y }}
           >
             <div className="grid min-w-32 items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
               <div className="font-medium">
