@@ -189,15 +189,16 @@ export function PostStats({ posts }: PostStatsProps) {
 
   return (
     <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
-      {/* Timeline Chart */}
-      <Card>
-        <CardHeader>
+      {/* Timeline Chart — tighter card chrome: less gap between the
+          title row and the plot area than the default 16px spacing. */}
+      <Card className="gap-2 [--card-spacing:--spacing(4)]">
+        <CardHeader className="pb-0">
           <CardTitle className="text-base">{t("admin.postsOverTime")}</CardTitle>
           <CardAction>
             {renderTimeRangeSelect(timelineRange, setTimelineRange)}
           </CardAction>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {timelineData.length === 0 ? (
             <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">
               {t("admin.noDataForRange")}
@@ -260,15 +261,15 @@ export function PostStats({ posts }: PostStatsProps) {
         </CardContent>
       </Card>
 
-      {/* Topics Chart */}
-      <Card>
-        <CardHeader>
+      {/* Topics Chart — same tightened chrome as the timeline card. */}
+      <Card className="gap-2 [--card-spacing:--spacing(4)]">
+        <CardHeader className="pb-0">
           <CardTitle className="text-base">{t("admin.postsByTopic")}</CardTitle>
           <CardAction>
             {renderTimeRangeSelect(topicRange, setTopicRange)}
           </CardAction>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {topicData.length === 0 ? (
             <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">
               {t("admin.noTopics")}

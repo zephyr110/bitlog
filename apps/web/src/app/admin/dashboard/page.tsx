@@ -126,23 +126,27 @@ export default function AdminDashboardPage() {
           </div>
         </section>
 
-        {/* Charts — same 2-up grid, 240px plot area as the loaded view */}
-        <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
-          {[0, 1].map((i) => (
-            <div
-              key={i}
-              className="flex flex-col gap-4 rounded-xl bg-card py-4 ring-1 ring-foreground/10"
-            >
-              <div className="flex items-center justify-between px-4">
-                <Skeleton className="h-5 w-36" />
-                <Skeleton className="h-7 w-28 rounded-md" />
+        {/* Charts — section title + same 2-up grid, 240px plot area as
+            the loaded view */}
+        <section className="flex flex-col gap-5 md:gap-6">
+          <Skeleton className="h-7 w-28" />
+          <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
+            {[0, 1].map((i) => (
+              <div
+                key={i}
+                className="flex flex-col gap-2 rounded-xl bg-card py-4 ring-1 ring-foreground/10"
+              >
+                <div className="flex items-center justify-between px-4">
+                  <Skeleton className="h-5 w-36" />
+                  <Skeleton className="h-7 w-28 rounded-md" />
+                </div>
+                <div className="px-4">
+                  <Skeleton className="h-[240px] w-full" />
+                </div>
               </div>
-              <div className="px-4">
-                <Skeleton className="h-[240px] w-full" />
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </section>
 
         {/* Recent posts — section header + list */}
         <div className="flex flex-col gap-5">
@@ -238,7 +242,12 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* Charts */}
-      <PostStats posts={posts} />
+      <section className="flex flex-col gap-5 md:gap-6">
+        <h2 className="text-xl font-semibold tracking-tight">
+          {t("admin.insights")}
+        </h2>
+        <PostStats posts={posts} />
+      </section>
 
       {/* Recent Posts */}
       <div className="flex flex-col gap-5">
