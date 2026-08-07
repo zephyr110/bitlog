@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect } from "react"
+import { useMemo, useState, useEffect, useRef, useLayoutEffect } from "react"
 import { useT } from "@/components/layout/trans"
 import { useLocale } from "@/components/layout/i18n-provider"
 import {
@@ -38,8 +38,10 @@ function getLevel(count: number): number {
 interface TooltipState {
   date: string
   count: number
-  left: number
-  top: number
+  /** Center-x of the hovered cell, relative to the grid container. */
+  x: number
+  /** Top of the tooltip (cell top − gap), relative to the container. */
+  y: number
 }
 
 /** Calendar window: either the rolling past year or a specific year. */
@@ -94,6 +96,21 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
   const [mounted, setMounted] = useState(false)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [selectedYear, setSelectedYear] = useState<number | null>(null) // null = past year
+  const containerRef = useRef<HTMLDivElement>(null)
+  const tipRef = useRef<HTMLDivElement>(null)
+  const [tipShift, setTipShift] = useState(0)
+
+  // Clamp the tooltip inside the grid: without this, hovering the first /
+  // last week column pushes the -translate-x-1/2 bubble past the container
+  // edge and the card clips it. Measured after render so we know its width.
+  useLayoutEffect(() => {
+    if (!tooltip || !containerRef.current || !tipRef.current) return
+    const half = tipRef.current.offsetWidth / 2
+    const max = containerRef.current.clientWidth
+    const pad = 4
+    const clamped = Math.min(Math.max(tooltip.x, half + pad), max - half - pad)
+    setTipShift(clamped - tooltip.x)
+  }, [tooltip])
 
   useEffect(() => {
     setMounted(true) // eslint-disable-line react-hooks/set-state-in-effect
@@ -200,7 +217,7 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
         </Select>
       </div>
 
-      <div className="relative">
+      <div className="relative" ref={containerRef}>
         {/* Month labels */}
         <div className="mb-1.5 flex" style={{ gap: CELL_GAP }}>
           {weeks.map((_, i) => {
@@ -235,21 +252,16 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
                     onMouseEnter={(e) => {
                       if (isFuture || cell.count === 0) return
                       const rect = e.currentTarget.getBoundingClientRect()
-                      const container =
-                        e.currentTarget.parentElement?.parentElement
-                      const containerRect = container?.getBoundingClientRect()
+                      const containerRect =
+                        containerRef.current?.getBoundingClientRect()
+                      const originX = containerRect ? containerRect.left : 0
+                      const originY = containerRect ? containerRect.top : 0
+                      setTipShift(0)
                       setTooltip({
                         date: cell.key,
                         count: cell.count,
-                        left:
-                          (containerRect
-                            ? rect.left - containerRect.left
-                            : rect.left) +
-                          rect.width / 2,
-                        top:
-                          rect.top -
-                          (containerRect ? containerRect.top : 0) -
-                          34,
+                        x: rect.left - originX + rect.width / 2,
+                        y: rect.top - originY - 8,
                       })
                     }}
                     onMouseLeave={() => setTooltip(null)}
@@ -267,18 +279,37 @@ export function ContributionCalendar({ posts }: ContributionCalendarProps) {
           ))}
         </div>
 
-        {/* Tooltip */}
+        {/* Tooltip — styled like the shadcn chart tooltip: label (date)
+            on top, value row below, theme-aware surface. */}
         {tooltip && (
           <div
-            className="pointer-events-none absolute z-10 -translate-x-1/2 whitespace-nowrap rounded-md border bg-popover px-2.5 py-1.5 text-xs shadow-lg"
-            style={{ left: tooltip.left, top: tooltip.top }}
+            ref={tipRef}
+            className="pointer-events-none absolute z-20"
+            style={{
+              left: tooltip.x + tipShift,
+              top: tooltip.y,
+              transform: "translate(-50%, -100%)",
+            }}
           >
-            <p className="font-medium">
-              {t("admin.postsOn")(
-                monthFmt.format(new Date(`${tooltip.date}T00:00:00`)),
-                tooltip.count
-              )}
-            </p>
+            <div className="grid min-w-32 items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
+              <div className="font-medium">
+                {monthFmt.format(new Date(`${tooltip.date}T00:00:00`))}
+              </div>
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    "size-2.5 shrink-0 rounded-[2px] border",
+                    LEVEL_CLASSES[getLevel(tooltip.count)]
+                  )}
+                />
+                <span className="text-muted-foreground">
+                  {t("admin.posts")}
+                </span>
+                <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
+                  {tooltip.count}
+                </span>
+              </div>
+            </div>
           </div>
         )}
       </div>
