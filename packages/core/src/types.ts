@@ -7,6 +7,7 @@ export interface Post {
   description: string
   cover?: string
   draft: boolean
+  pinnedAt: string | null
   content: string
   wordCount: number
   readingTime: number
@@ -21,6 +22,7 @@ export interface PostSummary {
   description: string
   cover?: string
   draft: boolean
+  pinnedAt: string | null
   wordCount: number
   readingTime: number
 }
