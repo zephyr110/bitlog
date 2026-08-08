@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS posts (
   description TEXT NOT NULL DEFAULT '',
   cover TEXT,
   draft INTEGER NOT NULL DEFAULT 0,
+  pinned_at TEXT,
   content TEXT NOT NULL DEFAULT '',
   word_count INTEGER NOT NULL DEFAULT 0,
   reading_time INTEGER NOT NULL DEFAULT 0,
@@ -47,6 +48,13 @@ async function ensureTable(db: Client): Promise<void> {
   if (!tableReady) {
     tableReady = (async () => {
       await db.executeMultiple(SCHEMA)
+      // Migrate existing DBs that predate pinned_at.
+      try {
+        await db.execute("ALTER TABLE posts ADD COLUMN pinned_at TEXT")
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        if (!/duplicate column/i.test(msg)) throw err
+      }
     })().catch((err) => {
       tableReady = null // reset on failure so next call retries
       throw err
@@ -73,6 +81,7 @@ function rowToPost(row: any): Post {
     description: row.description,
     cover: row.cover ?? undefined,
     draft: Boolean(row.draft),
+    pinnedAt: (row.pinned_at as string | null) ?? null,
     content: row.content,
     wordCount: row.word_count,
     readingTime: row.reading_time,
@@ -89,6 +98,7 @@ function toParams(post: Post) {
     description: post.description,
     cover: post.cover ?? null,
     draft: post.draft ? 1 : 0,
+    pinned_at: post.pinnedAt,
     content: post.content,
     word_count: post.wordCount,
     reading_time: post.readingTime,
@@ -177,9 +187,12 @@ export async function savePost(
   }
 
   const p = toParams(post)
+  // pinned_at is written on INSERT only. Updates must not touch it — pin /
+  // unpin goes through setPostPinned, and editor/auto-save RMW must not
+  // clobber a newer pin with a stale null from a prior read.
   await db.execute({
-    sql: `INSERT INTO posts (slug, title, date, updated, tags, description, cover, draft, content, word_count, reading_time)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    sql: `INSERT INTO posts (slug, title, date, updated, tags, description, cover, draft, pinned_at, content, word_count, reading_time)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(slug) DO UPDATE SET
             title=excluded.title, date=excluded.date, updated=excluded.updated,
             tags=excluded.tags, description=excluded.description, cover=excluded.cover,
@@ -195,6 +208,7 @@ export async function savePost(
       p.description,
       p.cover,
       p.draft,
+      p.pinned_at,
       p.content,
       p.word_count,
       p.reading_time,
@@ -226,6 +240,40 @@ export async function movePost(
   await savePost(post)
 
   return post
+}
+
+export async function setPostPinned(
+  slug: string,
+  pinned: boolean
+): Promise<Post | null> {
+  const db = requireDb()
+  await ensureTable(db)
+  const clean = safeSlug(slug)
+  const existing = await getPostBySlug(clean, true)
+  if (!existing) return null
+
+  await db.execute({
+    sql: `UPDATE posts SET pinned_at = ?, updated_at = datetime('now') WHERE slug = ?`,
+    args: [pinned ? new Date().toISOString() : null, clean],
+  })
+  return getPostBySlug(clean, true)
+}
+
+export async function getHomepageLatestPosts(
+  excludeSlug: string,
+  limit: number
+): Promise<PostSummary[]> {
+  const db = requireDb()
+  await ensureTable(db)
+  const clean = safeSlug(excludeSlug)
+  const result = await db.execute({
+    sql: `SELECT * FROM posts
+          WHERE draft = 0 AND slug != ?
+          ORDER BY (pinned_at IS NULL) ASC, pinned_at DESC, date DESC
+          LIMIT ?`,
+    args: [clean, limit],
+  })
+  return result.rows.map((row) => toPostSummary(rowToPost(row)))
 }
 
 export async function getAllTags(): Promise<string[]> {

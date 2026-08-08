@@ -1,6 +1,10 @@
 import Link from "next/link"
 import { ArrowRight, FileText } from "lucide-react"
-import { getPublishedPosts, getPublishedCount } from "@zlog/database"
+import {
+  getPublishedPosts,
+  getPublishedCount,
+  getHomepageLatestPosts,
+} from "@zlog/database"
 import { HeroSection } from "@/components/blog/hero-section"
 import { FeaturedPostCard } from "@/components/blog/featured-post-card"
 import { PostCard } from "@/components/blog/post-card"
@@ -11,14 +15,16 @@ import { EmptyState } from "@/components/ui/empty-state"
 const LATEST_GRID_COUNT = 6
 
 export default async function HomePage() {
-  // Only the displayed rows are fetched from the DB (the archive page is
-  // the full-catalog surface); the hero count comes from a cheap COUNT.
-  const [posts, postCount] = await Promise.all([
-    getPublishedPosts(LATEST_GRID_COUNT + 1),
+  // Featured stays newest-by-date; Latest is pin-aware and excludes Featured
+  // so a pinned spotlight post does not appear twice.
+  const [featuredList, postCount] = await Promise.all([
+    getPublishedPosts(1),
     getPublishedCount(),
   ])
-  const [featured, ...rest] = posts
-  const latest = rest.slice(0, LATEST_GRID_COUNT)
+  const featured = featuredList[0]
+  const latest = featured
+    ? await getHomepageLatestPosts(featured.slug, LATEST_GRID_COUNT)
+    : []
 
   return (
     <div className="min-h-[calc(100vh-4rem)]">
@@ -39,7 +45,7 @@ export default async function HomePage() {
           />
         ) : (
           <>
-            {/* Newest post gets the editorial spotlight */}
+            {/* Newest-by-date editorial spotlight (pins do not affect this) */}
             <FeaturedPostCard post={featured} />
 
             {latest.length > 0 && (
@@ -71,7 +77,7 @@ export default async function HomePage() {
                         animationFillMode: "both",
                       }}
                     >
-                      <PostCard post={post} />
+                      <PostCard post={post} showPinBadge />
                     </div>
                   ))}
                 </div>

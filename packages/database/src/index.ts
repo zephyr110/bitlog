@@ -6,6 +6,8 @@ export {
   savePost,
   deletePost,
   movePost,
+  setPostPinned,
+  getHomepageLatestPosts,
   getAllTags,
   getAllCategories,
   getPostsByCategory,

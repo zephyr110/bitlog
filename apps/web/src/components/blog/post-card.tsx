@@ -5,7 +5,7 @@ import { TagBadge } from "@/components/blog/tag-badge"
 import { useT } from "@/components/layout/trans"
 import { type PostSummary } from "@zlog/database"
 import { parseUtcDate } from "@/lib/date"
-import { Calendar } from "lucide-react"
+import { Calendar, ArrowUpToLine } from "lucide-react"
 
 /** Cover-less posts get a deterministic gradient picked from the title —
  *  shared by PostCard and FeaturedPostCard so the same post renders the
@@ -21,7 +21,14 @@ export const gradientPairs = [
   "from-fuchsia-500 to-pink-400",
 ]
 
-export function PostCard({ post }: { post: PostSummary }) {
+export function PostCard({
+  post,
+  showPinBadge = false,
+}: {
+  post: PostSummary
+  /** Homepage Latest grid only — tag/category cards stay badge-free. */
+  showPinBadge?: boolean
+}) {
   const { t } = useT()
   const haveCover = !!post.cover
   const shortDate = t("post.shortDate")(
@@ -56,6 +63,19 @@ export function PostCard({ post }: { post: PostSummary }) {
                 {post.title}
               </span>
             </div>
+          )}
+
+          {showPinBadge && post.pinnedAt && (
+            <span
+              className="pointer-events-none absolute left-0 top-0 z-10 size-10 overflow-hidden rounded-tl-xl"
+              aria-hidden
+            >
+              <span className="absolute left-0 top-0 size-0 border-t-[40px] border-r-[40px] border-t-zinc-900 border-r-transparent dark:border-t-zinc-100" />
+              <ArrowUpToLine
+                className="absolute left-1 top-1 size-3.5 text-white dark:text-zinc-900"
+                strokeWidth={2.5}
+              />
+            </span>
           )}
 
           {/* Reading time badge */}
