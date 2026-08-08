@@ -8,8 +8,10 @@
 
 静态镜像（GitHub Pages）：[zephyr110.github.io](https://zephyr110.github.io)
 
-<img width="1440" height="2064" alt="zephyr110 vercel app_about (2)" src="https://github.com/user-attachments/assets/00d57a80-7806-4532-92ac-e12751966dd8" />
-<img width="1440" height="2064" alt="zephyr110 vercel app_about (1) (1)" src="https://github.com/user-attachments/assets/954808c2-c12e-47eb-85b5-8023a65791fc" />
+![home_dark](https://cdn.jsdelivr.net/gh/zephyr110/blog-img/1786200907995-zephyr110.vercel.app___4_.png)
+![home_light](https://cdn.jsdelivr.net/gh/zephyr110/blog-img/1786200944045-zephyr110.vercel.app___2_.png)
+![admin_dark](https://cdn.jsdelivr.net/gh/zephyr110/blog-img/1786200907995-zephyr110.vercel.app___4_.png)
+![admin_light](https://cdn.jsdelivr.net/gh/zephyr110/blog-img/1786200967284-zephyr110.vercel.app___3_.png)
 
 ## 功能模块
 
