@@ -1,8 +1,7 @@
 /* Shared rehype pipeline for article content — the ONE place that
    encodes plugin order. Consumed by the public post page (MDXRenderer,
-   server-side via next-mdx-remote) and the admin editor preview
-   (react-markdown MarkdownHooks, client-side), so both surfaces render
-   identically.
+   next-mdx-remote/rsc) and the admin editor preview (serialize +
+   MDXRemote on the client), so both surfaces render identically.
 
    Order matters: rehypeMermaidBlock must run BEFORE rehype-pretty-code
    (it empties mermaid pres, which pretty-code would otherwise treat as

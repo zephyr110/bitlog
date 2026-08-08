@@ -76,10 +76,18 @@ export function parseVideoEmbed(href: string): VideoEmbed | null {
   return null
 }
 
-/** Canonical iframe src — never forwards start times. */
-export function videoEmbedSrc(embed: VideoEmbed): string {
+/**
+ * Canonical iframe src — never forwards start times.
+ * Pass `autoplay: true` only after an explicit user gesture (click-to-play);
+ * default stays off so an eager iframe cannot start sound on scroll-in.
+ */
+export function videoEmbedSrc(
+  embed: VideoEmbed,
+  opts: { autoplay?: boolean } = {}
+): string {
+  const autoplay = opts.autoplay ? 1 : 0
   if (embed.provider === "bilibili") {
-    return `https://player.bilibili.com/player.html?bvid=${encodeURIComponent(embed.id)}&autoplay=0`
+    return `https://player.bilibili.com/player.html?bvid=${encodeURIComponent(embed.id)}&autoplay=${autoplay}`
   }
-  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(embed.id)}`
+  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(embed.id)}?autoplay=${autoplay}`
 }

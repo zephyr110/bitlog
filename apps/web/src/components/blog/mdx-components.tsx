@@ -2,8 +2,8 @@
 
    Single source of truth for how article content renders (headings,
    paragraphs, links, images, blockquotes, code blocks, tables…), used by:
-   - the public post page's MDXRenderer (next-mdx-remote, server-side)
-   - the admin post editor's preview (react-markdown MarkdownHooks, client)
+   - the public post page's MDXRenderer (next-mdx-remote/rsc)
+   - the admin post editor's preview (next-mdx-remote serialize + MDXRemote)
 
    Keeping one map means the editor preview stays visually faithful to the
    published post. */
@@ -14,11 +14,13 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react"
+import { ChevronRight } from "lucide-react"
 import { CodeBlock } from "@/components/blog/code-block"
 import { HeadingLink } from "@/components/blog/heading-link"
 import { Mermaid } from "@/components/blog/mermaid"
 import { VideoEmbed } from "@/components/blog/video-embed"
 import { parseVideoEmbed } from "@/lib/video-embed"
+import { cn } from "@/lib/utils"
 
 function childText(node: ReactNode): string {
   return Children.toArray(node)
@@ -232,6 +234,44 @@ export const mdxComponents = {
   // Horizontal rule
   hr: (props: React.HTMLAttributes<HTMLHRElement>) => (
     <hr className="my-10 border-t border-dashed border-border/80" {...props} />
+  ),
+
+  // Collapsible blocks (`<details>/<summary>` in MDX) — same chrome on
+  // public posts and admin preview; native open/close interaction.
+  details: ({
+    children,
+    className,
+    ...props
+  }: React.DetailsHTMLAttributes<HTMLDetailsElement>) => (
+    <details
+      className={cn(
+        "group my-6 rounded-xl border border-border/60 bg-muted/20 px-4 py-1 open:pb-4",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </details>
+  ),
+  summary: ({
+    children,
+    className,
+    ...props
+  }: React.HTMLAttributes<HTMLElement>) => (
+    <summary
+      className={cn(
+        "flex cursor-pointer list-none items-center gap-2 py-3 font-medium text-foreground select-none",
+        "marker:content-none [&::-webkit-details-marker]:hidden",
+        className
+      )}
+      {...props}
+    >
+      <ChevronRight
+        className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90"
+        aria-hidden
+      />
+      <span className="min-w-0 flex-1">{children}</span>
+    </summary>
   ),
 
   // Unordered list

@@ -3,11 +3,10 @@
 import { Component, type ReactNode } from "react"
 
 /**
- * MarkdownHooks throws render-time errors (e.g. a highlight failure) —
- * without a boundary that would unmount the whole editor. The resetKey
- * (the deferred content) clears the error on the next keystroke so the
- * preview retries, without remounting the pipeline (a remount would flash
- * the fallback on every keypress).
+ * MDXRemote / highlight failures throw at render time — without a
+ * boundary that would unmount the whole editor. The resetKey (the
+ * deferred content) clears the error on the next keystroke so the
+ * preview retries, without remounting on every keypress.
  */
 export class PreviewErrorBoundary extends Component<
   { resetKey: string; fallback: ReactNode; children: ReactNode },

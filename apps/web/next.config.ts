@@ -27,7 +27,14 @@ const nextConfig: NextConfig = {
   // and watch their REAL paths (previously the watcher could silently
   // detach from them — changes to packages/database went unnoticed until
   // the dev server was restarted).
-  transpilePackages: ["@zlog/database", "@zlog/core", "@zlog/auth"],
+  // next-mdx-remote: needed for Turbopack when the admin preview runs
+  // serialize() + MDXRemote on the client (see HashiCorp docs).
+  transpilePackages: [
+    "@zlog/database",
+    "@zlog/core",
+    "@zlog/auth",
+    "next-mdx-remote",
+  ],
   // sharp ships a native .node binary — keep it as a runtime require in
   // serverless (Vercel) builds instead of bundling it into the server
   // chunks, where the platform binary can fail to load and every
