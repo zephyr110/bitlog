@@ -8,6 +8,7 @@ import {
   getPostBySlug,
   deletePost,
   movePost,
+  setPostPinned,
   slugify,
 } from "@zlog/database"
 import { computeReadingStats } from "@zlog/database"
@@ -94,6 +95,7 @@ export async function POST(request: NextRequest) {
     description: body.description || "",
     cover: body.cover || undefined,
     draft: body.draft ?? true,
+    pinnedAt: null,
     content,
     wordCount: stats.wordCount,
     readingTime: stats.readingTime,
@@ -186,7 +188,7 @@ export async function DELETE(request: NextRequest) {
   return NextResponse.json({ success: true })
 }
 
-// PATCH /api/posts?slug=xxx — publish / unpublish
+// PATCH /api/posts?slug=xxx — publish / unpublish and/or pin / unpin
 export async function PATCH(request: NextRequest) {
   const user = await requireAuth(request)
   if (!user) {
@@ -205,19 +207,36 @@ export async function PATCH(request: NextRequest) {
   }
 
   const parseResult = z
-    .object({ draft: z.boolean() })
+    .object({
+      draft: z.boolean().optional(),
+      pinned: z.boolean().optional(),
+    })
+    .refine((b) => b.draft !== undefined || b.pinned !== undefined, {
+      message: "draft or pinned is required",
+    })
     .safeParse(await request.json())
   if (!parseResult.success) {
     return NextResponse.json(
-      { error: "draft (boolean) is required" },
+      { error: parseResult.error.issues[0]?.message || "Invalid input" },
       { status: 400 }
     )
   }
 
-  const toDraft = parseResult.data.draft
-  const updatedPost = await movePost(slug, toDraft)
-  if (!updatedPost) {
-    return NextResponse.json({ error: "Post not found" }, { status: 404 })
+  const { draft, pinned } = parseResult.data
+  let updatedPost: Post | null = existingPost
+
+  if (draft !== undefined) {
+    updatedPost = await movePost(slug, draft)
+    if (!updatedPost) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 })
+    }
+  }
+
+  if (pinned !== undefined) {
+    updatedPost = await setPostPinned(slug, pinned)
+    if (!updatedPost) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 })
+    }
   }
 
   return NextResponse.json({ post: updatedPost })

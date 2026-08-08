@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Ellipsis, Search, FileText, SquarePen, Eye, Globe, FilePen, Trash2 } from "lucide-react"
+import { Ellipsis, Search, FileText, SquarePen, Eye, Globe, FilePen, Trash2, Pin } from "lucide-react"
 import { TableSkeleton } from "@/components/ui/loading"
 import { Skeleton } from "@/components/ui/skeleton"
 import { HeaderActions } from "@/components/admin/header-actions"
@@ -172,6 +172,44 @@ function AdminPostsContent() {
         )
         toast.success(
           currentDraft ? (t("admin.publishSuccess")) : (t("admin.unpublishSuccess"))
+        )
+      } else {
+        toast.error(t("admin.updateFailed"))
+      }
+    } catch {
+      toast.error(t("admin.networkError"))
+    }
+  }
+
+  async function handleTogglePin(slug: string, pinnedAt: string | null) {
+    const nextPinned = !pinnedAt
+    try {
+      const res = await apiFetch(
+        `/api/posts?slug=${encodeURIComponent(slug)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pinned: nextPinned }),
+        }
+      )
+      if (res.ok) {
+        const data = (await res.json()) as {
+          post?: { pinnedAt: string | null }
+        }
+        setPosts(
+          posts.map((p) =>
+            p.slug === slug
+              ? {
+                  ...p,
+                  pinnedAt:
+                    data.post?.pinnedAt ??
+                    (nextPinned ? new Date().toISOString() : null),
+                }
+              : p
+          )
+        )
+        toast.success(
+          nextPinned ? t("admin.pinSuccess") : t("admin.unpinSuccess")
         )
       } else {
         toast.error(t("admin.updateFailed"))
@@ -406,6 +444,16 @@ function AdminPostsContent() {
                             >
                               {post.draft ? <Globe /> : <FilePen />}
                               {post.draft ? (t("admin.publish")) : (t("admin.unpublish"))}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleTogglePin(post.slug, post.pinnedAt)
+                              }
+                            >
+                              <Pin />
+                              {post.pinnedAt
+                                ? t("admin.unpin")
+                                : t("admin.pin")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
