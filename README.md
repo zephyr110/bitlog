@@ -1,18 +1,21 @@
 # Zlog
 
-A minimal, fast, and bilingual personal blog with a local admin CMS. Built with [Next.js](https://nextjs.org) 16 (App Router), [Tailwind CSS](https://tailwindcss.com) 4, [shadcn/ui](https://ui.shadcn.com), [MDX](https://mdxjs.com), and [Turso](https://turso.tech) (libSQL). Deploys as a fully static site.
+English | [简体中文](./README.zh-CN.md)
 
-Live: [zephyr110.vercel.app](https://zephyr110.vercel.app)
+A minimal, fast, and bilingual personal blog with a local admin CMS. Built with [Next.js](https://nextjs.org) 16 (App Router), [Tailwind CSS](https://tailwindcss.com) 4, [shadcn/ui](https://ui.shadcn.com), [MDX](https://mdxjs.com), and [Turso](https://turso.tech) (libSQL). One codebase, two deployment targets — both read posts from the same Turso database.
 
-Static mirror: [zephyr110.github.io](https://zephyr110.github.io)
+Live (Vercel): [zephyr110.vercel.app](https://zephyr110.vercel.app)
+
+Static mirror (GitHub Pages): [zephyr110.github.io](https://zephyr110.github.io)
 
 <img width="1440" height="2064" alt="zephyr110 vercel app_about (2)" src="https://github.com/user-attachments/assets/00d57a80-7806-4532-92ac-e12751966dd8" />
 <img width="1440" height="2064" alt="zephyr110 vercel app_about (1) (1)" src="https://github.com/user-attachments/assets/954808c2-c12e-47eb-85b5-8023a65791fc" />
 
 ## Features
 
-- **Static blog** — pre-rendered pages for performance and SEO; sitemap, RSS, and Open Graph built in
-- **Local admin CMS** — write, edit, publish, and delete posts from `/admin`
+- **Two deploy targets** — Vercel (SSR + admin) and GitHub Pages (static export); Turso is the single data source
+- **Blog pages** — sitemap, RSS, and Open Graph built in
+- **Admin CMS** — write, edit, publish, and delete posts from `/admin` (Vercel / local `pnpm dev`)
 - **Hardened auth** — bcrypt (cost 12) + JWT, login-failure lockout, recovery key
 - **Media library** — auto WebP compression, Turso storage + GitHub/jsdelivr CDN dual-write
 - **Custom logo & favicon** — upload your own logo in Site Settings; the favicon follows it automatically
@@ -25,12 +28,44 @@ pnpm workspace monorepo:
 
 | Package | Role |
 |---------|------|
-| `apps/web` | Next.js app — static blog pages + client-side admin panel |
+| `apps/web` | Next.js app — blog pages + admin panel |
 | `packages/database` | Turso (libSQL) access — posts, media, settings, users, auth lockout |
 | `packages/auth` | Credential verification, JWT sessions, login lockout |
 | `packages/core` | Shared domain logic — MDX utilities, types |
 
-The blog renders fully statically (`output: export`); CI deploys it to GitHub Pages on every push to `main`. The admin CMS runs locally with `pnpm dev` (API routes are excluded from static exports). On Vercel the same codebase serves the admin CMS server-side.
+## Deployment
+
+Both targets share one Turso database. They differ in **when** posts are read and whether the admin API is available.
+
+### 1. Vercel (SSR + admin)
+
+Full Next.js server deployment. Blog pages and `/api/*` run as Server Components / Route Handlers and query Turso **on each request** (CDN `s-maxage=60`). `/admin` works in production.
+
+| | |
+|---|---|
+| Build | `pnpm build` |
+| Data | Request-time from Turso |
+| Content updates | Publish in `/admin` → live within ~60s; **no redeploy** for posts |
+| Code updates | Push `main` → Vercel rebuilds the app |
+| Secrets | Vercel Environment Variables (`TURSO_*`, `SESSION_SECRET`, …) |
+
+Setup: import the repo → Root Directory `apps/web` → Build Command `pnpm build` → set env vars. Do **not** use `pnpm export` on Vercel (that drops SSR and admin).
+
+### 2. GitHub Pages (static export)
+
+CI runs `pnpm export` (`NEXT_EXPORT=true`), queries Turso **at build time**, and publishes pure HTML/CSS/JS from `apps/web/out`. No `/api` or `/admin` on the static host.
+
+| | |
+|---|---|
+| Build | `pnpm export` via `.github/workflows/deploy.yml` |
+| Data | Build-time snapshot from Turso |
+| Content updates | Only after the next Actions run |
+| Code / content refresh | Push `main` (or `workflow_dispatch`) → Actions rebuilds |
+| Secrets | GitHub Actions Secrets (`TURSO_*`, `GH_PAT`) |
+
+Writing happens on local `pnpm dev` or on the Vercel `/admin`; the Pages site is a static mirror refreshed by CI.
+
+See the [deployment guide](https://zephyr110.vercel.app/posts/zlog-deployment-guide) for diagrams and checklists.
 
 ## Getting Started
 
@@ -54,13 +89,12 @@ Create or reset the admin user without env vars:
 pnpm create-admin --username admin --password "your-password"
 ```
 
-### Build & deploy
+### Build commands
 
 ```bash
-pnpm export      # static export to apps/web/out
+pnpm build       # Vercel / Node — SSR + admin
+pnpm export      # static export to apps/web/out (GitHub Pages)
 ```
-
-Push to `main` → GitHub Actions builds and deploys to GitHub Pages automatically. For Vercel/Node hosting, use `pnpm build` instead — the admin CMS then runs server-side. See the [deployment guide](https://zephyr110.vercel.app/posts/zlog-deployment-guide) for step-by-step instructions.
 
 ## License
 

@@ -1,18 +1,21 @@
 # Zlog
 
-一个简约、快速、双语的个人博客，带本地后台管理系统。基于 [Next.js](https://nextjs.org) 16 (App Router)、[Tailwind CSS](https://tailwindcss.com) 4、[shadcn/ui](https://ui.shadcn.com)、[MDX](https://mdxjs.com) 和 [Turso](https://turso.tech) (libSQL) 构建，部署为纯静态站点。
+[English](./README.md) | 简体中文
 
-线上体验：[zephyr110.vercel.app](https://zephyr110.vercel.app)
+一个简约、快速、双语的个人博客，带本地后台管理系统。基于 [Next.js](https://nextjs.org) 16 (App Router)、[Tailwind CSS](https://tailwindcss.com) 4、[shadcn/ui](https://ui.shadcn.com)、[MDX](https://mdxjs.com) 和 [Turso](https://turso.tech) (libSQL) 构建。同一份代码、两个部署目标——文章都读同一个 Turso 库。
 
-静态镜像：[zephyr110.github.io](https://zephyr110.github.io)
+线上体验（Vercel）：[zephyr110.vercel.app](https://zephyr110.vercel.app)
+
+静态镜像（GitHub Pages）：[zephyr110.github.io](https://zephyr110.github.io)
 
 <img width="1440" height="2064" alt="zephyr110 vercel app_about (2)" src="https://github.com/user-attachments/assets/00d57a80-7806-4532-92ac-e12751966dd8" />
 <img width="1440" height="2064" alt="zephyr110 vercel app_about (1) (1)" src="https://github.com/user-attachments/assets/954808c2-c12e-47eb-85b5-8023a65791fc" />
 
 ## 功能模块
 
-- **静态博客** — 预渲染页面，性能与 SEO 兼顾；内置 sitemap、RSS、Open Graph
-- **本地后台** — 在 `/admin` 撰写、编辑、发布、删除文章
+- **两种部署目标** — Vercel（SSR + 后台）与 GitHub Pages（静态导出）；数据统一来自 Turso
+- **博客页面** — 内置 sitemap、RSS、Open Graph
+- **后台 CMS** — 在 `/admin` 撰写、编辑、发布、删除文章（Vercel / 本地 `pnpm dev`）
 - **认证安全** — bcrypt (cost 12) + JWT，登录失败锁定、恢复密钥
 - **媒体库** — 自动 WebP 压缩，Turso 存储 + GitHub/jsdelivr CDN 双写
 - **自定义 Logo 与 Favicon** — 在站点设置中上传自己的 Logo，Favicon 自动跟随
@@ -25,12 +28,44 @@ pnpm monorepo：
 
 | 包 | 职责 |
 |----|------|
-| `apps/web` | Next.js 应用 — 静态博客页面 + 客户端后台面板 |
+| `apps/web` | Next.js 应用 — 博客页面 + 后台面板 |
 | `packages/database` | Turso (libSQL) 数据访问 — 文章、媒体、设置、用户、认证锁定 |
 | `packages/auth` | 凭据校验、JWT 会话、登录锁定 |
 | `packages/core` | 共享领域逻辑 — MDX 工具、类型 |
 
-博客页面完全静态生成（`output: export`），每次推送到 `main` 由 CI 自动部署到 GitHub Pages。后台 CMS 通过 `pnpm dev` 在本地运行（静态导出不包含 API 路由）。在 Vercel 上，同一份代码以服务端方式运行后台 CMS。
+## 部署方式
+
+两个目标共用同一个 Turso 库，差别在于**何时**读文章，以及是否提供后台 API。
+
+### 1. Vercel（SSR + 后台）
+
+完整的 Next.js 服务端部署。博客页面与 `/api/*` 以 Server Components / Route Handlers 运行，**每次请求**（CDN `s-maxage=60`）查询 Turso。生产环境可使用 `/admin`。
+
+| | |
+|---|---|
+| 构建 | `pnpm build` |
+| 数据 | 请求时从 Turso 读取 |
+| 内容更新 | `/admin` 发布后约 60 秒内可见，**不必为发文 Redeploy** |
+| 代码更新 | push `main` → Vercel 重建应用 |
+| 凭据 | Vercel Environment Variables（`TURSO_*`、`SESSION_SECRET` 等） |
+
+配置：导入仓库 → Root Directory 设为 `apps/web` → Build Command 用 `pnpm build` → 填写环境变量。**不要**在 Vercel 上跑 `pnpm export`（会丢掉 SSR 与后台）。
+
+### 2. GitHub Pages（静态导出）
+
+CI 执行 `pnpm export`（`NEXT_EXPORT=true`），在**构建时**查询 Turso，把 `apps/web/out` 里的纯静态 HTML/CSS/JS 发布出去。静态站上没有 `/api` 与 `/admin`。
+
+| | |
+|---|---|
+| 构建 | `.github/workflows/deploy.yml` 中的 `pnpm export` |
+| 数据 | 构建时从 Turso 固化进 HTML |
+| 内容更新 | 仅在下一次 Actions 构建后生效 |
+| 刷新触发 | push `main`（或手动 `workflow_dispatch`）→ Actions 重建 |
+| 凭据 | GitHub Actions Secrets（`TURSO_*`、`GH_PAT`） |
+
+写作请用本地 `pnpm dev` 或 Vercel 上的 `/admin`；Pages 是由 CI 刷新的静态镜像。
+
+详细图示与清单见[部署指南](https://zephyr110.vercel.app/posts/zlog-deployment-guide)。
 
 ## Getting Started
 
@@ -54,13 +89,12 @@ pnpm dev          # 博客 :3000，后台 /admin/login
 pnpm create-admin --username admin --password "your-password"
 ```
 
-### 构建与部署
+### 构建命令
 
 ```bash
-pnpm export      # 静态导出到 apps/web/out
+pnpm build       # Vercel / Node — SSR + 后台
+pnpm export      # 静态导出到 apps/web/out（GitHub Pages）
 ```
-
-推送 `main` 分支 → GitHub Actions 自动构建并部署到 GitHub Pages。Vercel/Node 托管改用 `pnpm build` —— 后台 CMS 可在服务端运行。详细步骤请参考[部署指南](https://zephyr110.vercel.app/posts/zlog-deployment-guide)。
 
 ## License
 
