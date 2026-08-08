@@ -8,9 +8,46 @@
    Keeping one map means the editor preview stays visually faithful to the
    published post. */
 
+import {
+  Children,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+} from "react"
 import { CodeBlock } from "@/components/blog/code-block"
 import { HeadingLink } from "@/components/blog/heading-link"
 import { Mermaid } from "@/components/blog/mermaid"
+import { VideoEmbed } from "@/components/blog/video-embed"
+import { parseVideoEmbed } from "@/lib/video-embed"
+
+function childText(node: ReactNode): string {
+  return Children.toArray(node)
+    .map((c) => {
+      if (typeof c === "string" || typeof c === "number") return String(c)
+      if (isValidElement<{ children?: ReactNode }>(c)) {
+        return childText(c.props.children)
+      }
+      return ""
+    })
+    .join("")
+}
+
+/** Paragraph that is only a Bilibili/YouTube link → embed instead of <p>. */
+function standaloneVideoFromChildren(children: ReactNode) {
+  const meaningful = Children.toArray(children).filter((child) => {
+    if (typeof child === "string") return child.trim().length > 0
+    return true
+  })
+  if (meaningful.length !== 1) return null
+  const only = meaningful[0]
+  if (!isValidElement(only)) return null
+  const href = (only.props as { href?: string }).href
+  if (!href) return null
+  const parsed = parseVideoEmbed(href)
+  if (!parsed) return null
+  const title = childText((only as ReactElement<{ children?: ReactNode }>).props.children)
+  return { ...parsed, title: title || undefined }
+}
 
 export const mdxComponents = {
   // Headings with anchor links
@@ -30,12 +67,26 @@ export const mdxComponents = {
     </HeadingLink>
   ),
 
-  // Paragraphs
-  p: ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className="my-5 leading-7 text-foreground/90" {...props}>
-      {children}
-    </p>
-  ),
+  // Paragraphs — a sole Bilibili/YouTube link becomes a block embed
+  // (never nest the iframe inside <p>).
+  p: ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => {
+    const video = standaloneVideoFromChildren(children)
+    if (video) {
+      return (
+        <VideoEmbed
+          provider={video.provider}
+          id={video.id}
+          title={video.title}
+        />
+      )
+    }
+    return (
+      <p className="my-5 leading-7 text-foreground/90" {...props}>
+        {children}
+      </p>
+    )
+  },
+
 
   // Links - external opens in new tab
   a: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
