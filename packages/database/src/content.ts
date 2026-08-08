@@ -187,13 +187,16 @@ export async function savePost(
   }
 
   const p = toParams(post)
+  // pinned_at is written on INSERT only. Updates must not touch it — pin /
+  // unpin goes through setPostPinned, and editor/auto-save RMW must not
+  // clobber a newer pin with a stale null from a prior read.
   await db.execute({
     sql: `INSERT INTO posts (slug, title, date, updated, tags, description, cover, draft, pinned_at, content, word_count, reading_time)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(slug) DO UPDATE SET
             title=excluded.title, date=excluded.date, updated=excluded.updated,
             tags=excluded.tags, description=excluded.description, cover=excluded.cover,
-            draft=excluded.draft, pinned_at=excluded.pinned_at, content=excluded.content,
+            draft=excluded.draft, content=excluded.content,
             word_count=excluded.word_count, reading_time=excluded.reading_time,
             updated_at=datetime('now')`,
     args: [

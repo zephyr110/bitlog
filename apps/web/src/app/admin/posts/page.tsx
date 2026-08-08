@@ -165,8 +165,8 @@ function AdminPostsContent() {
       )
 
       if (res.ok) {
-        setPosts(
-          posts.map((p) =>
+        setPosts((prev) =>
+          prev.map((p) =>
             p.slug === slug ? { ...p, draft: !currentDraft } : p
           )
         )
@@ -196,8 +196,8 @@ function AdminPostsContent() {
         const data = (await res.json()) as {
           post?: { pinnedAt: string | null }
         }
-        setPosts(
-          posts.map((p) =>
+        setPosts((prev) =>
+          prev.map((p) =>
             p.slug === slug
               ? {
                   ...p,
