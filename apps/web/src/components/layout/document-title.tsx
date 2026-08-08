@@ -55,8 +55,9 @@ function pageTitleFromPath(
   const exact = TITLE_KEYS[pathname]
   if (exact) return t(exact) as string
 
-  if (pathname.startsWith("/category/")) {
-    const name = pathname.slice("/category/".length).split("/")[0]
+  if (pathname.startsWith("/topics/") || pathname.startsWith("/category/")) {
+    const prefix = pathname.startsWith("/topics/") ? "/topics/" : "/category/"
+    const name = pathname.slice(prefix.length).split("/")[0]
     const meta = categoryMeta[name as CategoryKey]
     if (meta) return t(meta.i18nKey) as string
     return undefined

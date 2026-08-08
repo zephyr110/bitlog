@@ -73,19 +73,33 @@ export function CardSkeleton({ count = 4 }: { count?: number }) {
   )
 }
 
+/** Admin posts table skeleton — mirrors title / status / pin / date /
+ *  tags / actions columns and the sticky header chrome. */
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="rounded-xl border bg-card">
-      <div className="p-4 border-b">
-        <Skeleton className="h-4 w-48" />
+    <div className="min-h-0 flex-1 overflow-hidden rounded-xl border bg-card">
+      {/* Header row — title ~32%, status/date wider, tags take the rest */}
+      <div className="flex items-center gap-4 border-b px-4 py-3">
+        <Skeleton className="h-3.5 w-[32%] min-w-0 shrink-0" />
+        <Skeleton className="h-3.5 w-36 shrink-0" />
+        <Skeleton className="h-3.5 w-12 shrink-0" />
+        <Skeleton className="h-3.5 w-36 shrink-0" />
+        <Skeleton className="h-3.5 min-w-0 flex-1" />
+        <Skeleton className="h-3.5 w-24 shrink-0" />
       </div>
       <div className="divide-y">
         {Array.from({ length: rows }).map((_, i) => (
-          <div key={i} className="flex items-center gap-4 p-4">
-            <Skeleton className="h-4 flex-1" />
-            <Skeleton className="h-5 w-16 rounded-full" />
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-8 w-8 rounded-lg ml-auto" />
+          <div key={i} className="flex items-center gap-4 px-4 py-3.5">
+            <Skeleton className="h-4 w-[32%] min-w-0 shrink-0" />
+            <Skeleton className="h-5 w-24 shrink-0 rounded-full" />
+            <Skeleton className="size-3.5 shrink-0 rounded-sm" />
+            <Skeleton className="h-4 w-28 shrink-0" />
+            <div className="flex min-w-0 flex-1 gap-1">
+              <Skeleton className="h-5 w-16 rounded-md" />
+              <Skeleton className="h-5 w-14 rounded-md" />
+              <Skeleton className="h-5 w-12 rounded-md" />
+            </div>
+            <Skeleton className="size-8 shrink-0 rounded-lg" />
           </div>
         ))}
       </div>

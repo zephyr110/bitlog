@@ -53,7 +53,7 @@ export function Header({ categories }: { categories: NavCategory[] }) {
 
   const atHome = pathname === "/"
   const atAbout = pathname === "/about"
-  const atCategory = pathname?.startsWith("/category/")
+  const atTopics = pathname?.startsWith("/topics/")
 
   return (
     <>
@@ -65,43 +65,43 @@ export function Header({ categories }: { categories: NavCategory[] }) {
             : "border-transparent bg-background"
         )}
       >
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          {/* Logo */}
+        <div className="container mx-auto flex h-14 items-center justify-between gap-4 px-4 md:h-16">
+          {/* Brand lockup — sized like lucide.dev nav (36px mark, 21px name). */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 text-base tracking-tight hover:opacity-85 transition-opacity shrink-0"
+            className="group flex shrink-0 items-center gap-2 transition-opacity hover:opacity-80"
           >
             <SiteLogo
               src={logoSrc}
               invertInDark={site.logoInvertInDark ?? true}
-              className="size-10"
+              className="size-9 rounded-md"
               chip
             />
-            <span className="hidden font-black text-lg sm:inline">{site.name}</span>
+            <span className="hidden text-[21px] font-semibold leading-6 text-foreground sm:inline">
+              {site.name}
+            </span>
           </Link>
 
-          {/* Right: 首页 · 分类 · 归档 · 关于 · | · 搜索 · 主题 · 语言 · GitHub · ☰ */}
-          <div className="flex items-center gap-1">
-
-            {/* ── Text links with polished active/hover states ── */}
+          {/* Nav + tools — links first, then a quieter tool cluster */}
+          <div className="flex items-center gap-0.5">
 
             {/* 首页 */}
             <NavLink href="/" active={atHome}>
               {t("site.home")}
             </NavLink>
 
-            {/* 分类 — premium dropdown */}
+            {/* Topics dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger
                 className={cn(
-                  "relative hidden md:flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer outline-none",
-                  atCategory
-                    ? "text-foreground bg-muted/60"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                  "relative hidden cursor-pointer items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-medium outline-none transition-all duration-200 md:flex",
+                  atTopics
+                    ? "bg-muted/60 text-foreground"
+                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
                 )}
               >
                 <span>{t("site.topics")}</span>
-                <ChevronDown aria-hidden className="size-3 opacity-50" />
+                <ChevronDown aria-hidden className="size-3.5 opacity-45" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" sideOffset={12} className="w-64 p-2">
                 {categories.length === 0 ? (
@@ -113,11 +113,11 @@ export function Header({ categories }: { categories: NavCategory[] }) {
                     const meta = categoryMeta[cat.key as keyof typeof categoryMeta]
                     if (!meta) return null
                     const Icon = meta.icon
-                    const active = pathname === `/category/${encodeURIComponent(cat.key)}`
+                    const active = pathname === `/topics/${encodeURIComponent(cat.key)}`
                     return (
                       <DropdownMenuItem
                         key={cat.key}
-                        onClick={() => router.push(`/category/${encodeURIComponent(cat.key)}`)}
+                        onClick={() => router.push(`/topics/${encodeURIComponent(cat.key)}`)}
                         className={cn(
                           "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors",
                           active && "bg-primary/5"
@@ -159,27 +159,26 @@ export function Header({ categories }: { categories: NavCategory[] }) {
               {t("site.about")}
             </NavLink>
 
-            {/* Separator */}
-            <span className="mx-2 h-4 w-px bg-border/60 hidden md:block" aria-hidden="true" />
+            {/* Soft divider between navigation and utility tools */}
+            <span
+              className="mx-1.5 hidden h-3.5 w-px bg-border/70 md:block"
+              aria-hidden="true"
+            />
 
-            {/* Search — a tool, grouped with the icon buttons rather
-                than the nav links */}
+            {/* Tools — search + icon controls */}
             <SearchInput />
-
-            {/* Icon buttons */}
             <ThemeToggle />
             <LanguageSwitcher />
 
-            {/* GitHub — hidden on small screens to leave room for the
-                hamburger; reachable from the footer / mobile nav */}
+            {/* GitHub — hidden on small screens; footer / mobile nav cover it */}
             <a
               href={githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center justify-center size-9 rounded-lg hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground"
+              className="hidden size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground sm:inline-flex"
               aria-label="GitHub"
             >
-              <GithubIcon size={18} />
+              <GithubIcon size={17} />
             </a>
 
             {/* Mobile menu toggle */}
@@ -207,21 +206,21 @@ export function Header({ categories }: { categories: NavCategory[] }) {
   )
 }
 
-/** Polished nav link with hover background and active dot */
+/** Nav link — weight aligned with the brand wordmark; quiet active state. */
 function NavLink({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
   return (
     <Link
       href={href}
       className={cn(
-        "relative hidden md:flex items-center px-2.5 py-1.5 text-sm font-medium rounded-md transition-all duration-200",
+        "relative hidden items-center rounded-md px-2.5 py-1.5 text-sm font-medium transition-all duration-200 md:flex",
         active
-          ? "text-foreground bg-muted/60"
-          : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+          ? "bg-muted/60 text-foreground"
+          : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
       )}
     >
       {children}
       {active && (
-        <span className="absolute -bottom-px left-2 right-2 h-[1.5px] rounded-full bg-primary/70" />
+        <span className="absolute inset-x-2.5 -bottom-px h-px rounded-full bg-foreground/50" />
       )}
     </Link>
   )

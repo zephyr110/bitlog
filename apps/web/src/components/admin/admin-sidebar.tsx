@@ -110,15 +110,15 @@ export function AdminSidebar({ collapsed, onToggle, user }: AdminSidebarProps) {
           collapsed ? "justify-center px-2" : "px-3"
         )}
       >
-        <Link href="/admin/dashboard" className="flex min-w-0 items-center gap-2.5">
+        <Link href="/admin/dashboard" className="flex min-w-0 items-center gap-2">
           <SiteLogo
             src={logoSrc}
             invertInDark={site.logoInvertInDark ?? true}
-            className="size-8 shrink-0"
+            className="size-9 shrink-0 rounded-md"
             chip
           />
           {!collapsed && (
-            <span className="truncate text-base font-semibold tracking-tight">
+            <span className="truncate text-[21px] font-semibold leading-6">
               {site.name}
             </span>
           )}

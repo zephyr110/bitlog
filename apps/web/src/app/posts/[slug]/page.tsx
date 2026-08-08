@@ -91,7 +91,11 @@ export default async function PostPage({ params }: PostPageProps) {
       <article className="min-h-screen">
         {/* Hero Header */}
         <header className="relative overflow-hidden border-b bg-gradient-to-b from-muted/40 via-muted/20 to-background">
-          <HeroGlow className="top-20 size-80" />
+          {/* Login-style top glow only when there is no cover — covers
+              already fill the hero, so a second wash would muddy them. */}
+          {!post.cover && (
+            <HeroGlow className="h-52 md:h-64 opacity-[0.14] dark:opacity-20" />
+          )}
           {post.cover && (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}

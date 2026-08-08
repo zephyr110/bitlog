@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton"
+import { PageHeaderSkeleton } from "@/components/layout/page-header-skeleton"
 
 /** Skeleton mirroring ArchiveFeed: toolbar row, year-nav pill, then a
  *  year heading + dense list rows. Exported so archive/page.tsx can use
@@ -52,9 +53,8 @@ export function ArchiveFeedSkeleton() {
 export default function ArchiveLoading() {
   return (
     <div className="min-h-[calc(100vh-4rem)]">
+      <PageHeaderSkeleton />
       <div className="container mx-auto max-w-5xl px-4 py-8 md:py-12 2xl:max-w-7xl">
-        {/* The PageHeader renders outside the Suspense boundary, so it is
-            already visible — only the feed area needs a skeleton. */}
         <ArchiveFeedSkeleton />
       </div>
     </div>

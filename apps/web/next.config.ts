@@ -9,7 +9,19 @@ const nextConfig: NextConfig = {
         output: "export" as const,
         images: { unoptimized: true },
       }
-    : {}),
+    : {
+        // Server/Vercel only — static export cannot emit redirects, so
+        // apps/web/src/app/category/[name]/page.tsx handles that path.
+        async redirects() {
+          return [
+            {
+              source: "/category/:name",
+              destination: "/topics/:name",
+              permanent: true,
+            },
+          ]
+        },
+      }),
   // Monorepo hardening: pnpm links the @zlog/* workspace packages into
   // node_modules as symlinks. transpilePackages makes Turbopack compile
   // and watch their REAL paths (previously the watcher could silently

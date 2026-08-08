@@ -1,164 +1,20 @@
-import { notFound } from "next/navigation"
-import { type Metadata } from "next"
-import Link from "next/link"
-import { getPostsByCategory, getAllTags } from "@zlog/database"
-import { PostCard } from "@/components/blog/post-card"
-import { Container } from "@/components/ui/container"
-import { Trans } from "@/components/layout/trans"
-import { defaultLocale, t } from "@/lib/i18n"
-import { categoryMeta, categoryKeys, type CategoryKey } from "@/lib/categories"
-import { EmptyState } from "@/components/ui/empty-state"
+import { permanentRedirect } from "next/navigation"
+import { categoryKeys } from "@/lib/categories"
 
-interface CategoryPageProps {
+interface LegacyCategoryPageProps {
   params: Promise<{ name: string }>
 }
 
-const knownCategories = categoryKeys as unknown as string[]
-
-export async function generateStaticParams() {
-  return knownCategories.map((name) => ({ name }))
+/** Permanent move: /category/* → /topics/*. Kept so old links and the
+ *  static export still resolve known topic keys. Uses permanentRedirect
+ *  (308 / instant meta-refresh on export) to match next.config + vercel.json. */
+export function generateStaticParams() {
+  return categoryKeys.map((name) => ({ name }))
 }
 
-export async function generateMetadata({
+export default async function LegacyCategoryRedirect({
   params,
-}: CategoryPageProps): Promise<Metadata> {
+}: LegacyCategoryPageProps) {
   const { name } = await params
-  const meta = categoryMeta[name as CategoryKey]
-  if (!meta) return { title: t(defaultLocale, "site.notFound") as string }
-  return { title: t(defaultLocale, meta.i18nKey) as string, description: meta.desc }
-}
-
-export default async function CategoryPage({ params }: CategoryPageProps) {
-  const { name } = await params
-  const meta = categoryMeta[name as CategoryKey]
-  if (!meta) notFound()
-
-  const [posts, allTags] = await Promise.all([
-    getPostsByCategory(name),
-    getAllTags(),
-  ])
-
-  const subTags = allTags
-    .filter((t) => t.startsWith(name + "-"))
-    .sort()
-  const Icon = meta.icon
-
-  return (
-    <div className="min-h-[calc(100vh-4rem)]">
-      <section className="relative border-b bg-muted/10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] to-transparent" />
-        <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl 2xl:max-w-7xl relative">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-              <Link href="/" className="hover:text-foreground transition-colors">
-                <Trans k="site.home" />
-              </Link>
-              <span className="opacity-40">/</span>
-              <span className="text-foreground font-medium">
-                <Trans k={meta.i18nKey} />
-              </span>
-            </nav>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Icon size={24} />
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                  <Trans k={meta.i18nKey} />
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1">{meta.desc}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-4">
-              <span>
-                <Trans k="site.postsCount" args={[posts.length]} />
-              </span>
-              {subTags.length > 0 && (
-                <span>
-                  <Trans k="category.tagsCount" args={[subTags.length]} />
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <Container size="sm" className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {knownCategories.map((c) => {
-            const cm = categoryMeta[c as CategoryKey]
-            if (!cm) return null
-            const isActive = c === name
-            return (
-              <Link
-                key={c}
-                href={`/category/${encodeURIComponent(c)}`}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
-                  isActive
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/10"
-                    : "bg-card text-muted-foreground hover:text-foreground hover:border-primary/25 hover:bg-primary/[0.04]"
-                }`}
-              >
-                <Trans k={cm.i18nKey} />
-              </Link>
-            )
-          })}
-        </div>
-
-        {subTags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] text-muted-foreground/60 mr-1">
-              <Trans k="category.tagsLabel" />
-            </span>
-            {subTags.map((st) => {
-              const short = st.slice(name.length + 1)
-              return (
-                <Link
-                  key={st}
-                  href={`/tags/${encodeURIComponent(st)}`}
-                  className="inline-flex items-center px-2 py-0.5 rounded-md bg-muted/50 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-mono"
-                >
-                  {short}
-                </Link>
-              )
-            })}
-          </div>
-        )}
-      </Container>
-
-      <Container className="pb-16">
-        {posts.length === 0 ? (
-          <EmptyState
-            size="lg"
-            titleAs="h2"
-            icon={<Icon size={28} className="text-muted-foreground/50" />}
-            iconClassName="size-16 mb-4"
-            titleClassName="text-xl"
-            title={<Trans k="category.empty" />}
-            description={
-              <span className="text-sm max-w-sm inline-block">
-                <Trans k="category.emptyDesc" />
-              </span>
-            }
-          />
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map((post, index) => (
-              <div
-                key={post.slug}
-                className="animate-in fade-in slide-in-from-bottom-4"
-                style={{
-                  animationDuration: "500ms",
-                  animationDelay: `${index * 80}ms`,
-                  animationFillMode: "both",
-                }}
-              >
-                <PostCard post={post} />
-              </div>
-            ))}
-          </div>
-        )}
-      </Container>
-    </div>
-  )
+  permanentRedirect(`/topics/${name}`)
 }

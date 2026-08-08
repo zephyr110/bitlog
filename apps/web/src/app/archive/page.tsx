@@ -23,8 +23,11 @@ export default async function ArchivePage() {
   return (
     <div className="min-h-[calc(100vh-4rem)]">
       <PageHeader
-        breadcrumb={[{ href: "/", label: <Trans k="site.home" /> }]}
-        icon={<Archive size={22} className="text-primary" />}
+        breadcrumb={[
+          { href: "/", label: <Trans k="site.home" /> },
+          { href: "/archive", label: <Trans k="archive.title" /> },
+        ]}
+        icon={<Archive size={22} />}
         title={<Trans k="archive.title" />}
         description={<Trans k="archive.total" args={[posts.length]} />}
       />

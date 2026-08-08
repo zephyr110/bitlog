@@ -7,8 +7,16 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  /* System UI stacks — SF / PingFang on Apple, Segoe on Windows, etc.
+     Avoids shipping a webfont and the previous circular --font-sans bug. */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -57,8 +65,8 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
-  /* Login page top-glow beam — a bright, airy amber on the light theme
-     (high lightness, low chroma so it reads as warm light, not dirt). */
+  /* Top elliptical glow (login + page headers) — bright airy amber on
+     light (high lightness, low chroma so it reads as warm light). */
   --login-glow: oklch(0.96 0.05 97);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -95,7 +103,7 @@
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
-  /* Login page top-glow beam — clean white on the dark theme. */
+  /* Top elliptical glow (login + page headers) — clean white on dark. */
   --login-glow: oklch(1 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -132,6 +140,11 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+  }
+  /* Native <button> / role=button — match the Button component's pointer. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
   }
 
   /* Cloudflare Turnstile mounts a widget div with this vendor-fixed id;
@@ -200,7 +213,7 @@
   .code-block > code {
     background: transparent !important;
     padding: 0 !important;
-    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     color: #3f3f46;
   }

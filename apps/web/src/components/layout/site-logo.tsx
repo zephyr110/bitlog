@@ -109,7 +109,9 @@ export function SiteLogo({
   return (
     <div
       className={cn(
-        "shrink-0 overflow-hidden rounded-lg bg-muted shadow-sm ring-1 ring-border/60 dark:ring-white/15",
+        // Soft tile — avoid a heavy shadow/ring that makes the mark
+        // dominate short wordmarks in the navbar lockup.
+        "shrink-0 overflow-hidden rounded-md bg-muted ring-1 ring-border/50 dark:ring-white/10",
         className
       )}
     >

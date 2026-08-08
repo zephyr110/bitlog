@@ -70,7 +70,7 @@ export function PostCard({
               className="pointer-events-none absolute left-0 top-0 z-10 size-10 overflow-hidden rounded-tl-xl"
               aria-hidden
             >
-              <span className="absolute left-0 top-0 size-0 border-t-[40px] border-r-[40px] border-t-zinc-900 border-r-transparent dark:border-t-zinc-100" />
+              <span className="absolute left-0 top-0 size-0 border-t-[40px] border-r-[40px] border-t-zinc-600 border-r-transparent dark:border-t-zinc-100" />
               <ArrowUpToLine
                 className="absolute left-1 top-1 size-3.5 text-white dark:text-zinc-900"
                 strokeWidth={2.5}

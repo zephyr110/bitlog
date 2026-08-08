@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
 import { Toaster } from "@/components/ui/sonner"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -15,16 +14,6 @@ import { unstable_cache } from "next/cache"
 import { Analytics } from "@vercel/analytics/next"
 import { categoryKeys } from "@/lib/categories"
 import "./globals.css"
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-})
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-})
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSiteConfig()
@@ -107,7 +96,7 @@ export default async function RootLayout({
   return (
     <html
       lang={defaultLocale}
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
       // globals.css sets `scroll-behavior: smooth` on <html>; Next.js 16
       // requires this explicit opt-in to keep smooth scrolling across
       // route transitions (otherwise it warns and forces instant jumps).

@@ -119,11 +119,11 @@ export function MobileNav({
                       return (
                         <Link
                           key={cat.key}
-                          href={`/category/${encodeURIComponent(cat.key)}`}
+                          href={`/topics/${encodeURIComponent(cat.key)}`}
                           onClick={onClose}
                           className={cn(
                             "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
-                            pathname === `/category/${encodeURIComponent(cat.key)}`
+                            pathname === `/topics/${encodeURIComponent(cat.key)}`
                               ? "bg-primary/10 text-primary"
                               : "text-muted-foreground hover:text-foreground hover:bg-muted"
                           )}

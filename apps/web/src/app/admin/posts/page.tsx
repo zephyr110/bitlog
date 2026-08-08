@@ -220,12 +220,11 @@ function AdminPostsContent() {
   }
 
   if (loading) {
-    // Mirrors the loaded layout: the filter row (status tabs, tag
-    // select, search) above the table. Same root classes so the table
-    // skeleton fills the flex column like the real one.
+    // Mirrors the loaded layout: filter row + table columns
+    // (title / status / pin / date / tags / actions).
     return (
       <div className="flex min-h-0 flex-1 flex-col gap-6">
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
           <Skeleton className="h-9 w-44 rounded-lg" />
           <Skeleton className="h-9 w-44 rounded-lg" />
           <Skeleton className="h-9 max-w-sm flex-1 rounded-lg" />
@@ -346,33 +345,45 @@ function AdminPostsContent() {
               the sticky thead pins against THAT scrollport, since the
               inner container is its nearest scrolling ancestor. */}
           <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border bg-card">
-            <Table containerClassName="max-h-full overflow-y-auto">
+            <Table
+              className="table-fixed"
+              containerClassName="max-h-full overflow-y-auto"
+            >
               <TableHeader className="sticky top-0 z-10 bg-card">
                 <TableRow>
-                  <TableHead>{t("admin.title")}</TableHead>
-                  <TableHead>{t("admin.status")}</TableHead>
-                  <TableHead>{t("admin.date")}</TableHead>
-                  <TableHead>{t("admin.tags")}</TableHead>
-                  <TableHead className="text-right">{t("admin.actions")}</TableHead>
+                  <TableHead className="w-[32%] min-w-0">
+                    {t("admin.title")}
+                  </TableHead>
+                  <TableHead className="w-36">{t("admin.status")}</TableHead>
+                  <TableHead className="w-16 text-center">
+                    {t("admin.pin")}
+                  </TableHead>
+                  <TableHead className="w-36">{t("admin.date")}</TableHead>
+                  <TableHead className="min-w-0">
+                    {t("admin.tags")}
+                  </TableHead>
+                  <TableHead className="w-24 text-right">
+                    {t("admin.actions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedPosts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="py-16 text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="py-16 text-center text-muted-foreground">
                       {t("admin.noMatchSearch")}
                     </TableCell>
                   </TableRow>
                 ) : (
                   paginatedPosts.map((post) => (
                     <TableRow key={post.slug}>
-                      <TableCell className="font-medium">
+                      <TableCell className="min-w-0 font-medium">
                         <Link
                           href={`/admin/posts/edit?slug=${encodeURIComponent(
                             post.slug
                           )}`}
                           title={post.title}
-                          className="block max-w-[320px] truncate hover:text-primary transition-colors"
+                          className="block truncate hover:text-primary transition-colors"
                         >
                           {post.title}
                         </Link>
@@ -391,20 +402,42 @@ function AdminPostsContent() {
                             : (t("admin.publishedStatus"))}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground tabular-nums">
+                      <TableCell className="text-center text-muted-foreground">
+                        {post.pinnedAt ? (
+                          <span
+                            title={t("admin.pinned")}
+                            className="inline-flex"
+                          >
+                            <Pin
+                              size={15}
+                              strokeWidth={2}
+                              aria-label={t("admin.pinned")}
+                            />
+                          </span>
+                        ) : (
+                          <span
+                            title={t("admin.notPinned")}
+                            className="inline-flex opacity-35"
+                            aria-label={t("admin.notPinned")}
+                          >
+                            —
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground tabular-nums whitespace-nowrap">
                         {/* UTC dates — format in UTC so every admin sees
                             the authored date, not the previous day. */}
                         {new Date(post.date).toLocaleDateString(undefined, {
                           timeZone: "UTC",
                         })}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="min-w-0">
                         <div className="flex flex-wrap gap-1">
                           {post.tags.slice(0, 3).map((tag) => (
                             <Badge
                               key={tag}
                               variant="outline"
-                              className="text-xs font-normal"
+                              className="max-w-full truncate text-xs font-normal"
                             >
                               {tag}
                             </Badge>
@@ -424,7 +457,10 @@ function AdminPostsContent() {
                           >
                             <Ellipsis size={16} />
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="min-w-36">
+                          <DropdownMenuContent
+                            align="end"
+                            className="min-w-36 whitespace-nowrap"
+                          >
                             <DropdownMenuItem
                               onClick={() =>
                                 router.push(
@@ -517,7 +553,12 @@ export default function AdminPostsPage() {
   return (
     <Suspense
       fallback={
-        <div className="space-y-6">
+        <div className="flex min-h-0 flex-1 flex-col gap-6">
+          <div className="flex shrink-0 flex-wrap items-center gap-3">
+            <Skeleton className="h-9 w-44 rounded-lg" />
+            <Skeleton className="h-9 w-44 rounded-lg" />
+            <Skeleton className="h-9 max-w-sm flex-1 rounded-lg" />
+          </div>
           <TableSkeleton rows={5} />
         </div>
       }
