@@ -21,7 +21,14 @@ export const gradientPairs = [
   "from-fuchsia-500 to-pink-400",
 ]
 
-export function PostCard({ post }: { post: PostSummary }) {
+export function PostCard({
+  post,
+  showPinBadge = false,
+}: {
+  post: PostSummary
+  /** Homepage Latest grid only — tag/category cards stay badge-free. */
+  showPinBadge?: boolean
+}) {
   const { t } = useT()
   const haveCover = !!post.cover
   const shortDate = t("post.shortDate")(
@@ -58,7 +65,7 @@ export function PostCard({ post }: { post: PostSummary }) {
             </div>
           )}
 
-          {post.pinnedAt && (
+          {showPinBadge && post.pinnedAt && (
             <span
               className="pointer-events-none absolute left-0 top-0 z-10 size-10 overflow-hidden rounded-tl-xl"
               aria-hidden

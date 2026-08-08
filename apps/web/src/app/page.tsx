@@ -77,7 +77,7 @@ export default async function HomePage() {
                         animationFillMode: "both",
                       }}
                     >
-                      <PostCard post={post} />
+                      <PostCard post={post} showPinBadge />
                     </div>
                   ))}
                 </div>
