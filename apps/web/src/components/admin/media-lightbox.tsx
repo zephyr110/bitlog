@@ -27,8 +27,9 @@ interface MediaLightboxProps {
  *
  * Renders via portal on top of everything (no Dialog chrome — no max-width
  * caps, no double close buttons). The image is sized by its long edge to
- * ~90% of the viewport; the action bar sits at the bottom with the file
- * name, copy URL / copy MD / download / delete.
+ * ~90% of the viewport; the file name sits top-left (opposite the close
+ * control), and the action bar at the bottom holds copy URL / copy MD /
+ * download / delete.
  *
  * Closes on ESC or clicking the backdrop.
  */
@@ -99,6 +100,15 @@ export function MediaLightbox({
       className="fixed inset-0 z-50 flex flex-col bg-black/85 backdrop-blur-sm"
       onClick={onClose}
     >
+      {/* Filename — top-left; leave room for the close control */}
+      <p
+        className="absolute top-4 left-4 z-10 max-w-[min(70vw,28rem)] truncate text-sm font-medium text-white/90"
+        onClick={(e) => e.stopPropagation()}
+        title={file.name}
+      >
+        {file.name}
+      </p>
+
       {/* Close — the only one; top-right */}
       <button
         type="button"
@@ -135,12 +145,9 @@ export function MediaLightbox({
 
       {/* Bottom action bar */}
       <div
-        className="absolute bottom-0 inset-x-0 flex items-center gap-2 px-4 py-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent"
+        className="absolute bottom-0 inset-x-0 flex items-center justify-end gap-2 px-4 py-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="min-w-0 flex-1 truncate text-sm text-white/90 font-medium pr-2">
-          {file.name}
-        </p>
         <button
           type="button"
           onClick={() => onCopyUrl(file.url)}
